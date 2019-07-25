@@ -1,0 +1,10 @@
+---
+layout: page
+title: Simulacrum
+---
+
+<i class="fa fa-code"></i> **tl;dr: Simulacrum is an attempt to re-charge the structure of the data generated from academia and it's publication.** See the whitepaper <a href="Simulacrum.pdf"> here</a>
+
+![](/static/simulacrum.png)
+
+Negative data is very difficult to publish and often just remains in lab notebooks where it is of no use. We understand now, more so the importance of releasing as much data as possible when we hear about scientific papers being retracted because of misconduct or that the results produced were not replicable. In addition to that, this is even more critical for clinical trials for new drugs where almost all of the positive data is presented however only a fraction of the negative results are made available, even if the negative results show that the new drug is nearly as effective as placebo. For doctors who follow the studies, they are misled in prescribing those new drugs to patients where they might have harmful side-effects or worse yet no effects at all. This is our first-attempt to incentivize massive research outputs with Simulacum 1.0. Our goal with this platform is to create a sustainable incentive for researchers and scientists to release as much data as possible through known and functional channels and make it publicly available.We will be using Figshare as our data repository simply because it was created to help disseminate research data and it does so very well. Using a strong data-backend like Figshare has numerous advantages in that we will not have to create our own backend, it’s easy to use and many researchers either already use it or are familiar with it. The ideal goal for our platform is to augment peer review and make the studies independently replicated by providing more data from the experiments conducted.

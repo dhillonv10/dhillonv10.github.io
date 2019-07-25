@@ -1,39 +1,28 @@
-<footer>
-    {% include paginate.html %}
-    {% include suggestion.html %}
-    {% if page.url == "/about" or paginator.total_pages == 1 or page.url == "/404" %}
-        <div class="container" style="text-align: center; margin-bottom: 20px">
-            <a target="_blank" class="button" href="https://twitter.com/{{ site.twitter_username }}">
-                Follow me on twitter
-            </a>
-        </div>
-    {% endif %}
-    <hr />
-    <div class="user-footer">
-        <div class="copyright alignable pull-left">
-            {% if site.copyright %}
-                <h2> &copy;{{ site.copyright }}</h2>
-            {% else %}
-                <h2> &copy;{{ site.title }}</h2>
-            {% endif %}
-        </div>
-        <div class="alignable pull-right">
-            <a target="_blank" href="https://twitter.com/{{ site.twitter_username }}" class="button">
-                @{{ site.twitter_username }}
-            </a>
-            <a href="mailto:{{ site.email }}" class="button">
-                mail
-            </a>
-            <a target="_blank" href="{{ site.url }}{{ site.baseurl }}/feed.xml" class="button">
-                rss
-            </a>
-        </div>
-    </div>
-    <div style="clear:both"></div>
-    <hr />
-    <div class="theme-footer">
-        <p class="alignable pull-left" style="display: inline-block">
-            Built with <a href="http://jekyllrb.com/" class="different-highlight underline">Jekyll</a> and <a href="http://ankitsultana.com/accent/" class="different-highlight underline">accent</a>
-        </p>
-    </div>
-</footer>
+<script>
+  window.ALGOLIA_CONFIG = {
+    'applicationId': '{{ site.algolia.application_id }}',
+    'indexName': '{{ site.algolia.index_name }}',
+    'apiKey': '{{ site.algolia.read_only_api_key }}',
+    'baseurl': '{{ site.baseurl }}'
+  }
+</script>
+<script id="algolia__template" type="text/template">
+{% raw %}
+  <div class="algolia__result">
+    <a class="algolia__result-link" href="{{ full_url }}#algolia:{{ css_selector }}">{{{ _highlightResult.title.value }}}</a>
+    {{#posted_at}}
+    <div class="algolia__result-date">{{ posted_at_readable }}</div>
+    {{/posted_at}}
+    <div class="algolia__result-text">{{{ _highlightResult.text.value }}}</div>
+  </div>
+{% endraw %}
+</script>
+<script id="algolia__template--no-results" type="text/template">
+  No results found.
+</script>
+<script src="//cdn.jsdelivr.net/jquery/2.1.4/jquery.min.js"></script>
+<script src="//cdn.jsdelivr.net/algoliasearch/3.6.0/algoliasearch.min.js"></script>
+<script src="//cdn.jsdelivr.net/algoliasearch.helper/2.1.0/algoliasearch.helper.min.js"></script>
+<script src="//cdn.jsdelivr.net/hogan.js/3.0.2/hogan.min.js"></script>
+<script src="//cdn.jsdelivr.net/momentjs/2.10.3/moment.min.js"></script>
+<script src="{{ site.baseurl }}/public/js/algolia.js"></script>

@@ -1,0 +1,17 @@
+---
+layout: post
+title: Market Convergence
+comments: True
+permalink: market-convergence
+---
+
+**Tesla entering a new market of power backup systems** 
+
+R<ecently, we saw Tesla launch yet another amazing product, but it was not a new car, or even an improvement on an earlier model. It was a beautifully designed home battery system called [PowerWall](http://www.teslamotors.com/powerwall). This perplexed many people including myself, why would Tesla start dedicating resources to something that might be an accessory to their primary market? The answer is not very clear but Tesla's strategy can be understood in terms of adjacent markets and market convergence.
+
+<blockquote class="twitter-tweet" lang="en"><p lang="en" dir="ltr">Major new Tesla product line -- not a car -- will be unveiled at our Hawthorne Design Studio on Thurs 8pm, April 30</p>&mdash; Elon Musk (@elonmusk) <a href="https://twitter.com/elonmusk/status/582581865682350080">March 30, 2015</a></blockquote> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+ 
+ 
+Some background first, Tesla was able to launch PowerWall at this stage, mostly because of a strong customer base and solid revenues. It's a publically traded company which also helps but most importantly, Tesla is a fortress by now. Ben Horowitz talks about helping companies go public once he is sure that the company has turned into a stronghold. This comes down to the core business of Tesla - By now, the company has strong partnerships, revenue streams, established distribution channels and a validated cost-structure. Another source of credibility is that Elon Musk (@elonmusk) is also the chairman of SolarCity which deals with solar power and installations. 
+
+Over the past few years, Tesla has figured out and validated a core business model that works. Roughly speaking, the folks at Tesla have a really good handle on their core operations and what is needed to be sustainable. Now they can continue innovating on the business side. For any new products created by the company, they can push them out through a pipeline that reaches the same channels that their core business model uses. In this manner, they leverage their existing infrastructure to keep bringing new products to market. But with PowerWall, there is something more interesting at play. Think back to the iPod, Apple was entering a fairly well established smartphone market. They used their existent iPod user base and created a pipeline to push the iPhone through those same channels to reach their music user base. The users already had a working device that they liked a lot, so eventually when the iPhone came out, they were happy to upgrade to a new device. This led to a market convergence event - It is hard to imagine today that phones and music (MP3) players were different products and markets. Apple changed this by leveraging their user base and now Tesla wants to do the same with electric cars and home energy. Today Apple continues to innovate on their phones and we have come so far as a society because of similar convergence events. The biggest advantage of a convergence event is that of nearly bulletproof protection against imitation from other products. Your core business is scaling and you have a strong customer base, even if a competitor just imitates the product, they are not a fortress - And this will always leave them behind in dust.

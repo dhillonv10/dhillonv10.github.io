@@ -1,0 +1,20 @@
+---
+layout: post
+title: Productive workflow
+comments: True
+permalink: productive-workflow 
+---
+
+**Stop thinking, start doing.**
+
+I have seen a lot of friends go through this cycle, it generally starts with them thinking about doing a small task or a project and then they spend too much time on just the thinking phase.. The action doesn't happen until it's either really late or in some cases not at all because they move on to doing better things. Other priorities come in the way and they never get this small task done. This is especially true in the case of doing projects that are complex: They often require a lot of planning and the planning only increases anxiety. Experts warn that we often get stuck in this loop, where the planning brings anxiety and anxiety only begets more planning. The actual task never gets done at all. So what can you do about it? Well, one way to look at the situation is do what Nike always says:
+
+![](/static/just-do-it.jpg)
+
+[David Cain](http://www.raptitude.com/2015/03/how-to-get-yourself-to-do-things) points out that the moment you start acting is the beginning of the end of that anxiety. This generally correlates with not planning out every little detail but only going with a higher level overview and expecting that at different checkpoints, unexpected interruptions might occur. Often this later part gets associated with poor planning but that's not generally the case as you will see shortly. I call it the principle of **productive workflow** The basic idea is as follows: Reduce the planning to just bare minimum that is required to get you started and jump to action as soon as possible. This ends the counter-productive phase full of anxiety and jumpstarts you into the action phase. The beginning of the action phase is generally accompanied with a initiator action such as opening up the world processor, dialing a number or starting to draw a sketch. More often than not, with small tasks, it is easy to figure out what to plan next in small increments. **Plan for the beginning to action, perform the action and start making progress towards the task and then plan for how to sustain action.** The main focus of a productive workflow should be concrete, incremental and actionable steps. Like most good things in life, it comes with a lot of practice but here are some tips that can make this process more enjoyable and less daunting. 
+
+It comes down to altering your basic approach towards approaching a problem or a new task: We seek instant gratification and with taking small steps, we can realize to ourselves that we are making good progress. This makes the future planning a little bit easier and more pleasant to do too! You can't see a project for what it actually is until you’re doing it. The rising anxiety associated with a particular task comes from a misapprehension of what it will actually be like to do the work. Work itself is made of concrete, small things like phone calls, forms, conversations, reading sessions and writing sessions. The anxiety associated with the work is made of abstract, big-picture emotional concerns, about reputation, legacy, anxiety for the future, self-esteem, comparisons to others — worries about who you are, rather than what you’re doing. Once you enter the productive phase you enter the world of the concrete and finite, putting your related existential despair on the backburner.
+
+![](/static/get-stuff-done.jpg)
+
+It is a common mistake that many of us instill in ourselves which is that if we go into something without much planning, the task will go horribly wrong. The fact of the matter is that things already are going wrong, the only way to make them right is to start working on the task. Too much planning and going into that thinking loop is not only dangerous mentally it could also halter creativity. So try to focus on what is in your own hands: Getting work done.

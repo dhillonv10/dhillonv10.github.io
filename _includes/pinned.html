@@ -1,0 +1,16 @@
+<div class="posts">
+  {% for post in site.categories.pinned %}
+  <div class="post">
+    <h1 class="post-title" style="color:rgb(44, 62, 80)">
+      <i class="fa fa-id-card-o" aria-hidden="true"></i>
+        {{ post.title }}
+    </h1>
+
+    <span style="color:rgb(106, 159, 181)"> I write short pieces on how technology and design influence our society and culture.</span>
+
+    {% include signup.html %}
+  </div>
+  {% endfor %}
+</div>
+
+
