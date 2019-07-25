@@ -1,4 +1,4 @@
-title: Ben Balter
+title: Vikram Dhillon
 description: Attorney, open source developer, product manager
 
 lang: en-US
@@ -14,7 +14,7 @@ footer_pages:
 
 # Disqus login information, for comments
 disqus:
-  shortname: DISQUS_USERNAME
+  shortname: opsbug
 
 # Google Analytics tracking id
 ga_username: UA-xxxxxxxx-x
