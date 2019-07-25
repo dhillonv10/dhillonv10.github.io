@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+script/build
+bundle exec htmlproofer _site \
+  --disable-external \
+  --check-html \
+  --report-missing-names \
+  --report-script-embeds
+bundle exec rubocop -S -D -E
+gem build retlab.gemspec

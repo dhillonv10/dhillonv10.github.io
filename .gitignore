@@ -1,44 +1,20 @@
-# Ignore docs files
-_gh_pages
+.bundle
+.sass-cache
 _site
-.ruby-version
-
-# Numerous always-ignore extensions
-*.diff
-*.err
-*.orig
-*.log
-*.rej
-*.swo
-*.swp
-*.zip
-*.vi
-*~
-
-# OS or Editor folders
-.DS_Store
-._*
-Thumbs.db
-.cache
-.project
-.settings
-.tmproj
-*.esproj
-nbproject
-*.sublime-project
-*.sublime-workspace
-.idea
-
-# Komodo
-*.komodoproject
-.komodotools
-
-# grunt-html-validation
-validation-status.json
-validation-report.json
-
-# Folders to ignore
-node_modules
-
-# Algolia API key
-_algolia_api_key
+Gemfile.lock
+_sass/bootstrap-sass/assets/fonts
+_sass/bootstrap-sass/assets/javascripts
+_sass/bootstrap-sass/assets/images
+_sass/font-awesome/less
+_sass/font-awesome/css
+_sass/font-awesome/src
+_sass/font-awesome/fonts
+_sass/jquery
+*.gem
+assets/vendor/font-awesome/css
+assets/vendor/font-awesome/help
+assets/vendor/font-awesome/less
+assets/vendor/font-awesome/scss
+assets/vendor/font-awesome/*.md
+assets/vendor/font-awesome/*.txt
+assets/vendor/font-awesome/*.json

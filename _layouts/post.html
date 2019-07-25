@@ -1,15 +1,27 @@
 ---
-layout: default2
+layout: default
 ---
 
-{% include em.html %}
+<div class="row">
+  <div class="col-md-10 offset-md-1">
+      <article id="post{{ page.id | replace:"/","-" }}" class="post post{{ page.id | replace:"/","-" }}">
 
-<div class="post">
-  <h1 class="post-title"><i class="fa fa-terminal" style="color:rgb(210, 82, 127)"></i> {{ page.title }}</h1>
-  <meta name="description" content="{{ post.excerpt }}">
-  <span class="post-date"> {% include read_time.html %} </span>
+      <h1 class="display-4"><a href="{{ page.url | relative_url }}">{{ page.title | smartify }}</a></h1>
 
-  {{ content }}
-  
-  {% include signup.html %}
+      <div class="small mb-2">
+        <span class="font-italic">Posted {{ page.date | date: '%B %-d, %Y' }}</span> |
+        <a class="text-muted font-italic" href="{{ site.github.repository_url }}/commits/{{ site.branch }}/{{ page.path }}" target="_blank" rel="noopener">View revision history</a>
+      </div>
+
+      <div class="entrybody">
+        {{ content }}
+      </div>
+
+      {% include mini-bio.html %}
+
+      {% unless page.comments == false %}
+        {% include comments.html %}
+      {% endunless %}
+    </article>
+  </div>
 </div>
