@@ -16,4 +16,4 @@ This is my personal Web site. The opinions expressed herein represent my own, an
   </a>
 </div>
 
-* All original content on opsbug.com is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a> attributable to <a rel="cc:attributionURL" href="{{ site.github.url }}">{{ site.title }}</a>.
+All original content on opsbug.com is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a> attributable to <a rel="cc:attributionURL" href="{{ site.github.url }}">{{ site.title }}</a>.
