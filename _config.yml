@@ -48,6 +48,7 @@ plugins:
   - jekyll-github-metadata
   - jekyll-feed
   - jekyll-include-cache
+  - jekyll-mentions  
 
 exclude:
   - vendor/bundle
@@ -56,3 +57,6 @@ exclude:
   - sass
 
 theme: null
+
+jekyll-mentions:
+  base_url: https://twitter.com
