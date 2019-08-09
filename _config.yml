@@ -1,5 +1,5 @@
 title: Vikram Dhillon
-description: Attorney, open source developer, product manager
+description: Developer, writer, liker of memes 
 
 lang: en-US
 branch: master
@@ -22,11 +22,8 @@ ga_username: UA-xxxxxxxx-x
 # Links to include on the contact page
 contact_links:
   - name: Twitter
-    url: https://twitter.com/BenBalter
+    url: https://twitter.com/opsbug
     icon: twitter
-  - name: Facebook
-    url: https://facebook.com/BenBalter
-    icon: facebook
 
 # Front matter defaults
 defaults:
