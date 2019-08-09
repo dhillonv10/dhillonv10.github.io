@@ -6,7 +6,7 @@
     <div class="float-sm-right pt-1">{% avatar benbalter size=100 %}</div>
   </div>
   <div class="col-sm-8">
-    {{ bio[0] | append:' <a href="URL">More about the author &rarr;</a>' | replace:"URL",about_url | markdownify }}
+    {{ bio[0] | append:' <a href="https://opsbug.com/about.html">More about the author &rarr;</a>' | replace:"URL",about_url | markdownify }}
   </div>
   <div class="col-sm-2 text-center">
     <p class="small">This page is open source. Please {% github_edit_link "help improve it" %}.</p>
