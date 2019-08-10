@@ -60,3 +60,5 @@ theme: null
 
 jekyll-mentions:
   base_url: https://twitter.com   
+
+remote_theme: benbalter/retlab
