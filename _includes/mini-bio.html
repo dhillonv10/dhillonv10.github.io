@@ -1,5 +1,5 @@
 <div class="row border-top border-bottom pt-3">
-  {% assign bio = site.pages | where:"title","About" %}
+  {% assign bio = site.pages | where:"title","about" %}
   {% assign bio = bio[0].content %}
   {% assign about_url = "/about.html" | relative_url %}
   <div class="col-sm-2">
