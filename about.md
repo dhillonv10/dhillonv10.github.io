@@ -1,7 +1,6 @@
 ---
-title: about
-description: Vikram is a fourth year medical student, and live a secret life as a blockchain developer, and occassionally writing about the blockchain. 
+title: about 
 ---
-I'm a fourth-year medical student and live a secret life as a blockchain developer, and occasionally writing about the blockchain. Opsbug is a collection of my thoughts on technology, medicine and how they influence my day to day life, in long-form.  More than anything, I'm using this blog as a way to hold myself accountable and read more often. 
+I'm a fourth-year medical student, living a second life as a blockchain developer and a writer. My goal with this blog is simple: To translate primary scientific literature on advances in *prevention* of cardiovascular disease and metabolic syndromes into more digestible information, and make it accessible to a broader audience. 
 
-Twitter is probably the best way to reach me. Come say hi to me @opsbug
+More than anything, this blog is a writing experiment designed to hold myself accountable and read habitually. Twitter is probably the best way to reach me, Come say hi @opsbug

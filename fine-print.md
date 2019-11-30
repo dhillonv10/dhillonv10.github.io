@@ -9,6 +9,8 @@ description: Opinions = My Own
 
 This is my personal website. The opinions expressed herein represent my own, and not those of any employer, group, or organization.
 
+**Medical disclaimer:** *The information on this site is not intended or implied to be a substitute for professional medical advice, diagnosis or treatment. All content, including text, graphics, images and information, contained on or available through this web site is for general information purposes only. The content of this blog is not intended to be a substitute for professional medical advice, diagnosis, or treatment.*
+
 All original content on opsbug.com is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a> attributable to <a rel="cc:attributionURL" href="{{ site.github.url }}">{{ site.title }}</a>
 
 <div class="text-center mb-3">
