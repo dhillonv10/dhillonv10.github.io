@@ -3,8 +3,6 @@ title: PCSK9 Inhibitors
 description: Today, open-source-inspired collaboration tools are open, linkable, asynchronous, and naturally capture and expose process. Ask yourself if you're working the way you'd like to work, or just the way everyone else does.
 ---
 
-* TOC {:toc}
-
 At GitHub, we have a unique way of working. Some might say it's the future of knowledge work, others might say that we picked up a pair of bolt cutters a few years back, and now [everything looks like the lock on Wolf Blitzer's boat house](https://xkcd.com/801/). In reality, it's probably somewhere in between.
 
 [We use GitHub to build GitHub](http://zachholman.com/talk/how-github-uses-github-to-build-github/). While that's obviously true for developers, and for writing the software that powers GitHub.com, it's less obviously true that we also use GitHub issues, pull requests, and Markdown to manage all sorts of non-code things from internal policies to legal to HR to Sales. Need a contract reviewed? Open an issue. Want to propose a change to our vacation policy? Submit a pull request. After all, [how you work is just as important as what you work on](https://ben.balter.com/2015/09/21/open-source-behind-the-firewall/#how-you-work-is-as-important-as-what-you-work-on), so why not use the best, most modern tools available.
