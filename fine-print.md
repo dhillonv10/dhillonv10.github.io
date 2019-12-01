@@ -11,7 +11,7 @@ This is my personal website. The opinions expressed herein represent my own, and
 
 **Medical disclaimer:** *The information on this site is not intended or implied to be a substitute for professional medical advice, diagnosis or treatment. All content, including text, graphics, images and information, contained on or available through this web site is for general information purposes only.*
 
-All original content on opsbug.com is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial License.</a> attributable to <a rel="cc:attributionURL" href="{{ site.github.url }}">{{ site.title }}</a>
+All original content on opsbug.com is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial License</a> attributable to <a rel="cc:attributionURL" href="{{ site.github.url }}">{{ site.title }}</a>
 
 <div class="text-center mb-3">
   <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">
