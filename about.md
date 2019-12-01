@@ -1,7 +1,7 @@
 ---
 title: about 
 ---
-I'm a fourth-year medical student<sup>TM</sup>, living a second life as a blockchain developer and a writer. My goal with this blog is simple: To translate primary scientific literature on longevity and anti-aging research into more digestible knowledge, and make it accessible to a broader audience. 
+I'm a fourth-year med student<sup>TM</sup>, living a second life as a blockchain developer and a writer. My goal with this blog is simple: To translate primary scientific literature on longevity and anti-aging research into more digestible knowledge, and make it accessible to a broader audience. 
 
 I will mostly be writing in long-form on advances in *prevention*of cardiovascular disease, immunotherapy, and genetics.
 
