@@ -9,8 +9,13 @@
     <link href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}" rel="stylesheet" media="screen">
     <link rel="preconnect" href="//www.google-analytics.com">
 
-    {% feed_meta %}
-    {% seo %}
+    <title>
+      {% if page.title == "Home" %}
+        {{ site.heading }} &mdash; {{ site.tagline }}
+      {% else %}
+        {{ page.title }} &mdash; {{ site.heading }}
+      {% endif %}
+    </title>
 
     {% if site.ga_username %}
     <script>

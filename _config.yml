@@ -1,4 +1,6 @@
 title: Vikram D.
+tagline: 'Strong Opinions, Weakly Held.'
+heading: OpsBug
 description: Writer, blockchain dev, med student
 
 lang: en-US
@@ -48,7 +50,7 @@ plugins:
   - jekyll-github-metadata
   - jekyll-feed
   - jekyll-include-cache
-  - jekyll-mentions  
+  - jekyll-mentions
 
 exclude:
   - vendor/bundle
@@ -59,6 +61,6 @@ exclude:
 theme: null
 
 jekyll-mentions:
-  base_url: https://twitter.com   
+  base_url: https://twitter.com
 
 remote_theme: benbalter/retlab
