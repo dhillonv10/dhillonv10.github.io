@@ -19,7 +19,7 @@ disqus:
   shortname: opsbug
 
 # Google Analytics tracking id
-ga_username: UA-xxxxxxxx-x
+ga_username: UA-51452705-11
 
 # Links to include on the contact page
 contact_links:
