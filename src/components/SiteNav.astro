@@ -1,0 +1,44 @@
+---
+import type { CollectionEntry } from "astro:content";
+import getUniqueTags from "@utils/getUniqueTags";
+
+export interface Props {
+  active?: "home" | "posts" | "tags" | "about" | "search";
+  posts: CollectionEntry<"blog">[];
+}
+
+const { active, posts } = Astro.props;
+const tags = getUniqueTags(posts).slice(0, 12);
+const links = [
+  { id: "home", href: "/", label: "Home" },
+  { id: "posts", href: "/posts/", label: "All Posts" },
+  { id: "tags", href: "/tags/", label: "Tags" },
+  { id: "search", href: "/search/", label: "Search" },
+  { id: "about", href: "/about/", label: "About" },
+];
+---
+
+<aside class="lw-sidebar" aria-label="Site navigation">
+  <nav>
+    {
+      links.map(l => (
+        <a href={l.href} class={active === l.id ? "active" : ""}>
+          {l.label}
+        </a>
+      ))
+    }
+    <a href="/rss.xml">Subscribe (RSS)</a>
+  </nav>
+  {
+    tags.length > 0 && (
+      <>
+        <h4>Topics</h4>
+        <nav>
+          {tags.map(({ tag, tagName }) => (
+            <a href={`/tags/${tag}/`}>{tagName}</a>
+          ))}
+        </nav>
+      </>
+    )
+  }
+</aside>

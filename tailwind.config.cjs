@@ -55,6 +55,15 @@ module.exports = {
       },
       fontFamily: {
         mono: ["IBM Plex Mono", "monospace"],
+        serif: ['"Source Serif 4"', "Georgia", "serif"],
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"Segoe UI"',
+          "Helvetica",
+          "Arial",
+          "sans-serif",
+        ],
       },
 
       typography: {
