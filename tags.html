@@ -1,0 +1,14 @@
+---
+layout: page
+title: Tags
+description: All the tags used in posts.
+permalink: /tags/
+nav: tags
+---
+{% assign all_tags = site.tags | sort %}
+{% for t in all_tags %}
+<h2 id="{{ t[0] | slugify }}">{{ t[0] }}</h2>
+<ul>
+  {% for post in t[1] %}<li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>{% endfor %}
+</ul>
+{% endfor %}

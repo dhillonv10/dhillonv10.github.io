@@ -1,0 +1,11 @@
+---
+layout: default
+---
+<div class="lw-shell">
+  {% include sidebar.html active=page.nav %}
+  <main id="main-content" class="lw-post">
+    <h1 class="lw-post-title">{{ page.title }}</h1>
+    {% if page.description %}<p class="lw-intro">{{ page.description }}</p>{% endif %}
+    <div class="lw-post-body">{{ content }}</div>
+  </main>
+</div>

@@ -1,0 +1,11 @@
+{% assign p = include.post %}
+{% assign minutes = p.content | number_of_words | divided_by: 225 | plus: 1 %}
+<li class="lw-item">
+  <div class="lw-score" title="Estimated reading time"><strong>{{ minutes }}</strong><span>min</span></div>
+  <a class="lw-item-title" href="{{ p.url | relative_url }}">{{ p.title }}</a>
+  <span class="lw-item-meta">{{ p.author | default: site.author }} · <time class="js-age" datetime="{{ p.date | date_to_xmlschema }}">{{ p.date | date: "%b %-d, %Y" }}</time></span>
+  <div class="lw-item-sub">
+    {% for tag in p.tags %}<a class="lw-chip" href="{{ '/tags/' | relative_url }}#{{ tag | slugify }}">{{ tag }}</a>{% endfor %}
+    {{ p.description }}
+  </div>
+</li>

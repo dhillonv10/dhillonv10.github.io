@@ -1,0 +1,36 @@
+---
+layout: default
+---
+{% assign minutes = content | number_of_words | divided_by: 225 | plus: 1 %}
+<div class="lw-shell lw-shell--post">
+  <aside class="lw-sidebar" aria-label="Table of contents">
+    <a href="#top" class="lw-toc-title">{{ page.title }}</a>
+    <nav class="lw-toc" id="lw-toc"></nav>
+  </aside>
+
+  <main id="main-content" class="lw-post">
+    <span id="top"></span>
+    <ul class="lw-post-tags">
+      {% for tag in page.tags %}
+      <li><a class="lw-chip" href="{{ '/tags/' | relative_url }}#{{ tag | slugify }}">{{ tag }}</a></li>
+      {% endfor %}
+    </ul>
+    <h1 class="lw-post-title">{{ page.title }}</h1>
+    <div class="lw-byline">
+      <b>{{ page.author | default: site.author }}</b>
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%B %-d, %Y" }}</time>
+      {% if page.last_modified_at %}<span>Updated {{ page.last_modified_at | date: "%b %-d, %Y" }}</span>{% endif %}
+      <span>{{ minutes }} min read</span>
+      <a href="#comments">Comments</a>
+    </div>
+
+    <article id="article" class="lw-post-body">{{ content }}</article>
+
+    <section id="comments" class="lw-comments">
+      <h2>Comments</h2>
+      {% include comments.html %}
+    </section>
+  </main>
+
+  <aside class="lw-margin" id="lw-margin" aria-label="Margin notes"></aside>
+</div>

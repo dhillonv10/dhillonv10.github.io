@@ -1,0 +1,20 @@
+{% comment %} Left site navigation. Pass active="home|posts|tags|search|about". {% endcomment %}
+<aside class="lw-sidebar" aria-label="Site navigation">
+  <nav>
+    <a href="{{ '/' | relative_url }}"{% if include.active == 'home' %} class="active"{% endif %}>Home</a>
+    <a href="{{ '/posts/' | relative_url }}"{% if include.active == 'posts' %} class="active"{% endif %}>All Posts</a>
+    <a href="{{ '/tags/' | relative_url }}"{% if include.active == 'tags' %} class="active"{% endif %}>Tags</a>
+    <a href="{{ '/search/' | relative_url }}"{% if include.active == 'search' %} class="active"{% endif %}>Search</a>
+    <a href="{{ '/about/' | relative_url }}"{% if include.active == 'about' %} class="active"{% endif %}>About</a>
+    <a href="{{ '/feed.xml' | relative_url }}">Subscribe (RSS)</a>
+  </nav>
+  {% assign all_tags = site.tags | sort %}
+  {% if all_tags.size > 0 %}
+  <h4>Topics</h4>
+  <nav>
+    {% for t in all_tags limit: 12 %}
+    <a href="{{ '/tags/' | relative_url }}#{{ t[0] | slugify }}">{{ t[0] }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+</aside>

@@ -1,0 +1,27 @@
+---
+layout: default
+---
+{% assign recent = site.posts | slice: 0, 20 %}
+{% assign featured = site.posts | where: "featured", true %}
+<div class="lw-shell">
+  {% include sidebar.html active="home" %}
+  <main id="main-content" class="lw-feed">
+    <p class="lw-intro">Notes and essays by {{ site.author }}. {{ site.description }}.</p>
+
+    <div class="lw-tabs" role="tablist">
+      <button class="lw-tab" role="tab" data-feed="recent" aria-selected="true">Recent</button>
+      {% if featured.size > 0 %}<button class="lw-tab" role="tab" data-feed="featured" aria-selected="false">Featured</button>{% endif %}
+    </div>
+
+    <ul class="lw-list" data-feed-list="recent">
+      {% for post in recent %}{% include post-item.html post=post %}{% endfor %}
+    </ul>
+    {% if featured.size > 0 %}
+    <ul class="lw-list" data-feed-list="featured" hidden>
+      {% for post in featured %}{% include post-item.html post=post %}{% endfor %}
+    </ul>
+    {% endif %}
+
+    <a class="lw-more" href="{{ '/posts/' | relative_url }}">All posts →</a>
+  </main>
+</div>
