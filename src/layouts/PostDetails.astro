@@ -2,12 +2,13 @@
 import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import Tag from "@components/Tag.astro";
-import Datetime from "@components/Datetime";
+import Comments from "@components/Comments.astro";
+import readingTime from "@utils/readingTime";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import ShareLinks from "@components/ShareLinks.astro";
 import { SITE } from "@config";
+import "@styles/lw.css";
 
 export interface Props {
   post: CollectionEntry<"blog">;
@@ -26,7 +27,8 @@ const {
   tags,
 } = post.data;
 
-const { Content } = await post.render();
+const { Content, headings } = await post.render();
+const minutes = readingTime(post.body);
 
 const ogImageUrl = typeof ogImage === "string" ? ogImage : ogImage?.src;
 const ogUrl = new URL(
@@ -49,67 +51,98 @@ const layoutProps = {
 <Layout {...layoutProps}>
   <Header />
 
-  <!-- <div class="progress-container fixed top-0 z-10 h-1 w-full bg-skin-fill">
-    <div class="progress-bar h-1 w-0 bg-skin-accent" id="myBar"></div>
-  </div> -->
+  <div class="lw-shell lw-shell--post">
+    <aside class="lw-sidebar" aria-label="Table of contents">
+      <a href="#top" class="lw-toc-title" style="display:block">{title}</a>
+      <nav class="lw-toc" id="lw-toc">
+        {
+          headings
+            .filter(
+              h =>
+                (h.depth === 2 || h.depth === 3) && h.slug !== "footnote-label"
+            )
+            .map(h => (
+              <a href={`#${h.slug}`} class={`lvl-${h.depth}`}>
+                {h.text}
+              </a>
+            ))
+        }
+        <a href="#comments" class="lvl-2">Comments</a>
+      </nav>
+    </aside>
 
-  <div class="mx-auto flex w-full max-w-3xl justify-start px-2">
-    <button
-      class="focus-outline mb-2 mt-8 flex hover:opacity-75"
-      onclick="(() => (history.length === 1) ? window.location = '/' : history.back())()"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg"
-        ><path
-          d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"
-        ></path>
-      </svg><span>Go back</span>
-    </button>
-  </div>
-  <main id="main-content">
-    <h1 transition:name={slugifyStr(title)} class="post-title">{title}</h1>
-    <Datetime
-      pubDatetime={pubDatetime}
-      modDatetime={modDatetime}
-      size="lg"
-      className="my-2"
-    />
-    <article id="article" role="article" class="prose mx-auto mt-8 max-w-3xl">
-      <Content />
-    </article>
+    <main id="main-content" class="lw-post">
+      <span id="top"></span>
+      <ul class="lw-post-tags">
+        {
+          tags.map(tag => (
+            <li>
+              <a class="lw-chip" href={`/tags/${slugifyStr(tag)}/`}>
+                {tag}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <h1 transition:name={slugifyStr(title)} class="lw-post-title">{title}</h1>
+      <div class="lw-byline">
+        <b>{author}</b>
+        <time datetime={new Date(pubDatetime).toISOString()}>
+          {
+            new Date(pubDatetime).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              timeZone: "UTC",
+            })
+          }
+        </time>
+        {
+          modDatetime && modDatetime > pubDatetime && (
+            <span>
+              Updated{" "}
+              {new Date(modDatetime).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                timeZone: "UTC",
+              })}
+            </span>
+          )
+        }
+        <span>{minutes} min read</span>
+        <a href="#comments">Comments</a>
+      </div>
 
-    <ul class="my-8">
-      {tags.map(tag => <Tag tag={slugifyStr(tag)} />)}
-    </ul>
+      <article id="article" role="article" class="lw-post-body">
+        <Content />
+      </article>
 
-    <div
-      class="flex flex-col-reverse items-center justify-between gap-6 sm:flex-row-reverse sm:items-end sm:gap-4"
-    >
-      <button
-        id="back-to-top"
-        class="focus-outline whitespace-nowrap py-1 hover:opacity-75"
+      <div
+        class="mt-8 flex flex-col-reverse items-center justify-between gap-6 sm:flex-row-reverse sm:items-end sm:gap-4"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="rotate-90">
-          <path
-            d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"
-          ></path>
-        </svg>
-        <span>Back to Top</span>
-      </button>
+        <button
+          id="back-to-top"
+          class="focus-outline whitespace-nowrap py-1 hover:opacity-75"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="rotate-90">
+            <path
+              d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"
+            ></path>
+          </svg>
+          <span>Back to Top</span>
+        </button>
 
-      <ShareLinks />
-    </div>
-  </main>
+        <ShareLinks />
+      </div>
+
+      <Comments />
+    </main>
+
+    <aside class="lw-margin" id="lw-margin" aria-label="Margin notes"></aside>
+  </div>
   <Footer />
 </Layout>
-
-<style>
-  main {
-    @apply mx-auto w-full max-w-3xl px-4 pb-12;
-  }
-  .post-title {
-    @apply text-2xl font-semibold text-skin-accent;
-  }
-</style>
 
 <script is:inline>
   /** Create a progress indicator
@@ -218,4 +251,64 @@ const layoutProps = {
     });
   }
   backToTop();
+  /** Highlight the current section in the left table of contents */
+  function setupScrollSpy() {
+    const links = Array.from(document.querySelectorAll("#lw-toc a"));
+    const targets = links
+      .map(a => document.getElementById(decodeURIComponent(a.hash.slice(1))))
+      .filter(Boolean);
+    function update() {
+      let current = null;
+      for (const el of targets) {
+        if (el.getBoundingClientRect().top <= 120) current = el.id;
+      }
+      links.forEach(a =>
+        a.classList.toggle(
+          "active",
+          current !== null && decodeURIComponent(a.hash.slice(1)) === current
+        )
+      );
+    }
+    document.addEventListener("scroll", update, { passive: true });
+    update();
+  }
+  setupScrollSpy();
+
+  /** Tufte-style margin notes: on wide screens, footnotes move to the right
+   *  margin, level with the line that references them. */
+  function setupSidenotes() {
+    const margin = document.getElementById("lw-margin");
+    const body = document.getElementById("article");
+    const section = body?.querySelector("section[data-footnotes]");
+    if (!margin || !body || !section) return;
+    const wide = window.matchMedia("(min-width: 1300px)");
+
+    function layout() {
+      margin.innerHTML = "";
+      body.classList.remove("has-sidenotes");
+      if (!wide.matches) return;
+      body.classList.add("has-sidenotes");
+      const top = margin.getBoundingClientRect().top + window.scrollY;
+      let nextFree = 0;
+      body.querySelectorAll("a[data-footnote-ref]").forEach((ref, i) => {
+        const id = ref.getAttribute("href")?.slice(1);
+        const li = id && document.getElementById(id);
+        if (!li) return;
+        const note = document.createElement("div");
+        note.className = "lw-sidenote";
+        note.innerHTML =
+          '<span class="sn-num">' + (i + 1) + "</span>" + li.innerHTML;
+        margin.appendChild(note);
+        const y = ref.getBoundingClientRect().top + window.scrollY - top;
+        const pos = Math.max(y, nextFree);
+        note.style.top = pos + "px";
+        nextFree = pos + note.offsetHeight + 12;
+      });
+    }
+    layout();
+    wide.addEventListener("change", layout);
+    window.addEventListener("load", layout);
+    window.addEventListener("resize", layout);
+  }
+  setupSidenotes();
 </script>

@@ -1,0 +1,36 @@
+---
+import { GISCUS } from "@config";
+
+const configured = Boolean(GISCUS.repoId && GISCUS.categoryId);
+const discussions = `https://github.com/${GISCUS.repo}/discussions`;
+---
+
+<section id="comments" class="lw-comments">
+  <h2>Comments</h2>
+  {
+    configured ? (
+      <script
+        is:inline
+        src="https://giscus.app/client.js"
+        data-repo={GISCUS.repo}
+        data-repo-id={GISCUS.repoId}
+        data-category={GISCUS.category}
+        data-category-id={GISCUS.categoryId}
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async
+      />
+    ) : (
+      <p>
+        Comments are powered by GitHub Discussions. Join the conversation on{" "}
+        <a href={discussions}>GitHub</a>.
+      </p>
+    )
+  }
+</section>

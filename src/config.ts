@@ -11,6 +11,16 @@ export const SITE: Site = {
   scheduledPostMargin: 15 * 60 * 1000, // 15 minutes
 };
 
+// Comments are powered by giscus (GitHub Discussions). To turn them on:
+// 1. Enable Discussions on the repo, 2. install https://github.com/apps/giscus,
+// 3. get repoId/categoryId at https://giscus.app and paste them below.
+export const GISCUS = {
+  repo: "dhillonv10/dhillonv10.github.io",
+  repoId: "",
+  category: "Announcements",
+  categoryId: "",
+};
+
 export const LOCALE = {
   lang: "en", // html lang code. Set this empty and default will be "en"
   langTag: ["en-EN"], // BCP 47 Language Tags. Set this empty [] to use the environment default
