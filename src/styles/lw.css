@@ -299,3 +299,12 @@
 .lw-post-body {
   font-family: var(--lw-serif);
 }
+
+.lw-subtitle {
+  font-family: var(--lw-serif);
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.35;
+  margin: -0.25rem 0 0.9rem;
+  opacity: 0.75;
+}
