@@ -32,8 +32,6 @@ The three rounds show three different things:
 2. **Round 2 changed what the model computes.** Opus wrote new circuitry that carries information to the answer that never reached it before. Error dropped by a further 2.4 years (95% CI 2.1 to 2.6) and correlation rose by 0.10. No recalibration of the original model can reach this result.
 3. **Round 3 went further in the same direction.** A smaller but clearly significant step: −0.37 years (CI −0.54 to −0.19), correlation +0.015. The direction kept paying off, with diminishing returns.
 
-![The three rounds at a glance](/figures/f20_three_rounds.png)
-
 **Every diagnosis, design and weight change in these results was produced by Claude Opus 5.5 agents.** My part was building the sandbox and measuring the results (see Section 3). Along the way, Opus found and fixed a bug that its own round-1 edit had introduced, and that I had missed. A separate Opus agent also identified the model's training domain from the weights alone, without running the model once.
 
 Two results temper the headline, and we report them in full: the edits **break age prediction from proteomics** (Section 10), and the comparison with other open models is strong but **specific to blood-panel age** (Section 11).
