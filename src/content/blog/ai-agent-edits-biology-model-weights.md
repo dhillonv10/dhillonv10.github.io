@@ -324,27 +324,7 @@ _Integrity note: during the run the agent's process listing briefly showed anoth
 
 All three rounds together change 0.14% of the model's weights. That is between the original post's two headline edits (0.016% for the looping fix, 3.5% for a game-policy repair), though the tasks are not comparable.
 
-## 14. What this shows
-
-1. **Weight-space programming works on a biology model.** With a small evaluation budget and no training, Opus cut held-out age error on its target task by 5.5 years (CI 5.1 to 5.9), from 14.2 to 8.7, on 3,191 people no agent saw.
-2. **It goes beyond unlocking.** Round 1 behaved like the original post's result: it removed an obstacle between what the model knew and what it said. Round 2 is different. Opus built new circuitry, a pooling head and gated neurons, that delivers information the original output path never had. Correlation and the rescaling test show the model genuinely knows more.
-3. **Progress in that direction continued, with diminishing returns.** Round 3 made a smaller but significant step in the same direction.
-4. **The gains are specific to the target task.** The same edits make age prediction from proteomics much worse, and leave methylation age roughly unchanged. A careful agent, rewarded on one task, built a specialist; generality has to be part of what it is asked to protect.
-5. **The agent was careful in ways that mattered.** Opus engineered safeguards after a failure, ran its own ablations, flagged its own dev-selection risks, and caught a side effect I had missed.
-6. **The division of labour.** I chose the task and, from round 2 on, framed which _kinds_ of improvement to look for. The agents did the discovery, the design and the weight-writing.
-
-## 15. Limitations
-
-- **One run per round.** Each round was one agent run. The main held-out result uses 3,191 people, but the cross-modality tasks have only 26–45 prompts each.
-- **Dev numbers are optimistic.** All dev results were partly selected; only held-out numbers count.
-- **Partly read-out.** By Opus's ablations, about a third of round 2's dev gain comes from routed information and the rest from a better read-out. Both are new weights, but only the first is new information.
-- **Specialisation.** The edits hurt age prediction from proteomics (Section 10).
-- **The youngest participants** are still worse off than with the original model.
-- **Comparators.** Ten of 24 comparison models could not be scored (gated, disk or load failures), including Llama and Gemma. Answers were read from the first 16 tokens only, which under-counts models that answer after a long preamble.
-- **The sandbox shapes the solutions.** I chose the tools; different tools could lead the agent elsewhere.
-- **Licences.** The model is CC-BY-ND, so we share the _recipe_ (code and vectors that rebuild each edit from the original weights), not edited weights.
-
-## 16. Reproduce it
+## 14. Reproduce it
 
 - **`opus_weight_edits_longevity.ipynb`** with **`opus_edits_bundle.pt`** (195 KB). The bundle contains only Opus-computed vectors, code, the agents' own summaries and the server logs. The notebook does the following:
   - applies each round's edit exactly;
