@@ -51,9 +51,21 @@ const layoutProps = {
 <Layout {...layoutProps}>
   <Header />
 
-  <div class="lw-shell lw-shell--post">
-    <aside class="lw-sidebar" aria-label="Table of contents">
-      <a href="#top" class="lw-toc-title" style="display:block">{title}</a>
+  <div class="lw-layout">
+    <aside class="lw-sidebar" id="lw-sidebar" aria-label="Table of contents">
+      <div class="lw-sidebar-head">
+        <span>Contents</span>
+        <button
+          type="button"
+          id="toc-hide"
+          class="lw-toc-btn"
+          aria-label="Hide table of contents"
+          title="Hide contents"
+        >
+          ‹
+        </button>
+      </div>
+      <a href="#top" class="lw-toc-title">{title}</a>
       <nav class="lw-toc" id="lw-toc">
         {
           headings
@@ -128,9 +140,16 @@ const layoutProps = {
 
       <Comments />
     </main>
-
-    <aside class="lw-margin" id="lw-margin" aria-label="Margin notes"></aside>
   </div>
+  <button
+    type="button"
+    id="toc-show"
+    class="lw-toc-btn lw-toc-show"
+    aria-label="Show table of contents"
+    title="Show contents"
+  >
+    ☰ <span>Contents</span>
+  </button>
   <Footer />
 </Layout>
 
@@ -264,41 +283,53 @@ const layoutProps = {
   }
   setupScrollSpy();
 
-  /** Tufte-style margin notes: on wide screens, footnotes move to the right
-   *  margin, level with the line that references them. */
-  function setupSidenotes() {
-    const margin = document.getElementById("lw-margin");
-    const body = document.getElementById("article");
-    const section = body?.querySelector("section[data-footnotes]");
-    if (!margin || !body || !section) return;
-    const wide = window.matchMedia("(min-width: 1300px)");
+  /** Collapsible table of contents. Open by default on wide screens;
+   *  the choice is remembered. */
+  function setupTocToggle() {
+    const root = document.documentElement;
+    const wide = window.matchMedia("(min-width: 1100px)");
+    let saved = null;
+    try {
+      saved = localStorage.getItem("lw-toc");
+    } catch (e) {}
+    const apply = state => root.setAttribute("data-toc", state);
+    apply(wide.matches && saved !== "closed" ? "open" : "closed");
 
-    function layout() {
-      margin.innerHTML = "";
-      body.classList.remove("has-sidenotes");
-      if (!wide.matches) return;
-      body.classList.add("has-sidenotes");
-      const top = margin.getBoundingClientRect().top + window.scrollY;
-      let nextFree = 0;
-      body.querySelectorAll("a[data-footnote-ref]").forEach((ref, i) => {
-        const id = ref.getAttribute("href")?.slice(1);
-        const li = id && document.getElementById(id);
-        if (!li) return;
-        const note = document.createElement("div");
-        note.className = "lw-sidenote";
-        note.innerHTML =
-          '<span class="sn-num">' + (i + 1) + "</span>" + li.innerHTML;
-        margin.appendChild(note);
-        const y = ref.getBoundingClientRect().top + window.scrollY - top;
-        const pos = Math.max(y, nextFree);
-        note.style.top = pos + "px";
-        nextFree = pos + note.offsetHeight + 12;
-      });
-    }
-    layout();
-    wide.addEventListener("change", layout);
-    window.addEventListener("load", layout);
-    window.addEventListener("resize", layout);
+    const set = state => {
+      apply(state);
+      if (wide.matches) {
+        try {
+          localStorage.setItem("lw-toc", state);
+        } catch (e) {}
+      }
+    };
+    document
+      .getElementById("toc-hide")
+      ?.addEventListener("click", () => set("closed"));
+    document
+      .getElementById("toc-show")
+      ?.addEventListener("click", () => set("open"));
+    // On small screens the contents is an overlay: close it after jumping.
+    document.querySelectorAll("#lw-toc a, .lw-toc-title").forEach(a =>
+      a.addEventListener("click", () => {
+        if (!wide.matches) apply("closed");
+      })
+    );
   }
-  setupSidenotes();
+  setupTocToggle();
+
+  /** Turn each standalone figure's alt text into a caption. */
+  function addCaptions() {
+    document.querySelectorAll("#article p > img:only-child").forEach(img => {
+      const alt = img.getAttribute("alt");
+      const p = img.parentElement;
+      if (!alt || !p || p.querySelector("figcaption")) return;
+      p.classList.add("lw-figure");
+      const cap = document.createElement("span");
+      cap.className = "lw-caption";
+      cap.textContent = alt;
+      p.appendChild(cap);
+    });
+  }
+  addCaptions();
 </script>
