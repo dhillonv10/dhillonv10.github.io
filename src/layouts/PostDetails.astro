@@ -6,6 +6,7 @@ import Comments from "@components/Comments.astro";
 import { getCollection } from "astro:content";
 import getSortedPosts from "@utils/getSortedPosts";
 import readingTime from "@utils/readingTime";
+import inlineMd from "@utils/inlineMd";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import ShareLinks from "@components/ShareLinks.astro";
@@ -134,7 +135,7 @@ const layoutProps = {
             <h2>Key takeaways</h2>
             <ul>
               {takeaways.map(t => (
-                <li>{t}</li>
+                <li set:html={inlineMd(t)} />
               ))}
             </ul>
           </aside>

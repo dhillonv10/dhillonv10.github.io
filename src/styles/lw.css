@@ -581,3 +581,11 @@ html[data-toc="open"] .lw-toc-show {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.lw-takeaways code {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85em;
+  background: rgba(var(--color-card-muted), 0.45);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
