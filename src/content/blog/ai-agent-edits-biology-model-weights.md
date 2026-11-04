@@ -7,17 +7,16 @@ slug: ai-agent-edits-biology-model-weights
 featured: true
 draft: false
 takeaways:
-  - "**An AI agent improved a biology model by editing its weights directly, with no training.** Claude Opus 5.5 cut the age-estimation error of Insilico Medicine's `Qwen3-0.6B-Longevity` from 14.2 to 8.7 years, measured on 3,191 people no agent ever saw."
-  - '**It did two different things.** First it *unlocked* what the model already knew (round 1). Then it *wrote new computation* into the network: a pooling attention head, rebuilt neurons and biomarker "reader" heads that carry information the original model never used (rounds 2 and 3).'
-  - "**The new computation is real information, not recalibration.** No rescaling of the original model's answers gets below 11.1 years of error; the edited model reaches 8.7."
-  - "**The gain is specific to the task it was built for.** The same edits make age prediction from blood *proteins* much worse, and leave age from DNA methylation roughly unchanged. Opus built a specialist."
+  - "**An AI agent improved a biology model by editing its weights directly, with no training.** Claude Opus 5.5 cut the age-estimation error of Insilico Medicine's `Qwen3-0.6B-Longevity` from 14.2 to 8.7 years."
+  - '**It did two different things.** First it *unlocked* what the model already knew (round 1). Then it *wrote new computation* into the network: A pooling attention head, rebuilt neurons and biomarker "reader" heads that carry information the original model never used (rounds 2 and 3).'
+  - No rescaling of the original model's answers gets below 11.1 years of error; the edited model reaches 8.7."
   - "**The edited 0.6B model beats all 14 open models we could run, up to 9B parameters,** including Insilico's own 1.7B and 9B longevity models. Most general-purpose models gave no age estimate at all."
 description: 'Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training. A replication and extension of "Sparks of Weight-Space Programming."'
 ---
 
 ## Brief results
 
-We gave **Claude Opus 5.5** read and write access to the raw weights of [`Qwen3-0.6B-Longevity`](https://huggingface.co/insilicomedicine/Qwen3-0.6B-Longevity), a small open model fine-tuned on aging biology. The job was to make it better at estimating a person's **age from a routine blood panel**. It could not train the model with gradient descent. It had to read the weights and activations, decide what to change, and write the change itself. Every number in this table is measured on **3,191 people no agent ever saw**:
+We gave **Claude Opus 5.5** read and write access to the raw weights of [`Qwen3-0.6B-Longevity`](https://huggingface.co/insilicomedicine/Qwen3-0.6B-Longevity), a small open model fine-tuned on aging biology. The job was to make it better at estimating a person's **age from a routine blood panel**. It could not train the model with gradient descent. It had to read the weights and activations, decide what to change, and write the change itself. All results in this table were evaluated on an independent held-out cohort of **3,191 individuals**, none of whom were included in the agents' development or weight-editing process.
 
 |                | What Opus changed                                     | Age error (MAE) | Correlation with true age |
 | -------------- | ----------------------------------------------------- | --------------- | ------------------------- |
@@ -32,15 +31,13 @@ The three rounds show three different things:
 2. **Round 2 changed what the model computes.** Opus wrote new circuitry that carries information to the answer that never reached it before. Error dropped by a further 2.4 years (95% CI 2.1 to 2.6) and correlation rose by 0.10. No recalibration of the original model can reach this result.
 3. **Round 3 went further in the same direction.** A smaller but clearly significant step: −0.37 years (CI −0.54 to −0.19), correlation +0.015. The direction kept paying off, with diminishing returns.
 
-**Every diagnosis, design and weight change in these results was produced by Claude Opus 5.5 agents.** My part was building the sandbox and measuring the results (see Section 3). Along the way, Opus found and fixed a bug that its own round-1 edit had introduced, and that I had missed. A separate Opus agent also identified the model's training domain from the weights alone, without running the model once.
-
-Two results temper the headline, and we report them in full: the edits **break age prediction from proteomics** (Section 10), and the comparison with other open models is strong but **specific to blood-panel age** (Section 11).
+**Every design and weight change in these results was produced by Claude Opus 5.5 agents.** My part was building the sandbox and measuring the results (see Section 3). Along the way, Opus found and fixed a bug that its own round-1 edit had introduced, and that I had missed. A separate Opus agent also identified the model's training domain from the weights alone, without running the model once.
 
 ---
 
 ## 1. The question
 
-In [_Sparks of Weight-Space Programming_](https://rikiyat.github.io/blog/weight-space-programming/), Takehi, Teoh, Zhang and Khattab showed that a frontier LLM can read and write neural-network weights directly. Their most striking result: given a Python kernel and a budget of forward passes, the LLM found a "looping" direction inside Qwen3.5-0.8B and removed it, raising its MATH-500 score from 7.9 to 48.1. Their control experiment set the limit. On a model that did not loop, the same procedure did nothing. **Editing could remove an obstacle, but it could not add an ability.**
+In [_Sparks of Weight-Space Programming_](https://rikiyat.github.io/blog/weight-space-programming/), Takehi, Teoh, Zhang and Khattab showed that a frontier LLM can read and write neural-network weights directly. Their most striking result: Given a Python kernel and a budget of forward passes, the LLM found a "looping" direction inside Qwen3.5-0.8B and removed it, raising its MATH-500 score from 7.9 to 48.1. Their control experiment set the limit. On a model that did not loop, the same procedure did nothing. **Editing could remove an obstacle, but it could not add an ability.**
 
 We asked two questions:
 
@@ -65,15 +62,7 @@ Each round is a fresh Opus agent. The model is held in a sandbox. Through a Pyth
 
 An edit is **kept only if dev error improves**; otherwise it is reverted automatically. No optimizer may update the weights, but closed-form analysis (least squares, SVD) is allowed. Edits may touch at most 5% of the weights, and the agent has a fixed budget of evaluations.
 
-**Keeping it honest.**
-
-- **Disjoint data.** Practice rows, dev rows, the **held-out set** and LongevityBench's official _mini_ split never overlap. Each round got fresh dev rows. The held-out set is every remaining NHANES participant: 3,191 people, scored on a GPU after all three rounds were finished.
-- **Held-out scoring.** The agents never see held-out labels. Every result in this post is a held-out number unless it says "dev".
-- **Server-side logs.** The sandbox server logged every request the agents made, so their reports could be audited.
-- **Exact reproducibility.** Each edit was rebuilt from the agent's saved code and vectors and reproduced its dev score exactly, on CPU and again on a GPU (12.75 → 10.375 → 7.9625 on round 2's dev set; 13.31 → 10.725 → 7.6625 → 7.325 on round 3's).
-- **Division of labour.** I built the sandbox and the evaluation. **Every edit, vector, index and hyper-parameter came from an Opus agent** (details in Section 3).
-
-## 3. Who did what: where Opus is used and what it contributed
+## 3. Where was Opus used, and what it contributed
 
 Opus was used as an **autonomous research agent**. Each agent was a fresh Claude Opus 5.5 session with a shell. It talked to the model only through the sandbox, and did all the analysis and editing itself. We ran **four separate agents**:
 
@@ -84,33 +73,13 @@ Opus was used as an **autonomous research agent**. Each agent was a fresh Claude
 | **Round 3 editor**      | The round-2 model, rounds 1–2's code and summaries, the same practice prompts, 15 evaluations; brief suggested targeted reading of specific biomarkers                        | Identified Cystatin C, Vitamin E and Albumin as the remaining unused signal. Designed the three fixed-query reader heads (found by discriminant analysis on the existing keys) and their nonlinear decoders. Refit the read-out, ran an ablation, and flagged its own dev-selection risk.                                                      |
 | **Blind weight reader** | Two anonymised checkpoints and the tokenizer; **no forward passes allowed**                                                                                                   | Worked out which checkpoint was fine-tuned from which, measured where the weights changed, and identified the training domain, all from arithmetic on the weights.                                                                                                                                                                             |
 
-**What I did (the human side, assisted by a separate Claude session):**
-
-- built the sandbox: weight access, practice data, the `evaluate` budget, automatic revert, edit-size cap and request logging;
-- ran the initial probe diagnosis (Section 5) and chose the task, the data splits and the scoring;
-- wrote each round's task brief;
-- restarted the sandbox when it ran out of memory;
-- rebuilt each edit from the agent's saved code and vectors and verified that it reproduced the dev score exactly;
-- ran all held-out evaluations and made the figures.
-
-**What I did not do:** choose, write, tune or suggest any specific edit, layer, head, neuron, vector or parameter value. The one manual edit in this post is my own baseline, labelled as such, and it performed worse.
-
-**Where my briefs did steer (so you can judge for yourself):**
-
-- **The diagnosis in Section 5 is mine.** I ran the probes before any agent existed, to decide which task to aim at. The round-1 agent never saw them and found the same gap independently.
-- **Round 1's brief** described only the task, the tools and the rules. It contained no hints.
-- **Round 2's brief** said the goal was a _better age estimate, not recalibration_. It listed directions worth considering: bring in information from other token positions or layers, implant new computation in neurons or attention heads, control the second digit. Opus chose among them, found the specific unused signal, and designed and fitted the circuit.
-- **Round 3's brief** included round 2's results and analysis. It explicitly suggested _targeted_ reading, for example attention that picks out specific biomarker tokens, plus nonlinear features. Opus built essentially that. So round 3's _idea_ was prompted. Opus's contribution there was identifying which three biomarkers, finding the queries that select them, designing the nonlinear decoders, fitting every weight, and evaluating and ablating the result.
-
-**How we know the agents stayed in bounds.** Each agent was told to work only in its own folder and to reach the model only through the sandbox. The sandbox server logged every request independently of the agents' own reports, and those logs match the reports. The one exception is disclosed in Section 12.
-
 ## 4. Where the model starts
 
 ![Baseline performance](/figures/f02_baselines.png)
 
 The base Qwen3-0.6B is at chance on these tasks. The fine-tuned Longevity model is clearly better: 69% vs 49% at telling which of two people is older, and 69% vs 51% at predicting 10-year survival. But its age estimates are poor: 15.3 years of error on the mini split, barely better than always guessing the median age (17.6).
 
-## 5. Diagnosis: the model knows more than it says
+## 5. Finding age-related information in the model's internal representations
 
 Before running any agent, I checked whether there was a gap between what the network _computes_ and what it _outputs_. _(This diagnosis is mine, not Opus's; the round-1 agent found the same gap on its own.)_ The test was simple: fit a linear probe from the model's internal state to the true age, at every layer.
 
@@ -120,7 +89,7 @@ Before running any agent, I checked whether there was a gap between what the net
 - **The base model knows almost nothing about age.** No layer is much better than guessing the median. **Fine-tuning built the age representation.**
 - **Control: mortality.** For 10-year mortality, the probe and the model agree (0.90 vs 0.89). There is no gap and nothing to unlock, so we pointed the agents at age.
 
-## 6. Round 1: unlocking what the model already knows
+## 6. Round 1: Unlocking what the model already knows
 
 ### What Opus did
 
@@ -156,7 +125,7 @@ Round 1 mostly corrected the model's habit of guessing too young. It did not mak
 
 > **A cautionary baseline.** Before running Opus, I hand-built a simpler version of the same idea: tilt all digit probabilities toward the model's age estimate. Tuned on the same dev rows, it looked fine (13.2), but on a 200-person test set it made error **worse (16.7, vs 13.8 for the original model on the same people)**. Without a position gate it also pushed the second digit toward 0, so 89% of its answers ended in zero and collapsed onto 20, 40 and 80. Opus hit the same failure in one evaluation and engineered around it.
 
-## 7. Round 2: changing what the model computes
+## 7. Round 2: Changing what the model computes
 
 ### The brief
 
@@ -184,7 +153,7 @@ Opus used **2 of its 15 evaluations**. The full edit scored 7.96 on dev, from 10
 
 > **Opus's contribution in round 2:** finding the unused biomarker information and round 1's multiple-choice bug; the circuit design (pooling head, five gated neurons, new output rows); the choice of head 11, channel 119 and the five neurons; every fitted weight; and the ablation showing how much of the gain is new information.
 
-### The result: the model knows more
+### The result: The model knows more
 
 ![Recalibration vs information](/figures/f13_calibration_vs_information.png)
 
@@ -196,7 +165,7 @@ Rescaling cannot create information. So round 2's gain means the model's answers
 
 The scatter plots show the same thing: round 2's predictions follow the diagonal across the full age range. It also uses the second digit properly: 74 distinct answers instead of 38, and only 18% of answers end in zero, against 42% for the original model.
 
-## 8. Round 3: pushing the same direction further
+## 8. Round 3: Pushing the same direction further
 
 ### What Opus found and built
 
@@ -206,7 +175,7 @@ So it **rewired three attention heads in layer 24 into "reader" heads**. Each ha
 
 > **Opus's contribution in round 3:** the brief suggested targeted reading of specific biomarkers; Opus turned that into a working edit by identifying the three biomarkers; designing content-addressed reader heads and their nonlinear decoders; refitting the read-out; the ablation; and an explicit warning that its accepted result carries some dev selection.
 
-### The result: a smaller step, in the same direction
+### The result: A smaller step, in the same direction
 
 ![Progression](/figures/f16_progression.png)
 
@@ -325,16 +294,6 @@ _Integrity note: during the run the agent's process listing briefly showed anoth
 ![Edit size](/figures/f10_footprint_vs_post.png)
 
 All three rounds together change 0.14% of the model's weights. That is between the original post's two headline edits (0.016% for the looping fix, 3.5% for a game-policy repair), though the tasks are not comparable.
-
-## 14. Reproduce it
-
-- **`opus_weight_edits_longevity.ipynb`** with **`opus_edits_bundle.pt`** (195 KB). The bundle contains only Opus-computed vectors, code, the agents' own summaries and the server logs. The notebook does the following:
-  - applies each round's edit exactly;
-  - shows the live weight differences;
-  - re-checks the dev numbers;
-  - evaluates on every remaining NHANES participant (3,191), all 17 LongevityBench mini tasks including DNA methylation, and up to 24 open comparison models;
-  - exports all figure data.
-- **`weight_space_longevity.ipynb`** runs the whole editing loop with an _open_ editor (Qwen3 or Kimi K2).
 
 ---
 
