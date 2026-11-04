@@ -3,6 +3,8 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Comments from "@components/Comments.astro";
+import { getCollection } from "astro:content";
+import getSortedPosts from "@utils/getSortedPosts";
 import readingTime from "@utils/readingTime";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
@@ -19,6 +21,7 @@ const { post } = Astro.props;
 const {
   title,
   subtitle,
+  takeaways,
   author,
   description,
   ogImage,
@@ -29,6 +32,13 @@ const {
 
 const { Content, headings } = await post.render();
 const minutes = readingTime(post.body);
+
+// Neighbours in the same order as the Posts list (newest first):
+// "next" is the newer post, "previous" the older one.
+const sortedPosts = getSortedPosts(await getCollection("blog"));
+const idx = sortedPosts.findIndex(p => p.slug === post.slug);
+const newer = idx > 0 ? sortedPosts[idx - 1] : undefined;
+const older = idx >= 0 ? sortedPosts[idx + 1] : undefined;
 
 const ogImageUrl = typeof ogImage === "string" ? ogImage : ogImage?.src;
 const ogUrl = new URL(
@@ -118,6 +128,19 @@ const layoutProps = {
         <a href="#comments">Comments</a>
       </div>
 
+      {
+        takeaways && takeaways.length > 0 && (
+          <aside class="lw-takeaways" aria-label="Key takeaways">
+            <h2>Key takeaways</h2>
+            <ul>
+              {takeaways.map(t => (
+                <li>{t}</li>
+              ))}
+            </ul>
+          </aside>
+        )
+      }
+
       <article id="article" role="article" class="lw-post-body">
         <Content />
       </article>
@@ -125,20 +148,27 @@ const layoutProps = {
       <div
         class="mt-8 flex flex-col-reverse items-center justify-between gap-6 sm:flex-row-reverse sm:items-end sm:gap-4"
       >
-        <button
-          id="back-to-top"
-          class="focus-outline whitespace-nowrap py-1 hover:opacity-75"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="rotate-90">
-            <path
-              d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"
-            ></path>
-          </svg>
-          <span>Back to Top</span>
-        </button>
-
         <ShareLinks />
       </div>
+
+      {
+        (older || newer) && (
+          <nav class="lw-pager" aria-label="More posts">
+            {older && (
+              <a class="prev" href={`/posts/${older.slug}/`} rel="prev">
+                <span class="dir">← Previous post</span>
+                <span class="ttl">{older.data.title}</span>
+              </a>
+            )}
+            {newer && (
+              <a class="next" href={`/posts/${newer.slug}/`} rel="next">
+                <span class="dir">Next post →</span>
+                <span class="ttl">{newer.data.title}</span>
+              </a>
+            )}
+          </nav>
+        )
+      }
 
       <Comments />
     </main>
@@ -152,6 +182,17 @@ const layoutProps = {
   >
     <svg viewBox="0 0 24 24" aria-hidden="true"
       ><path d="M9 5l7 7-7 7"></path></svg
+    >
+  </button>
+  <button
+    type="button"
+    id="lw-top"
+    class="lw-top"
+    aria-label="Back to top"
+    title="Back to top"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M6 15l6-6 6 6"></path></svg
     >
   </button>
   <Footer />
@@ -255,15 +296,6 @@ const layoutProps = {
   }
   attachCopyButtons();
 
-  /** Scrolls the document to the top when
-   * the "Back to Top" button is clicked. */
-  function backToTop() {
-    document.querySelector("#back-to-top")?.addEventListener("click", () => {
-      document.body.scrollTop = 0; // For Safari
-      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-    });
-  }
-  backToTop();
   /** Highlight the current section in the left table of contents */
   function setupScrollSpy() {
     const links = Array.from(document.querySelectorAll("#lw-toc a"));
@@ -355,4 +387,18 @@ const layoutProps = {
     });
   }
   setupLightbox();
+
+  /** Floating back-to-top button: appears once you've scrolled a screen or so. */
+  function setupFloatingTop() {
+    const btn = document.getElementById("lw-top");
+    if (!btn) return;
+    const update = () =>
+      btn.classList.toggle("show", window.scrollY > window.innerHeight * 0.8);
+    document.addEventListener("scroll", update, { passive: true });
+    btn.addEventListener("click", () =>
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    );
+    update();
+  }
+  setupFloatingTop();
 </script>

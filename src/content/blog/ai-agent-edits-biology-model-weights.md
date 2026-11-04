@@ -6,6 +6,12 @@ pubDatetime: 2026-11-04T00:00:00.000Z
 slug: ai-agent-edits-biology-model-weights
 featured: true
 draft: false
+takeaways:
+  - "Claude Opus 5.5 edited the weights of a small aging-biology model directly, with no training, and cut held-out age error from 13.8 to 8.4 years across three rounds."
+  - "Round 1 unlocked knowledge the model already had: error fell, but correlation with true age did not move."
+  - "Round 2 added new computation, a pooling attention head and five rebuilt neurons, and raised correlation from 0.69 to 0.80. No recalibration of the original model can reach that."
+  - "Round 3 pushed the same direction, but its gain was small and not statistically significant on 200 people."
+  - "Every edit came from Opus agents, and together they touch about 0.14% of the model's weights."
 description: 'Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training. A replication and extension of "Sparks of Weight-Space Programming."'
 ---
 
