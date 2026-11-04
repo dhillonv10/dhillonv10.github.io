@@ -62,7 +62,9 @@ const layoutProps = {
           aria-label="Hide table of contents"
           title="Hide contents"
         >
-          ‹
+          <svg viewBox="0 0 24 24" aria-hidden="true"
+            ><path d="M15 5l-7 7 7 7"></path></svg
+          >
         </button>
       </div>
       <a href="#top" class="lw-toc-title">{title}</a>
@@ -148,7 +150,9 @@ const layoutProps = {
     aria-label="Show table of contents"
     title="Show contents"
   >
-    ☰ <span>Contents</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M9 5l7 7-7 7"></path></svg
+    >
   </button>
   <Footer />
 </Layout>
@@ -283,38 +287,34 @@ const layoutProps = {
   }
   setupScrollSpy();
 
-  /** Collapsible table of contents. Open by default on wide screens;
-   *  the choice is remembered. */
+  /** Floating table of contents: hidden by default, toggled by the "<" button
+   *  and the edge tab. On narrower screens it closes after you pick a section,
+   *  click elsewhere, or press Esc. */
   function setupTocToggle() {
     const root = document.documentElement;
-    const wide = window.matchMedia("(min-width: 1100px)");
-    let saved = null;
-    try {
-      saved = localStorage.getItem("lw-toc");
-    } catch (e) {}
-    const apply = state => root.setAttribute("data-toc", state);
-    apply(wide.matches && saved !== "closed" ? "open" : "closed");
+    const roomy = () => window.matchMedia("(min-width: 1300px)").matches;
+    const set = state => root.setAttribute("data-toc", state);
+    set("closed");
 
-    const set = state => {
-      apply(state);
-      if (wide.matches) {
-        try {
-          localStorage.setItem("lw-toc", state);
-        } catch (e) {}
-      }
-    };
     document
       .getElementById("toc-hide")
       ?.addEventListener("click", () => set("closed"));
-    document
-      .getElementById("toc-show")
-      ?.addEventListener("click", () => set("open"));
-    // On small screens the contents is an overlay: close it after jumping.
+    document.getElementById("toc-show")?.addEventListener("click", e => {
+      e.stopPropagation();
+      set("open");
+    });
     document.querySelectorAll("#lw-toc a, .lw-toc-title").forEach(a =>
       a.addEventListener("click", () => {
-        if (!wide.matches) apply("closed");
+        if (!roomy()) set("closed");
       })
     );
+    document.addEventListener("click", e => {
+      const inside = e.target.closest?.("#lw-sidebar, #toc-show");
+      if (!inside && !roomy()) set("closed");
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") set("closed");
+    });
   }
   setupTocToggle();
 
@@ -332,4 +332,27 @@ const layoutProps = {
     });
   }
   addCaptions();
+
+  /** Click a figure to view it full size; click or Esc to close. */
+  function setupLightbox() {
+    document.querySelectorAll("#article .lw-figure img").forEach(img => {
+      img.addEventListener("click", () => {
+        const box = document.createElement("div");
+        box.className = "lw-lightbox";
+        const big = document.createElement("img");
+        big.src = img.currentSrc || img.src;
+        big.alt = img.alt;
+        box.appendChild(big);
+        const close = () => {
+          box.remove();
+          document.removeEventListener("keydown", onKey);
+        };
+        const onKey = e => e.key === "Escape" && close();
+        box.addEventListener("click", close);
+        document.addEventListener("keydown", onKey);
+        document.body.appendChild(box);
+      });
+    });
+  }
+  setupLightbox();
 </script>
