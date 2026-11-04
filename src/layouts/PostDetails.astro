@@ -24,7 +24,6 @@ const {
   canonicalURL,
   pubDatetime,
   modDatetime,
-  tags,
 } = post.data;
 
 const { Content, headings } = await post.render();
@@ -73,17 +72,6 @@ const layoutProps = {
 
     <main id="main-content" class="lw-post">
       <span id="top"></span>
-      <ul class="lw-post-tags">
-        {
-          tags.map(tag => (
-            <li>
-              <a class="lw-chip" href={`/tags/${slugifyStr(tag)}/`}>
-                {tag}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
       <h1 transition:name={slugifyStr(title)} class="lw-post-title">{title}</h1>
       <div class="lw-byline">
         <b>{author}</b>
