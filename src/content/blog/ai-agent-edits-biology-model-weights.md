@@ -217,7 +217,7 @@ So it **rewired three attention heads in layer 24 into "reader" heads**. Each ha
 | Round 2               | 9.07        | 0.792       | 9.10                       | 12.3              |
 | **Round 3**           | **8.70**    | **0.807**   | **8.74**                   | **11.4**          |
 
-**Round 3's step over round 2 is statistically significant on every measure:** error −0.37 years (CI −0.54 to −0.19), correlation +0.015 (CI +0.007 to +0.023), and best-rescaling error 9.10 → 8.74. So it is mostly an information gain. On the official mini split, error went from 9.87 to 8.89 and correlation from 0.81 to 0.86.
+**Round 3's step over round 2 is statistically significant in both error and correlation:** error −0.37 years (CI −0.54 to −0.19), correlation +0.015 (CI +0.007 to +0.023). Best-rescaling error also improves, 9.10 → 8.74, so it is mostly an information gain. On the official mini split, error went from 9.87 to 8.89 and correlation from 0.81 to 0.86.
 
 _(On our original 200-person test set alone, this step looked like noise: −0.30, CI −0.96 to +0.38. The 3,191-person evaluation resolved it.)_
 
@@ -296,12 +296,12 @@ We ran 24 open models on the same 400 held-out people with the same prompts, on 
 | Insilico longevity-llm (Qwen3.5-9B)                                              | 9.0B     | 100%                              | 19.4    | 0.60        |
 | Qwen2.5-1.5B-Instruct                                                            | 1.5B     | 86%                               | 15.4    | 0.16        |
 | Qwen3-4B, Qwen3-8B, Qwen2.5-3B, Qwen2.5-7B, Phi-3.5-mini, Phi-4-mini, Mistral-7B | 3–8B     | **0%**                            | —       | —           |
-| Qwen3-0.6B, Qwen3-1.7B, Qwen2.5-0.5B (base/instruct)                             | 0.5–1.7B | 2–36%                             | —       | ≤ 0         |
+| Qwen3-0.6B, Qwen3-1.7B, Qwen2.5-0.5B-Instruct                                    | 0.5–1.7B | 2–36%                             | —       | ≤ 0         |
 | SmolLM2-1.7B-Instruct                                                            | 1.7B     | 90%                               | 18.1    | −0.06       |
 
 - **General-purpose open models do not do this task, at least not directly.** Seven models of 3–8 billion parameters gave no number within the first 16 tokens in any of the 400 cases. The smaller Qwen models we inspected on CPU typically refused outright (_"The participant's age is not provided in the clinical profile"_). Some larger, wordier models may give a number after a longer preamble, which this protocol does not capture. The small models that do answer show no relationship with true age.
 - **Domain fine-tuning creates the ability.** All three Insilico longevity models answer with real signal (correlation 0.60–0.65).
-- **Opus's edits make the 0.6B model the best of all 14, on this task:** correlation 0.76 and 9.1 years of error, against 16.4 for Insilico's 3× larger 1.7B model and 19.4 for its 15× larger 9B model. Given Section 10, that claim is specific to blood-panel age.
+- **Opus's edits make the 0.6B model better than all 14 comparison models on this task:** correlation 0.76 and 9.1 years of error, against 16.4 for Insilico's 3× larger 1.7B model and 19.4 for its 15× larger 9B model. Given Section 10, that claim is specific to blood-panel age.
 
 ## 12. Bonus: reading a model from its weights alone
 
