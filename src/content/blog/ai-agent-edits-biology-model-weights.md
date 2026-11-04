@@ -286,6 +286,8 @@ We ran 24 open models on the same 400 held-out people with the same prompts, on 
 
 ![Comparators](/figures/f18_comparators.png)
 
+The figure and table show the models whose answers carry real information about age. Eleven other open models (0.5B to 8B) gave no number within 16 tokens, or answered with no relation to true age, and are not shown; they are described below.
+
 | Model                                      | Size | Gives a number (within 16 tokens) | Age MAE | Correlation |
 | ------------------------------------------ | ---- | --------------------------------- | ------- | ----------- |
 | **Qwen3-0.6B-Longevity + Opus rounds 1–3** | 0.6B | 100%                              | **9.1** | **0.76**    |
