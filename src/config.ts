@@ -5,6 +5,8 @@ export const SITE: Site = {
   author: "Vikram Dhillon",
   desc: "Personal Blog",
   title: "Vik Dhillon",
+  brand: "OpsBug", // shown in the header
+  tagline: "Notes from a physician-scientist with too many tabs open.",
   ogImage: "astropaper-og.jpg",
   lightAndDarkMode: true,
   postPerPage: 3,
