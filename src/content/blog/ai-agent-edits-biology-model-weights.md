@@ -286,16 +286,13 @@ We ran 24 open models on the same 400 held-out people with the same prompts, on 
 
 ![Comparators](/figures/f18_comparators.png)
 
-| Model                                                                            | Size     | Gives a number (within 16 tokens) | Age MAE | Correlation |
-| -------------------------------------------------------------------------------- | -------- | --------------------------------- | ------- | ----------- |
-| **Qwen3-0.6B-Longevity + Opus rounds 1–3**                                       | 0.6B     | 100%                              | **9.1** | **0.76**    |
-| Insilico Qwen3-1.7B-Longevity                                                    | 2.0B     | 98%                               | 16.4    | 0.65        |
-| Qwen3-0.6B-Longevity (original)                                                  | 0.6B     | 100%                              | 14.3    | 0.64        |
-| Insilico longevity-llm (Qwen3.5-9B)                                              | 9.0B     | 100%                              | 19.4    | 0.60        |
-| Qwen2.5-1.5B-Instruct                                                            | 1.5B     | 86%                               | 15.4    | 0.16        |
-| Qwen3-4B, Qwen3-8B, Qwen2.5-3B, Qwen2.5-7B, Phi-3.5-mini, Phi-4-mini, Mistral-7B | 3–8B     | **0%**                            | —       | —           |
-| Qwen3-0.6B, Qwen3-1.7B, Qwen2.5-0.5B-Instruct                                    | 0.5–1.7B | 2–36%                             | —       | ≤ 0         |
-| SmolLM2-1.7B-Instruct                                                            | 1.7B     | 90%                               | 18.1    | −0.06       |
+| Model                                      | Size | Gives a number (within 16 tokens) | Age MAE | Correlation |
+| ------------------------------------------ | ---- | --------------------------------- | ------- | ----------- |
+| **Qwen3-0.6B-Longevity + Opus rounds 1–3** | 0.6B | 100%                              | **9.1** | **0.76**    |
+| Insilico Qwen3-1.7B-Longevity              | 2.0B | 98%                               | 16.4    | 0.65        |
+| Qwen3-0.6B-Longevity (original)            | 0.6B | 100%                              | 14.3    | 0.64        |
+| Insilico longevity-llm (Qwen3.5-9B)        | 9.0B | 100%                              | 19.4    | 0.60        |
+| Qwen2.5-1.5B-Instruct                      | 1.5B | 86%                               | 15.4    | 0.16        |
 
 - **General-purpose open models do not do this task, at least not directly.** Seven models of 3–8 billion parameters gave no number within the first 16 tokens in any of the 400 cases. The smaller Qwen models we inspected on CPU typically refused outright (_"The participant's age is not provided in the clinical profile"_). Some larger, wordier models may give a number after a longer preamble, which this protocol does not capture. The small models that do answer show no relationship with true age.
 - **Domain fine-tuning creates the ability.** All three Insilico longevity models answer with real signal (correlation 0.60–0.65).
