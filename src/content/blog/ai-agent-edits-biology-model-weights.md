@@ -2,7 +2,7 @@
 title: "Weight-Space Programming for Longevity Models"
 subtitle: "Can an AI Agent Improve a Biology Model by Editing Its Weights?"
 author: Vikram Dhillon
-pubDatetime: 2026-11-04T12:00:00.000Z
+pubDatetime: 2026-11-04T00:00:00.000Z
 slug: ai-agent-edits-biology-model-weights
 featured: true
 draft: false
