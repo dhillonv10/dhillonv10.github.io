@@ -372,7 +372,7 @@ const layoutProps = {
         const box = document.createElement("div");
         box.className = "lw-lightbox";
         const big = document.createElement("img");
-        big.src = img.currentSrc || img.src;
+        big.src = img.src; // full-size file, not the smaller srcset variant
         big.alt = img.alt;
         box.appendChild(big);
         const close = () => {
