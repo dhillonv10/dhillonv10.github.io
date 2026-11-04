@@ -1,8 +1,8 @@
 ---
 title: "Weight-Space Programming for Longevity Models"
 subtitle: "Can an AI Agent Improve a Biology Model by Editing Its Weights?"
-author: Vikram Dhillon
-pubDatetime: 2026-11-04T00:00:00.000Z
+author: Vik Dhillon
+pubDatetime: 2026-11-03T19:00:00-08:00
 slug: ai-agent-edits-biology-model-weights
 featured: true
 draft: false
@@ -15,7 +15,7 @@ takeaways:
 description: 'Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training. A replication and extension of "Sparks of Weight-Space Programming."'
 ---
 
-## The short version
+## Brief results
 
 We gave **Claude Opus 5.5** read and write access to the raw weights of [`Qwen3-0.6B-Longevity`](https://huggingface.co/insilicomedicine/Qwen3-0.6B-Longevity), a small open model fine-tuned on aging biology. The job was to make it better at estimating a person's **age from a routine blood panel**. It could not train the model with gradient descent. It had to read the weights and activations, decide what to change, and write the change itself. Every number in this table is measured on **200 people the agent never saw**:
 
