@@ -130,3 +130,6 @@ tests/          adapter guarantees + an end-to-end synthetic benchmark (pytest)
 * PyTorch's fused transformer "fast path" is switched off so adapters always run, with identical numerics in training
   and inference.
 * The task head standardises the `<cls>` state across cells (BatchNorm), mirroring the probe's StandardScaler.
+* Loading prints `pretrained tensors loaded: 162/172`. The 10 not in the checkpoint are scGPT's own cell-type
+  classification head (`cls_decoder`), which this package never uses. The expression and MVC decoders that the SSL
+  objective relies on load from the checkpoint.
