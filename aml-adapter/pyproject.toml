@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amladapter"
+version = "0.1.0"
+description = "AML adapter for the scGPT single-cell foundation model, with a patient-held-out benchmark"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+packages = ["amladapter"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::UserWarning", "ignore::FutureWarning", "ignore::DeprecationWarning"]
