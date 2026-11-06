@@ -164,6 +164,34 @@ def evaluate(risk, cif, names, t, cause, cat_m, out, n_boot, skip):
         b4.append(dict(model=mid, name=names[mid], fraction=1.0, auc_mean=auc_cr(t, cause, risk[(mid, 1, 60.0)], 60.0, 1), auc_sd=0.0))
     b4.append(dict(model="M0", name="IPSS-M (no training)", fraction=np.nan, auc_mean=auc_cr(t, cause, risk[("M0", 1, 60.0)], 60.0, 1), auc_sd=0.0))
     tables["B4_data_efficiency"] = pd.DataFrame(b4)
+    # protocol H3/H4: paired differences of the primary model M3 against the backbone and adapter ablations
+    rows = []
+    for task, k, tau, mask in (("AML 60m, all", 1, 60.0, np.ones(len(t), bool)), ("AML 24m, all", 1, 24.0, np.ones(len(t), bool)),
+                               ("AML 60m, lower-risk", 1, 60.0, lower), ("death 60m, all", 2, 60.0, np.ones(len(t), bool))):
+        rs = {m: risk[(m, k, tau)][mask] for m in ids}
+        tab = _boot_auc(t[mask], cause[mask], rs, tau, k, "M3", n_boot, seed=1)
+        for _, r in tab[tab.model != "M3"].iterrows():
+            rows.append(dict(task=task, comparison=f"M3 minus {r.model} ({names[r.model]})", diff=-r.d_vs_ref, lo=-r.d_hi, hi=-r.d_lo))
+    tables["H3_H4_paired_vs_M3"] = pd.DataFrame(rows)
+    # B4 with paired bootstrap: TabPFN minus XGBoost at each training fraction (draws averaged)
+    rows = []
+    if "M3" not in skip and "M4" not in skip:
+        rng = np.random.default_rng(2)
+        idx = [rng.integers(0, len(t), len(t)) for _ in range(n_boot)]
+        for frac in FRACTIONS + (1.0,):
+            def keys(mid):
+                return [(mid, 1, 60.0)] if frac == 1.0 else [(f"B4_{mid}_{int(frac*100)}_d{r}", 1, 60.0) for r in range(N_DRAWS)]
+            f = lambda mid, ii: np.mean([auc_cr(t[ii], cause[ii], risk[kk][ii], 60.0, 1) for kk in keys(mid)])
+            all_i = np.arange(len(t))
+            d0 = f("M3", all_i) - f("M4", all_i)
+            db = np.array([f("M3", ii) - f("M4", ii) for ii in idx[:200]])
+            dm = np.array([f("M3", ii) - auc_cr(t[ii], cause[ii], risk[("M0", 1, 60.0)][ii], 60.0, 1) for ii in idx[:200]])
+            rows.append(dict(fraction=frac, tabpfn_minus_xgb=d0, lo=np.percentile(db, 2.5), hi=np.percentile(db, 97.5),
+                             tabpfn_minus_ipssm=f("M3", all_i) - auc_cr(t, cause, risk[("M0", 1, 60.0)], 60.0, 1),
+                             lo_ipssm=np.percentile(dm, 2.5), hi_ipssm=np.percentile(dm, 97.5)))
+    tables["B4_paired"] = pd.DataFrame(rows)
+    np.savez_compressed(out / "oof_risks.npz", **{"|".join(map(str, k_)): v for k_, v in risk.items()},
+                        **{"cif|" + "|".join(map(str, k_)): v for k_, v in cif.items()}, t=t, cause=cause, cat_m=cat_m)
     for k_, v in tables.items():
         v.to_csv(out / f"{k_}.csv", index=False)
     lines = ["# Benchmark results (protocol: paper/PROTOCOL.md)", ""]
