@@ -79,3 +79,31 @@ def build(d: pd.DataFrame, mut: pd.DataFrame, min_gene_freq: float = 0.01, vaf_g
     groups["all"] = [c for g in groups.values() for c in g]
     groups["all_no_age"] = [c for c in groups["all"] if c != "AGE"]
     return X.astype(float).copy(), groups
+
+
+CURATED_GENES = IPSSM_MAIN[:-1]          # 15 IPSS-M main-effect genes (MLL_PTD handled separately)
+CURATED_VAF_GENES = ["TP53", "SF3B1", "ASXL1", "RUNX1", "U2AF1", "SRSF2", "DNMT3A", "TET2"]
+
+
+def curated(d: pd.DataFrame, mut: pd.DataFrame, X: pd.DataFrame) -> pd.DataFrame:
+    """The pre-registered curated input set (paper/PROTOCOL.md), built so every listed gene exists regardless of frequency."""
+    C = pd.DataFrame(index=d.index)
+    C["IPSSM_SCORE"] = pd.to_numeric(d.IPSSM_SCORE, errors="coerce")
+    for c in ["HB", "PLT", "ANC", "WBC", "MONOCYTES", "BM_BLAST", "PB_BLAST", "AGE", "male", "secondary_MDS",
+              "cyto_ipssr", "complex_karyotype", "del5q", "del7", "del17p", "del20q", "gain8", "del12p", "del11q",
+              "MLL_PTD", "FLT3_ITD", "TP53_multihit", "TP53_locus_loss", "max_vaf_any", "n_driver_mutations"]:
+        C[c] = X[c]
+    sample_of = dict(zip(d.sampleId, d.index))
+    drv = mut[mut.driver & mut.sampleId.isin(sample_of)].copy()
+    drv["row"] = drv.sampleId.map(sample_of)
+    has = drv.groupby(["row", "gene"]).size().unstack(fill_value=0).clip(upper=1)
+    vaf = drv.groupby(["row", "gene"]).vaf.max().unstack()
+    sequenced = X["n_driver_mutations"].notna()
+    for g in CURATED_GENES:
+        C[f"mut_{g}"] = (has[g].reindex(d.index).fillna(0) if g in has else pd.Series(0.0, index=d.index)).astype(float)
+    C["n_residual_genes"] = (has.reindex(columns=IPSSM_RESIDUAL, fill_value=0).sum(1).reindex(d.index).fillna(0)).astype(float)
+    for g in CURATED_VAF_GENES:
+        C[f"vaf_{g}"] = (vaf[g].reindex(d.index).fillna(0) if g in vaf else pd.Series(0.0, index=d.index)).astype(float)
+    gene_cols = [c for c in C if c.startswith(("mut_", "vaf_"))] + ["n_residual_genes"]
+    C.loc[~sequenced.to_numpy(), gene_cols] = np.nan
+    return C.astype(float)
