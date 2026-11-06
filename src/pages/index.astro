@@ -65,6 +65,13 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
         <span class="sr-only">RSS Feed</span>
       </a>
 
+      <p class="dictionary">
+        <strong>opsbug</strong>
+        <span class="pron">/ˈɒps bʌɡ/</span>
+        <em>n.</em> 1. The moment the rigid loops of routine, automation and historical
+        inertia break down just enough for us to see the source code, and rewrite
+        it for the better.
+      </p>
       <p>Notes from a physician-scientist with too many tabs open.</p>
     </section>
 
@@ -150,6 +157,12 @@ const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
   }
   #hero p {
     @apply my-2;
+  }
+  #hero p.dictionary {
+    @apply text-sm leading-relaxed opacity-80;
+  }
+  #hero p.dictionary .pron {
+    @apply mx-1;
   }
 
   /* ===== Featured & Recent Posts Sections ===== */
