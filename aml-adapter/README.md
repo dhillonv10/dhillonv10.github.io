@@ -109,6 +109,30 @@ pred = m.predict(adata)   # adata.X = raw UMI counts, var_names = gene symbols
 emb = m.embed(adata)      # AML-adapted 512-d cell embeddings for clustering / UMAP / your own classifiers
 ```
 
+## What has been verified, and what the CPU check on real data showed
+
+* **Tests (pytest, 4 pass):**
+  - Zero-initialised adapters reproduce base scGPT exactly.
+  - Adapters take effect in inference mode.
+  - Only adapter weights change during training.
+  - Save/load round-trips exactly.
+  - Supervised training learns a separable signal.
+  - A full synthetic benchmark runs through every task, method, metric and the shipped-model API.
+* **Real data, real scGPT weights, CPU (`cpu-mini`, 47.7 min on 4 cores):**
+  - Both cohorts load in full (van Galen 37,627 cells / 21 donors; Naldini 69,138 cells / 10 patients).
+  - The SSL adapter lowers the held-out masked-expression loss in every fold (443 → 322, 443 → 322, 434 → 321).
+  - Every method and table is produced, and the shipped model loads and predicts on new cells.
+  - Full report: [`docs/cpu_mini_real_data_REPORT.md`](docs/cpu_mini_real_data_REPORT.md).
+* **Those CPU numbers are not a result.** The run used 40 cells per sample, sequences cut to 256 genes (Naldini cells
+  express ~3,000), and only 60–80 training steps. Even so, the pattern is worth knowing before the GPU run.
+  Expression baselines led on every task (T2 AUROC: PCA-LR 0.81, frozen scGPT 0.71, adapters 0.68–0.71). The briefly
+  trained supervised adapters were worse than frozen scGPT, and the SSL adapter tied it. No variant met the PROMISE rule.
+  The full run has 25× more training steps, 5× longer sequences and all cells; whether that changes the picture is
+  exactly what it will show.
+
+**Runtime of the full profile:** one van Galen fold took 10.9 min at mini scale on CPU. On a T4, budget about 4–5 h for
+everything. Use `--tasks T2`, `t2_target_ssl=false` or fewer steps to cut it down; the first run's logs give exact timings.
+
 ## Package layout
 ```
 amladapter/
