@@ -1,0 +1,7 @@
+IPSS-M,Very-Low,Low,Moderate-Low,Moderate-High,High,Very-High
+Very-Low,265,50,0,0,0,0
+Low,50,668,53,3,0,0
+Moderate-Low,0,56,183,31,3,0
+Moderate-High,0,0,36,182,32,3
+High,0,0,1,37,276,31
+Very-High,0,0,0,0,34,399
