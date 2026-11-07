@@ -36,11 +36,9 @@ The five rounds show three different things:
 2. **Rounds 2 and 3 changed what the model computes.** Opus wrote new circuitry that carries biomarker information to the answer that never reached it before. Error dropped by a further 2.7 years.
 3. **Rounds 4 and 5 closed the gap to classical machine learning.** I asked Opus to beat a tuned gradient-boosting model. It built a circuit that turns every blood marker into an age contribution and adds them up inside the network. Error fell another 0.41 years (CI −0.53 to −0.29), to a statistical tie with the classical model.
 
-**Every design and weight change in these results was produced by Claude Opus 5.5 agents.**
-
 ## 1. The question
 
-In [_Sparks of Weight-Space Programming_](https://rikiyat.github.io/blog/weight-space-programming/), Takehi, Teoh, Zhang and Khattab showed that a frontier LLM can read and write neural-network weights directly. Their most striking result: given a Python kernel and a budget of forward passes, the LLM found a "looping" direction inside Qwen3.5-0.8B and removed it, raising its MATH-500 score from 7.9 to 48.1. Their control experiment set the limit. On a model that did not loop, the same procedure did nothing. **Editing could remove an obstacle, but it could not add an ability.**
+In [_Sparks of Weight-Space Programming_](https://rikiyat.github.io/blog/weight-space-programming/), Takehi, Teoh, Zhang and Khattab showed that a frontier LLM can read and write neural-network weights directly. Their most striking result: Given a Python kernel and a budget of forward passes, the LLM found a "looping" direction inside Qwen3.5-0.8B and removed it, raising its MATH-500 score from 7.9 to 48.1. Their control experiment set the limit. On a model that did not loop, the same procedure did nothing. **Editing could remove an obstacle, but it could not add an ability.**
 
 We asked three questions:
 
@@ -62,7 +60,7 @@ We asked three questions:
 
 An edit is **kept only if dev error improves**; otherwise it is reverted automatically. No optimizer may update the weights, but closed-form analysis (least squares, SVD, discriminant analysis) is allowed. Edits may touch at most 5% of the weights, and the agent has a fixed budget of evaluations.
 
-## 3.What did Opus contribute
+## 3. What did Opus contribute
 
 Opus was used as an **autonomous research agent**. Each agent was a Claude Opus 5.5 session with a shell. It talked to the model only through the sandbox, and did all the analysis and editing itself.
 
@@ -92,7 +90,7 @@ Its first edit added a _quadratic prior_ over the first digit, centred on the mo
 
 Its 7th evaluation was accepted at 9.8. It stopped after 8 of 20 evaluations. The final edit changes **10 rows of the output layer**: 10,240 weights, or 0.0014% of the model.
 
-> **Opus's contribution in round 1:** the diagnosis (first digit stuck on 2–4), the edit design (quadratic prior, position gate, end-of-answer guard), every fitted vector and parameter, the recovery from its own failed attempt, and the decision to stop at 8 of 20 evaluations.
+> **Opus's contribution in round 1:** The diagnosis (first digit stuck on 2–4), the edit design (quadratic prior, position gate, end-of-answer guard), every fitted vector and parameter, the recovery from its own failed attempt, and the decision to stop at 8 of 20 evaluations.
 
 **The result: Better answers, nearly the same knowledge.** Error fell from **14.16 to 11.39 years** (−2.77, CI −3.25 to −2.27), but correlation rose only by 0.02, and the best possible rescaling of the answers improved only from 11.12 to 10.82 years. Round 1 corrected the model's habit of guessing too young (bias −11.3 → +3.9 years). **It unlocked knowledge the model already had**, the same kind of fix as the original post's looping repair.
 
@@ -110,7 +108,7 @@ A new Opus agent started from the round-1 model, with 750 practice examples, 80 
 
 Opus used **2 of its 15 evaluations**: the full edit scored 7.96 on dev, from 10.38. Its ablation, with the pooled biomarker signal removed, scored 8.72.
 
-> **Opus's contribution in round 2:** finding the unused biomarker information and round 1's multiple-choice bug; the circuit design; the choice of head, channel and neurons; every fitted weight; and the ablation showing how much of the gain is new information.
+> **Opus's contribution in round 2:** Finding the unused biomarker information and round 1's multiple-choice bug; the circuit design; the choice of head, channel and neurons; every fitted weight; and the ablation showing how much of the gain is new information.
 
 **The result: the model knows more.** Error fell to **9.05 years** (−2.34 vs round 1, CI −2.62 to −2.05) and correlation rose by 0.09. Round 2's answers are already well calibrated (9.05 as answered, 9.07 after the best rescaling), almost two years below anything rescaling the original model can reach (Figure D1).
 
@@ -118,11 +116,11 @@ Opus used **2 of its 15 evaluations**: the full edit scored 7.96 on dev, from 10
 
 A third agent found that most of the information still unused sits in **three specific biomarkers: Cystatin C** (a well-known kidney and aging marker), **Vitamin E and Albumin**. It **rewired three attention heads in layer 24 into "reader" heads**. Each has a fixed query that puts about 99% of its attention on one biomarker's value and decodes a nonlinear age correction from it. Dev error went from 7.66 to 7.33 in 5 of 15 evaluations.
 
-> **Opus's contribution in round 3:** the brief suggested targeted reading; Opus identified the three biomarkers, designed the content-addressed reader heads and their nonlinear decoders, refit the read-out, ran the ablation, and warned that its accepted result carries some dev selection.
+> **Opus's contribution in round 3:** Opus identified the three biomarkers, designed the content-addressed reader heads and their nonlinear decoders, refit the read-out, ran the ablation, and warned that its accepted result carries some dev selection.
 
 **The result:** error **8.66 years**, a smaller but significant step (−0.39 vs round 2, CI −0.57 to −0.21; correlation +0.017).
 
-## 9. Rounds 4 and 5: closing the gap to classical machine learning
+## 9. Rounds 4 and 5: Closing the gap to classical machine learning
 
 After round 3, I wanted to see how the edited model compared with a conventional baseline. I trained a tuned gradient-boosting model on the same 750 participants available to the agents, using their blood measurements directly. It achieved a held-out MAE of **8.20 years**, outperforming round 3's **8.66 years**. That gave me a new benchmark—and the next agent a more ambitious objective: **beat it.**
 
@@ -151,7 +149,7 @@ Round 4's accepted edit scored **8.56 on dev**, against **8.54** for the baselin
 
 > **Opus's contribution in rounds 4–5:** finding the 26 unused profile items and the missing-value signal; the per-marker circuit design (gated neuron pairs, summing head, refit read-out, digit-bias correction); every curve, neuron choice and fitted weight; the ablations; catching its own bug (an edit file that applied a correction twice); and rebuilding the accepted edit exactly after the crash.
 
-### The result: a tie with tuned gradient boosting
+### The result: A tie with tuned gradient boosting
 
 Held-out error fell to **8.25 years** (−0.41 vs round 3, CI −0.53 to −0.29), with correlation 0.833. The new information is real computation: with the marker circuit switched off, dev error is 9.76 instead of 8.55 (Figure D4). Against tuned gradient boosting, the difference is **+0.05 years (95% CI −0.13 to +0.23), a statistical tie**. It is level with default gradient boosting (−0.12, CI −0.30 to +0.07) and significantly better than the additive spline model (−0.32, CI −0.47 to −0.18).
 
