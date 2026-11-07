@@ -8,6 +8,141 @@
     sans-serif;
   --lw-text: 42rem; /* reading column */
   --lw-wide: 12rem; /* extra room on each side for figures and tables */
+  --lw-sidebar-w: 272px;
+}
+
+/* ---------- floating table of contents ---------- */
+/* A card that floats over the left margin. Hidden by default; the "<" button
+   closes it and a slim tab on the left edge opens it. It never moves the text. */
+.lw-sidebar {
+  position: fixed;
+  left: 1rem;
+  top: 5rem;
+  z-index: 40;
+  width: 268px;
+  max-height: calc(100vh - 7rem);
+  overflow-y: auto;
+  padding: 0.9rem 0.8rem 1.1rem 1rem;
+  background: rgb(var(--color-fill));
+  border: 1px solid rgb(var(--color-border));
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
+  font-family: var(--lw-sans);
+  font-size: 0.88rem;
+  line-height: 1.35;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+html:not([data-toc="open"]) .lw-sidebar {
+  opacity: 0;
+  transform: translateX(-12px);
+  pointer-events: none;
+  visibility: hidden;
+}
+.lw-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.lw-toc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  background: rgb(var(--color-card));
+  color: rgb(var(--color-text-base));
+}
+.lw-toc-btn:hover {
+  background: rgb(var(--color-card-muted));
+}
+.lw-toc-btn svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* slim edge tab that brings the contents back */
+.lw-toc-show {
+  position: fixed;
+  left: 0;
+  top: 5rem;
+  z-index: 30;
+  width: 1.6rem;
+  height: 3.2rem;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 1px 1px 6px rgb(0 0 0 / 0.14);
+  opacity: 0.85;
+}
+.lw-toc-show:hover {
+  opacity: 1;
+  width: 1.9rem;
+}
+html[data-toc="open"] .lw-toc-show {
+  display: none;
+}
+.lw-toc-title {
+  display: block;
+  margin: 0 0 0.75rem;
+  font-family: var(--lw-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-decoration: none;
+}
+.lw-toc {
+  border-left: 1px solid rgb(var(--color-border));
+}
+.lw-toc a {
+  position: relative;
+  display: block;
+  padding: 0.28rem 0.4rem 0.28rem 1rem;
+  text-decoration: none;
+  opacity: 0.6;
+}
+.lw-toc a.lvl-3 {
+  padding-left: 1.8rem;
+  font-size: 0.82rem;
+}
+.lw-toc a::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 0.7em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(var(--color-card-muted));
+}
+.lw-toc a.lvl-3 {
+  --dot: 5px;
+}
+.lw-toc a.lvl-3::before {
+  width: 5px;
+  height: 5px;
+  left: -3px;
+}
+.lw-toc a:hover,
+.lw-toc a.active {
+  opacity: 1;
+}
+.lw-toc a.active {
+  font-weight: 600;
+}
+.lw-toc a.active::before {
+  background: rgb(var(--color-accent));
 }
 
 /* ---------- reading grid ---------- */
@@ -298,7 +433,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .toc-panel,
+  .lw-sidebar,
   .lw-lightbox {
     transition: none;
     animation: none;
@@ -453,195 +588,4 @@
   background: rgba(var(--color-card-muted), 0.45);
   padding: 0.1em 0.3em;
   border-radius: 3px;
-}
-
-/* ---------- contents rail ---------- */
-/* A slim column of ticks on the left, one per heading, with the current section
-   highlighted. Hover (or focus / tap) opens the full list. It floats over the
-   page and never narrows the text. */
-.toc-rail {
-  position: fixed;
-  left: 1.4rem;
-  top: 5.6rem;
-  z-index: 30;
-  width: 13rem;
-  font-family: var(--lw-sans);
-}
-.toc-label {
-  position: relative;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0;
-  background: none;
-  border: 0;
-  font: inherit;
-  font-size: 0.82rem;
-  color: rgba(var(--color-text-base), 0.65);
-  cursor: pointer;
-}
-.toc-label svg {
-  width: 1rem;
-  height: 1rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-}
-.toc-label:hover {
-  color: rgb(var(--color-text-base));
-}
-.toc-ticks {
-  list-style: none;
-  margin: 0.9rem 0 0 0.1rem;
-  padding: 0;
-}
-.toc-ticks li {
-  height: 11px;
-}
-.toc-ticks a {
-  display: flex;
-  align-items: center;
-  height: 11px;
-  text-decoration: none;
-}
-.toc-ticks i {
-  display: block;
-  height: 1.5px;
-  width: 14px;
-  border-radius: 1px;
-  background: rgba(var(--color-text-base), 0.3);
-  transition:
-    width 0.15s ease,
-    background 0.15s ease;
-}
-.toc-ticks .t2 i {
-  width: 24px;
-}
-.toc-ticks a.active i {
-  width: 32px;
-  height: 2px;
-  background: rgb(var(--color-accent));
-}
-/* The list opens to the RIGHT of the ticks, below the label, so neither the label
-   nor the ticks are ever covered. Only the list scrolls; the title stays put. */
-.toc-panel {
-  position: absolute;
-  left: 3.6rem;
-  top: 2rem;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  width: 20rem;
-  max-height: calc(100vh - 9.2rem);
-  padding: 1rem 0.4rem 0.8rem 1.1rem;
-  overflow: hidden;
-  background: rgb(var(--color-fill));
-  border: 1px solid rgb(var(--color-border));
-  border-radius: 12px;
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.16);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(-6px);
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease,
-    visibility 0.15s;
-}
-@media (hover: hover) {
-  .toc-rail:hover .toc-panel {
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-  }
-}
-.toc-rail:focus-within .toc-panel,
-.toc-rail.open .toc-panel {
-  opacity: 1;
-  visibility: visible;
-  transform: none;
-}
-/* while the page itself is scrolling, don't pop the list open under a resting pointer */
-.toc-rail.is-scrolling:not(.open) .toc-panel {
-  opacity: 0;
-  visibility: hidden;
-  transition: none;
-}
-.toc-title {
-  display: block;
-  flex: none;
-  margin: 0 0.7rem 0.4rem 0;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid rgb(var(--color-border));
-  font-family: var(--lw-serif);
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.3;
-  text-decoration: none;
-  color: rgb(var(--color-text-base));
-}
-.toc-panel ul {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  margin: 0;
-  padding: 0 0.7rem 0 0;
-  list-style: none;
-}
-.toc-panel li a {
-  display: block;
-  padding: 0.3rem 0.2rem;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  text-decoration: none;
-  color: rgba(var(--color-text-base), 0.7);
-}
-.toc-panel li.lvl-3 a {
-  padding-left: 1.2rem;
-  font-size: 0.76rem;
-}
-.toc-panel li a:hover {
-  color: rgb(var(--color-accent));
-}
-.toc-panel li a.active {
-  color: rgb(var(--color-accent));
-  font-weight: 600;
-}
-/* below ~1200px the rail becomes a "Contents" pill in the bottom-left corner;
-   the list opens above the pill, so it never sits under it */
-@media (max-width: 1199px) {
-  .toc-rail {
-    left: 1rem;
-    top: auto;
-    bottom: 1rem;
-    width: auto;
-  }
-  .toc-label {
-    padding: 0.55rem 0.9rem;
-    background: rgb(var(--color-fill));
-    border: 1px solid rgb(var(--color-border));
-    border-radius: 999px;
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.16);
-  }
-  .toc-ticks {
-    display: none;
-  }
-  .toc-panel {
-    top: auto;
-    bottom: 3.4rem;
-    left: 0;
-    width: min(88vw, 22rem);
-    max-height: 65vh;
-  }
-  .toc-rail:hover .toc-panel,
-  .toc-rail:focus-within:not(.open) .toc-panel {
-    opacity: 0;
-    visibility: hidden;
-  }
-  .toc-rail.open .toc-panel {
-    opacity: 1;
-    visibility: visible;
-  }
 }

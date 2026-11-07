@@ -32,9 +32,6 @@ const {
 } = post.data;
 
 const { Content, headings } = await post.render();
-const tocItems = headings.filter(
-  h => (h.depth === 2 || h.depth === 3) && h.slug !== "footnote-label"
-);
 const minutes = readingTime(post.body);
 
 // Neighbours in the same order as the Posts list (newest first):
@@ -65,53 +62,40 @@ const layoutProps = {
 <Layout {...layoutProps}>
   <Header />
 
-  <aside class="toc-rail" id="toc-rail" aria-label="Table of contents">
-    <button
-      type="button"
-      class="toc-label"
-      id="toc-label"
-      aria-expanded="false"
-      aria-controls="toc-panel"
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 6h16M4 12h10M4 18h13"></path>
-      </svg>
-      <span>Table of Contents</span>
-    </button>
-    <ol class="toc-ticks" aria-hidden="true">
-      {
-        tocItems.map(h => (
-          <li class={`t${h.depth}`}>
-            <a href={`#${h.slug}`} tabindex="-1" data-target={h.slug}>
-              <i />
-            </a>
-          </li>
-        ))
-      }
-      <li class="t2">
-        <a href="#comments" tabindex="-1" data-target="comments"><i></i></a>
-      </li>
-    </ol>
-    <nav class="toc-panel" id="toc-panel" aria-label="Contents">
-      <a href="#top" class="toc-title">{title}</a>
-      <ul>
+  <div class="lw-layout">
+    <aside class="lw-sidebar" id="lw-sidebar" aria-label="Table of contents">
+      <div class="lw-sidebar-head">
+        <span>Contents</span>
+        <button
+          type="button"
+          id="toc-hide"
+          class="lw-toc-btn"
+          aria-label="Hide table of contents"
+          title="Hide contents"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"
+            ><path d="M15 5l-7 7 7 7"></path></svg
+          >
+        </button>
+      </div>
+      <a href="#top" class="lw-toc-title">{title}</a>
+      <nav class="lw-toc" id="lw-toc">
         {
-          tocItems.map(h => (
-            <li class={`lvl-${h.depth}`}>
-              <a href={`#${h.slug}`} data-target={h.slug}>
+          headings
+            .filter(
+              h =>
+                (h.depth === 2 || h.depth === 3) && h.slug !== "footnote-label"
+            )
+            .map(h => (
+              <a href={`#${h.slug}`} class={`lvl-${h.depth}`}>
                 {h.text}
               </a>
-            </li>
-          ))
+            ))
         }
-        <li class="lvl-2">
-          <a href="#comments" data-target="comments">Comments</a>
-        </li>
-      </ul>
-    </nav>
-  </aside>
+        <a href="#comments" class="lvl-2">Comments</a>
+      </nav>
+    </aside>
 
-  <div class="lw-layout">
     <main id="main-content" class="lw-post">
       <span id="top"></span>
       <h1 transition:name={slugifyStr(title)} class="lw-post-title">{title}</h1>
@@ -190,6 +174,17 @@ const layoutProps = {
       <Comments />
     </main>
   </div>
+  <button
+    type="button"
+    id="toc-show"
+    class="lw-toc-btn lw-toc-show"
+    aria-label="Show table of contents"
+    title="Show contents"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M9 5l7 7-7 7"></path></svg
+    >
+  </button>
   <button
     type="button"
     id="lw-top"
@@ -302,64 +297,59 @@ const layoutProps = {
   }
   attachCopyButtons();
 
-  /** Contents rail: highlight the current section, and open the full list on
-   *  hover (CSS), focus, or tap. On small screens it is a "Contents" pill. */
-  function setupToc() {
-    const rail = document.getElementById("toc-rail");
-    const label = document.getElementById("toc-label");
-    if (!rail || !label) return;
-    const links = Array.from(rail.querySelectorAll("a[data-target]"));
-    const ids = Array.from(new Set(links.map(a => a.dataset.target)));
-    const targets = ids.map(id => document.getElementById(id)).filter(Boolean);
-
+  /** Highlight the current section in the left table of contents */
+  function setupScrollSpy() {
+    const links = Array.from(document.querySelectorAll("#lw-toc a"));
+    const targets = links
+      .map(a => document.getElementById(decodeURIComponent(a.hash.slice(1))))
+      .filter(Boolean);
     function update() {
       let current = null;
       for (const el of targets) {
-        if (el.getBoundingClientRect().top <= 140) current = el.id;
+        if (el.getBoundingClientRect().top <= 120) current = el.id;
       }
       links.forEach(a =>
-        a.classList.toggle("active", a.dataset.target === current)
+        a.classList.toggle(
+          "active",
+          current !== null && decodeURIComponent(a.hash.slice(1)) === current
+        )
       );
     }
-    let scrollTimer;
-    document.addEventListener(
-      "scroll",
-      () => {
-        update();
-        // don't let a resting pointer pop the list open while the page scrolls
-        rail.classList.add("is-scrolling");
-        clearTimeout(scrollTimer);
-        scrollTimer = setTimeout(
-          () => rail.classList.remove("is-scrolling"),
-          160
-        );
-      },
-      { passive: true }
-    );
+    document.addEventListener("scroll", update, { passive: true });
     update();
+  }
+  setupScrollSpy();
 
-    const setOpen = open => {
-      rail.classList.toggle("open", open);
-      label.setAttribute("aria-expanded", String(open));
-    };
-    label.addEventListener("click", e => {
+  /** Floating table of contents: hidden by default, toggled by the "<" button
+   *  and the edge tab. On narrower screens it closes after you pick a section,
+   *  click elsewhere, or press Esc. */
+  function setupTocToggle() {
+    const root = document.documentElement;
+    const roomy = () => window.matchMedia("(min-width: 1300px)").matches;
+    const set = state => root.setAttribute("data-toc", state);
+    set("closed");
+
+    document
+      .getElementById("toc-hide")
+      ?.addEventListener("click", () => set("closed"));
+    document.getElementById("toc-show")?.addEventListener("click", e => {
       e.stopPropagation();
-      setOpen(!rail.classList.contains("open"));
+      set("open");
     });
-    rail.querySelectorAll(".toc-panel a").forEach(a =>
+    document.querySelectorAll("#lw-toc a, .lw-toc-title").forEach(a =>
       a.addEventListener("click", () => {
-        setOpen(false);
-        a.blur(); // otherwise :focus-within would keep the list open
+        if (!roomy()) set("closed");
       })
     );
     document.addEventListener("click", e => {
-      if (!e.target.closest("#toc-rail")) setOpen(false);
+      const inside = e.target.closest?.("#lw-sidebar, #toc-show");
+      if (!inside && !roomy()) set("closed");
     });
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") set("closed");
     });
   }
-  setupToc();
+  setupTocToggle();
 
   /** Figures: an image paragraph (optionally followed by the post's own
    *  "*Figure ...*" caption on the next line) becomes a captioned figure. With no
