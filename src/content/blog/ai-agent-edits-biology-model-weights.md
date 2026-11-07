@@ -1,5 +1,5 @@
 ---
-title: "Weight-Space Programming for Longevity Models"
+title: "Exploring Weight-Space Programming for Longevity Models"
 subtitle: "Can an AI Agent Improve a Biology Model by Editing Its Weights?"
 author: Vik Dhillon
 pubDatetime: 2026-11-03T19:00:00-08:00
@@ -7,18 +7,16 @@ slug: ai-agent-edits-biology-model-weights
 type: feature
 draft: false
 takeaways:
-  - "**An AI agent improved a biology model by editing its weights directly, with no training.** Over five rounds, Claude Opus 5.5 cut the age-estimation error of Insilico Medicine's `Qwen3-0.6B-Longevity` from **14.2 to 8.25 years**, measured on 2,791 people no agent ever saw."
-  - "**The edited model now ties a tuned classical model.** Gradient boosting, tuned and trained on the same 750 people the agents could use, scores 8.20 years. The difference is +0.05 years (95% CI −0.13 to +0.23): a statistical tie. The edited model is significantly better than a ridge regression and an additive spline model, and level with default gradient boosting."
-  - '**It did two different things.** First it *unlocked* what the model already knew (round 1). Then it *wrote new computation* into the network: a pooling attention head, gated neurons, biomarker "reader" heads and finally a per-marker age circuit over every item in the blood panel (rounds 2 to 5).'
-  - "**The new computation is real information, not recalibration.** No rescaling of the original model's answers gets below 11.1 years of error; the edited model reaches 8.25."
-  - "**In labelled-data terms:** the original model's answers are worse than a gradient-boosting model trained on just 50 people. After five rounds of edits, the model matches one trained on all 750."
+  - "**An AI agent improved a biology model by editing its weights directly, with no training.** Over five rounds, Claude Opus 5.5 cut the age-estimation error of Insilico Medicine's `Qwen3-0.6B-Longevity` from **14.2 to 8.25 years**."
+  - "**The edited model now ties a tuned classical model.** Gradient boosting, tuned and trained on the same 750 people the agents could use, scores 8.20 years. The difference is +0.05 years (95% CI −0.13 to +0.23): A statistical tie. The edited model is significantly better than a ridge regression and an additive spline model, and level with default gradient boosting."
+  - 'The agent *unlocked* what the model already knew (round 1). Then it *wrote new computation* into the network: a pooling attention head, gated neurons, biomarker "reader" heads and finally a per-marker age circuit over every item in the blood panel (rounds 2 to 5).'
   - "**Nothing else broke along the way.** After round 2 fixed a bug that round 1 introduced, multiple-choice answers stayed at the original model's accuracy through round 5. The edited 0.6B model also beats every other open model we could run, including Insilico's own 1.7B and 9B longevity models."
 description: 'Over five rounds, Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training, until it ties a tuned classical model trained on the same data. A replication and extension of "Sparks of Weight-Space Programming."'
 ---
 
 ## Brief results
 
-We gave **Claude Opus 5.5** read and write access to the raw weights of [`Qwen3-0.6B-Longevity`](https://huggingface.co/insilicomedicine/Qwen3-0.6B-Longevity), a small open model fine-tuned on aging biology. The job was to make it better at estimating a person's **age from a routine blood panel**. It could not train the model with gradient descent. It had to read the weights and activations, decide what to change, and write the change itself. Every number in this table is measured on the **same 2,791 people no agent ever saw**:
+We gave **Claude Opus 5.5** read and write access to the raw weights of [`Qwen3-0.6B-Longevity`](https://huggingface.co/insilicomedicine/Qwen3-0.6B-Longevity), a small open model fine-tuned on aging biology. The job was to make it better at estimating a person's **age from a routine blood panel**. It could not train the model with gradient descent. It had to read the weights and activations, decide what to change, and write the change itself.
 
 |                                                                | What Opus changed                                     | Age error (MAE) | Correlation with true age |
 | -------------------------------------------------------------- | ----------------------------------------------------- | --------------- | ------------------------- |
@@ -29,9 +27,6 @@ We gave **Claude Opus 5.5** read and write access to the raw weights of [`Qwen3-
 | **Rounds 4–5**                                                 | a per-marker age circuit over all 29 profile items    | **8.25 years**  | **0.833**                 |
 | _Reference: tuned gradient boosting, same 750 training people_ | —                                                     | _8.20 years_    | _0.832_                   |
 
-![The five rounds at a glance](/figures/o1_five_rounds.png)
-_Figure O1. The five rounds at a glance: what Opus changed, how many weights, and the held-out age error after each round._
-
 ![Age error after each round](/figures/p1_rounds_mae.png)
 _Figure P1 (performance). Held-out age error after each round, with 95% confidence intervals. The orange band is tuned gradient boosting trained on the same 750 people._
 
@@ -41,11 +36,7 @@ The five rounds show three different things:
 2. **Rounds 2 and 3 changed what the model computes.** Opus wrote new circuitry that carries biomarker information to the answer that never reached it before. Error dropped by a further 2.7 years.
 3. **Rounds 4 and 5 closed the gap to classical machine learning.** I asked Opus to beat a tuned gradient-boosting model. It built a circuit that turns every blood marker into an age contribution and adds them up inside the network. Error fell another 0.41 years (CI −0.53 to −0.29), to a statistical tie with the classical model.
 
-**Every diagnosis, design and weight change in these results was produced by Claude Opus 5.5 agents.** My part was building the sandbox, the baselines and the measurements (see Section 3). Along the way, Opus found and fixed a bug that its own round-1 edit had introduced, and that I had missed.
-
-Two results temper the headline, and we report them in full: the edits **tie** the classical model rather than beat it (Section 10), and the age circuit is **specific to blood-panel age**. Age prediction from proteomics gets worse (Section 11).
-
----
+**Every design and weight change in these results was produced by Claude Opus 5.5 agents.**
 
 ## 1. The question
 
@@ -71,15 +62,7 @@ We asked three questions:
 
 An edit is **kept only if dev error improves**; otherwise it is reverted automatically. No optimizer may update the weights, but closed-form analysis (least squares, SVD, discriminant analysis) is allowed. Edits may touch at most 5% of the weights, and the agent has a fixed budget of evaluations.
 
-**Keeping it honest.**
-
-- **Disjoint data.** Practice rows (750 people), dev rows, the **held-out set** and LongevityBench's official _mini_ split never overlap. Each round got fresh dev rows. For rounds 4–5 I set aside 400 more people as a larger dev set, so the held-out set is now the **2,791 people** that no round ever used. _All numbers in this post use those 2,791 people, so rounds 1–3 differ slightly from the earlier version of this post, which used 3,191._
-- **Held-out scoring.** The agents never see held-out labels. Every result in this post is a held-out number unless it says "dev".
-- **Server-side logs.** The sandbox server logged every request the agents made, so their reports could be audited.
-- **Exact reproducibility.** Each edit was rebuilt from the agent's saved code and vectors and reproduced its dev score exactly (for rounds 4–5: dev 8.55 in the agent's sandbox and 8.55 in the rebuild).
-- **Division of labour.** I built the sandbox, the baselines and the evaluation. **Every edit, vector, index and hyper-parameter came from an Opus agent** (details in Section 3).
-
-## 3. Where was Opus used, and what it contributed
+## 3.What did Opus contribute
 
 Opus was used as an **autonomous research agent**. Each agent was a Claude Opus 5.5 session with a shell. It talked to the model only through the sandbox, and did all the analysis and editing itself.
 
@@ -90,35 +73,15 @@ Opus was used as an **autonomous research agent**. Each agent was a Claude Opus 
 | **Round 3 editor**      | The round-2 model, rounds 1–2's code and summaries, the same practice prompts, 15 evaluations; brief suggested targeted reading of specific biomarkers                                                                                                            | Identified Cystatin C, Vitamin E and Albumin as the remaining unused signal. Designed the three fixed-query reader heads and their nonlinear decoders. Refit the read-out, ran an ablation, and flagged its own dev-selection risk.                                                                                                                                                                                           |
 | **Rounds 4–5 editor**   | The round-3 model, all earlier code and summaries, the same 750 practice prompts, a fresh 400-person dev set, 12 evaluations (round 4) plus a continuation; the goal was to **beat a tuned gradient-boosting model**, with its scores given. **No design hints.** | Found that rounds 1–3 used only 3 of the 29 profile items, and that whether Cystatin C was measured at all is a strong age signal. Designed and built the per-marker age circuit (58 gated neurons, a summing head, a refit read-out, a digit-bias correction). Ran the ablations. Found and fixed its own bug (an edit applied twice). After a server crash, rebuilt its accepted edit exactly from its own derivation code. |
 | **Blind weight reader** | Two anonymised checkpoints and the tokenizer; **no forward passes allowed**                                                                                                                                                                                       | Worked out which checkpoint was fine-tuned from which, measured where the weights changed, and identified the training domain, all from arithmetic on the weights.                                                                                                                                                                                                                                                            |
-
-**What I did (the human side, assisted by a separate Claude session):**
-
-- built the sandbox: weight access, practice data, the `evaluate` budget, automatic revert, edit-size cap and request logging, and, for round 5, crash-safe saving of accepted edits;
-- ran the initial probe diagnosis (Section 5) and chose the task, the data splits and the scoring;
-- built and tuned the classical baselines (ridge, additive spline, gradient boosting) on the same 750 practice people;
-- wrote each round's task brief;
-- rebuilt each edit from the agent's saved code and vectors and verified that it reproduced the dev score exactly;
-- ran all held-out evaluations and made the figures.
-
-**What I did not do:** choose, write, tune or suggest any specific edit, layer, head, neuron, vector or parameter value.
-
-**Where my briefs did steer (so you can judge for yourself):**
-
-- **The diagnosis in Section 5 is mine.** The round-1 agent never saw it and found the same gap independently.
-- **Round 1's brief** described only the task, the tools and the rules.
-- **Round 2's brief** said the goal was a _better age estimate, not recalibration_, and listed directions worth considering. Opus chose among them and designed and fitted the circuit.
-- **Round 3's brief** explicitly suggested _targeted_ reading of specific biomarkers. So round 3's _idea_ was prompted; Opus chose the biomarkers, found the queries, designed the decoders and fitted every weight.
-- **Round 4's brief** gave the goal (beat tuned gradient boosting), the baseline's scores, and one fact: a plain average of round 3's answers and the baseline's answers beats both. It contained no design hints.
-
 ## 4. Where the model starts
 
 The fine-tuned Longevity model is clearly better than the base Qwen3-0.6B at aging tasks. It gets 69% vs 49% at telling which of two people is older, and 69% vs 51% at predicting 10-year survival. But its age estimates are poor: 14.2 years of error on held-out people, mostly because it guesses young for everyone (average bias −11.3 years).
 
-## 5. Diagnosis: the model knows more than it says
+## 5. Finding age-related information in the model's internal representations
 
-Before running any agent, I checked whether there was a gap between what the network _computes_ and what it _outputs_. _(This diagnosis is mine, not Opus's; the round-1 agent found the same gap on its own.)_ A linear probe from the model's internal state to the true age gets about **10.7 years** of error on practice prompts, against about **14 years** for the model's own answers. The age information appears abruptly around layer 15. The base model's internal states know almost nothing about age, so **fine-tuning built the age representation**. The model was not using all of it.
+Before running any agent, I checked whether there was a gap between what the network _computes_ and what it _outputs_. A linear probe from the model's internal state to the true age gets about **10.7 years** of error on practice prompts, against about **14 years** for the model's own answers. The age information appears abruptly around layer 15. The base model's internal states know almost nothing about age, so **fine-tuning built the age representation**. The model was not using all of it.
 
-## 6. Round 1: unlocking what the model already knows
+## 6. Round 1: Unlocking what the model already knows
 
 The round-1 agent first studied the model's answers. It found that the model always answers with two digits and that **the first digit is almost always 2, 3 or 4**, so the model rarely says anyone is over 50.
 
@@ -131,11 +94,11 @@ Its 7th evaluation was accepted at 9.8. It stopped after 8 of 20 evaluations. Th
 
 > **Opus's contribution in round 1:** the diagnosis (first digit stuck on 2–4), the edit design (quadratic prior, position gate, end-of-answer guard), every fitted vector and parameter, the recovery from its own failed attempt, and the decision to stop at 8 of 20 evaluations.
 
-**The result: better answers, nearly the same knowledge.** Error fell from **14.16 to 11.39 years** (−2.77, CI −3.25 to −2.27), but correlation rose only by 0.02, and the best possible rescaling of the answers improved only from 11.12 to 10.82 years. Round 1 corrected the model's habit of guessing too young (bias −11.3 → +3.9 years). **It unlocked knowledge the model already had**, the same kind of fix as the original post's looping repair.
+**The result: Better answers, nearly the same knowledge.** Error fell from **14.16 to 11.39 years** (−2.77, CI −3.25 to −2.27), but correlation rose only by 0.02, and the best possible rescaling of the answers improved only from 11.12 to 10.82 years. Round 1 corrected the model's habit of guessing too young (bias −11.3 → +3.9 years). **It unlocked knowledge the model already had**, the same kind of fix as the original post's looping repair.
 
-## 7. Round 2: changing what the model computes
+## 7. Round 2: Changing what the model computes
 
-A new Opus agent started from the round-1 model, with 750 practice examples, 80 fresh dev rows and 15 evaluations. Its brief: make the age estimate **better**, not just recalibrated.
+A new Opus agent started from the round-1 model, with 750 practice examples, 80 fresh dev rows and 15 evaluations. Its brief: Make the age estimate **better**, not just recalibrated.
 
 **What Opus found.** The internal states at the **blood-marker tokens** contain age information that never reaches the token where the answer is produced. It also found that round 1 had a side effect: the model now answered some multiple-choice questions with a digit instead of a letter.
 
@@ -151,7 +114,7 @@ Opus used **2 of its 15 evaluations**: the full edit scored 7.96 on dev, from 10
 
 **The result: the model knows more.** Error fell to **9.05 years** (−2.34 vs round 1, CI −2.62 to −2.05) and correlation rose by 0.09. Round 2's answers are already well calibrated (9.05 as answered, 9.07 after the best rescaling), almost two years below anything rescaling the original model can reach (Figure D1).
 
-## 8. Round 3: pushing the same direction further
+## 8. Round 3: Pushing the same direction further
 
 A third agent found that most of the information still unused sits in **three specific biomarkers: Cystatin C** (a well-known kidney and aging marker), **Vitamin E and Albumin**. It **rewired three attention heads in layer 24 into "reader" heads**. Each has a fixed query that puts about 99% of its attention on one biomarker's value and decodes a nonlinear age correction from it. Dev error went from 7.66 to 7.33 in 5 of 15 evaluations.
 
@@ -161,15 +124,13 @@ A third agent found that most of the information still unused sits in **three sp
 
 ## 9. Rounds 4 and 5: closing the gap to classical machine learning
 
-After round 3, I built the comparison any machine-learning reader would ask for: **a classical model trained on the same 750 practice people the agents could use**. Tuned gradient boosting, reading the parsed blood panel directly, scored **8.20 years** on held-out people, ahead of round 3's 8.66. So I gave a new agent a harder brief: **beat it.**
+After round 3, I wanted to see how the edited model compared with a conventional baseline. I trained a tuned gradient-boosting model on the same 750 participants available to the agents, using their blood measurements directly. It achieved a held-out MAE of **8.20 years**, outperforming round 3's **8.66 years**. That gave me a new benchmark—and the next agent a more ambitious objective: **beat it.**
 
-### The brief
-
-The round-4 agent started from the round-3 model, with the same 750 practice people, a fresh **400-person dev set** and 12 evaluations. Its brief gave the baseline's scores and the rules: no gradient descent, every prediction computed inside the model by weights it wrote, multiple-choice and chat answers unchanged. It contained no design hints.
+The round-4 agent started from the round-3 model, with the same 750 practice people, a fresh **400-person dev set** and 12 evaluations. Its brief gave the baseline's scores and the rules: no gradient descent, every prediction computed inside the model by weights it wrote, multiple-choice and chat answers unchanged
 
 ### What Opus found
 
-Analysing the practice data before spending any evaluations, it found:
+Analyzing the practice data before spending any evaluations, it found:
 
 - **Rounds 1–3 used only 3 of the 29 profile items.** Everything else in the panel was still unused.
 - **Missing values are information.** Whether Cystatin C was measured at all is a strong age signal: the mean age is about 60 when it is present and about 39 when it is absent.
@@ -229,7 +190,7 @@ _Figure D4 (diagnostic). Ablations run by the agents on their own dev sets: the 
 ![Side effects](/figures/d5_side_effects.png)
 _Figure D5 (diagnostic). Accuracy and answer format on the five NHANES multiple-choice tasks (225 questions) for every round._
 
-**Side effects: a bug, caught and fixed by Opus.** Round 1's edit had a side effect I missed. On free-form multiple-choice questions, the model started answering with a digit instead of a letter, and accuracy fell to near zero. **The round-2 agent discovered it on its own test prompts and designed its circuit to avoid it.** From round 2 on, multiple-choice accuracy is back at the original model's level (55.1% → 55.1%, 56.0%, 55.6%). Every answer starts with a letter again. On the round-4 agent's own 54 probe prompts (multiple choice and chat), no top answer changed.
+**Side effects: A bug, caught and fixed by Opus.** Round 1's edit had a side effect I missed. On free-form multiple-choice questions, the model started answering with a digit instead of a letter, and accuracy fell to near zero. **The round-2 agent discovered it on its own test prompts and designed its circuit to avoid it.** From round 2 on, multiple-choice accuracy is back at the original model's level (55.1% → 55.1%, 56.0%, 55.6%). Every answer starts with a letter again. On the round-4 agent's own 54 probe prompts (multiple choice and chat), no top answer changed.
 
 ## 11. How does the edited model compare?
 
@@ -296,9 +257,7 @@ The original post also showed that an LLM can work out what a network was traine
 | Domain: aging biology. It named epigenetic clocks and GrimAge's protein markers (cystatin C, TIMP-1, GDF15...)                                                                             | Aging biology over omics and clinical data | ✅ domain (too focused on methylation) |
 | Output format: prose explanations                                                                                                                                                          | Short letter and number answers            | ❌                                     |
 
-> **Opus's contribution here:** the whole analysis: the weight-decay forensics, the row-level vocabulary detector, the weight-difference "logit lens", and every conclusion in the table above.
-
-_Integrity note: during the run the agent's process listing briefly showed another job's command line, which contained the model's name. Its time-stamped logs show it had already reached the aging conclusion from the weights._
+> **Opus's contribution here:** Weight-decay forensics, the row-level vocabulary detector, the weight-difference "logit lens", and every conclusion in the table above.
 
 ## 13. How large are these edits?
 
@@ -314,17 +273,6 @@ All five rounds together change **1,659,871 of 751,632,384 weights (0.22%)**, wi
 3. **It reached the level of a tuned classical model, but not past it.** The edited model ties gradient boosting trained on the same 750 people. The remaining limit is the data: with ~4× more people, gradient boosting gets to 7.74.
 4. **The gains are specific to the target task.** The age circuit makes age prediction from proteomics worse.
 5. **The agent was careful in ways that mattered.** Opus engineered safeguards after failures, ran its own ablations, flagged its own dev-selection risks, caught a side effect I had missed and a bug of its own, and rebuilt its work exactly after a crash.
-
-**Limitations.** One agent run per round. Dev numbers are partly selected; only held-out numbers count. The sandbox and briefs shape the solutions, and from round 2 on my briefs framed which _kinds_ of improvement to look for. The model is CC-BY-ND, so we share the _recipe_ (code and vectors that rebuild each edit from the original weights), not edited weights.
-
-## 15. Figures at a glance
-
-| Category                        | Figures                                                                                                                   |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Performance and improvement** | P1 age error after each round · P2 predicted vs true age · P3 gap to tuned gradient boosting · P4 error by age band       |
-| **Diagnostics**                 | D1 calibration vs information · D2 bias by age · D3 what Opus changed · D4 ablations · D5 side effects on multiple choice |
-| **Comparisons**                 | C1 classical baselines · C2 learning curve · C3 other open language models                                                |
-| Overview                        | O1 the five rounds at a glance                                                                                            |
 
 ---
 
