@@ -1,12 +1,12 @@
 /* Long-form post template: distraction-free reading column, figures that break
-   out wider than the text, sidenotes, and a contents rail on the left.
+   out wider than the text, and a collapsible table of contents on the left.
    Only used by PostDetails.astro; nothing here affects other pages. */
 
 :root {
   --lw-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --lw-sans: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
-    Arial, sans-serif;
-  --lw-text: 42rem; /* reading column (unchanged) */
+  --lw-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
+    sans-serif;
+  --lw-text: 42rem; /* reading column */
   --lw-wide: 12rem; /* extra room on each side for figures and tables */
 }
 
@@ -37,120 +37,35 @@
   line-height: 1.7;
 }
 
-.post-head {
-  grid-column: 3;
-  margin-bottom: 0.2rem;
-}
-.post-kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0 0 0.9rem;
-  font-family: var(--lw-sans);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.post-kicker a {
-  color: rgb(var(--color-accent));
-  text-decoration: none;
-}
-.post-kicker a:hover {
-  text-decoration: underline;
-}
-.post-kicker .stage {
-  color: rgb(var(--color-text-base));
-  opacity: 0.8;
-}
-.post-kicker .stage-icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: rgb(var(--color-teal));
-}
 .lw-post-title {
   font-family: var(--lw-serif);
-  font-size: clamp(2.2rem, 5vw, 3.3rem);
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  text-wrap: balance;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
 }
 .lw-subtitle {
-  margin: 0.9rem 0 0;
   font-family: var(--lw-serif);
-  font-size: 1.45rem;
-  font-weight: 300;
-  line-height: 1.35;
-  color: rgb(var(--color-muted));
-  text-wrap: balance;
+  font-size: 1.3rem;
+  font-style: italic;
+  line-height: 1.4;
+  opacity: 0.75;
+  margin-top: -0.6rem !important;
 }
 .lw-byline {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.6rem 1.5rem;
-  margin-top: 1.6rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgb(var(--color-border));
-  font-family: var(--lw-sans);
-  font-size: 0.92rem;
-  color: rgb(var(--color-muted));
-}
-.lw-byline .by {
-  display: flex;
-  flex-wrap: wrap;
   gap: 0.25rem 1rem;
+  font-family: var(--lw-sans);
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-bottom: 1rem !important;
 }
 .lw-byline b {
-  font-weight: 700;
-  color: rgb(var(--color-text-base));
+  font-weight: 600;
 }
 .lw-byline a {
-  color: rgb(var(--color-accent));
   text-decoration: none;
-}
-.lw-byline .dates {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.1rem;
-}
-
-/* "Written for" card */
-.lw-audience {
-  grid-column: 3;
-  display: flex;
-  gap: 1.5rem;
-  padding: 1.2rem 1.5rem;
-  background: rgb(var(--color-surface));
-  border: 1px solid rgb(var(--color-border));
-  border-radius: 10px;
-  box-shadow: 0 6px 22px rgb(0 0 0 / 0.05);
-}
-.lw-audience .label {
-  flex: none;
-  width: 6.5rem;
-  padding-top: 0.25rem;
-  font-family: var(--lw-sans);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  line-height: 1.5;
-  text-transform: uppercase;
-  color: rgb(var(--color-teal));
-}
-.lw-audience p {
-  margin: 0;
-  font-family: var(--lw-serif);
-  font-size: 1.1rem;
-  line-height: 1.6;
-}
-@media (max-width: 560px) {
-  .lw-audience {
-    flex-direction: column;
-    gap: 0.3rem;
-  }
 }
 
 /* ---------- body typography ---------- */
@@ -220,7 +135,7 @@
 }
 
 /* ---------- breakouts: figures, tables, code ---------- */
-.lw-post-body > p:has(> img:only-child),
+.lw-post-body > p:has(> img:first-child),
 .lw-post-body > p.lw-figure,
 .lw-post-body > table,
 .lw-post-body > div:has(> pre),
@@ -243,6 +158,7 @@
 .lw-caption {
   display: block;
   margin-top: 0.6rem;
+  font-style: normal;
   font-family: var(--lw-sans);
   font-size: 0.85rem;
   line-height: 1.4;
@@ -539,96 +455,10 @@
   border-radius: 3px;
 }
 
-/* ---------- drop cap (essays) ---------- */
-.is-essay .lw-post-body > p:first-of-type::first-letter {
-  float: left;
-  margin: 0.08em 0.1em 0 -0.02em;
-  font-family: var(--lw-serif);
-  font-size: 3.6em;
-  font-weight: 600;
-  line-height: 0.82;
-  color: rgb(var(--color-text-base));
-}
-
-/* ---------- sidenotes ---------- */
-/* Numbered notes. On wide screens they float into the right margin beside the
-   line that cites them; below that they open inline when the number is tapped.
-   Nothing here narrows the reading column. */
-.lw-post {
-  counter-reset: sidenote;
-}
-.sn-container {
-  position: relative;
-}
-.sn-num {
-  counter-increment: sidenote;
-  cursor: pointer;
-}
-.sn-num::after {
-  content: counter(sidenote);
-  position: relative;
-  top: -0.45em;
-  margin-left: 0.18em;
-  font-family: var(--lw-sans);
-  font-size: 0.7em;
-  font-weight: 700;
-  color: rgb(var(--color-teal));
-}
-.sn-toggle {
-  display: none;
-}
-.sidenote {
-  display: none;
-  font-family: var(--lw-sans);
-  font-size: 0.88rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: rgb(var(--color-muted));
-}
-.sidenote::before {
-  content: counter(sidenote) "  ";
-  font-weight: 700;
-  color: rgb(var(--color-teal));
-}
-.sidenote .sn-p {
-  display: inline;
-}
-.sidenote .sn-p + .sn-p::before {
-  content: "";
-  display: block;
-  height: 0.5rem;
-}
-.sidenote a {
-  font-size: inherit;
-}
-.has-sidenotes section[data-footnotes] {
-  display: none;
-}
-/* narrow: tap to open inline */
-.sn-toggle:checked ~ .sidenote {
-  display: block;
-  margin: 0.7rem 0 0.7rem 0.2rem;
-  padding-left: 0.9rem;
-  border-left: 2px solid rgb(var(--color-teal));
-}
-/* wide: always shown, in the margin */
-@media (min-width: 1360px) {
-  .sidenote,
-  .sn-toggle:checked ~ .sidenote {
-    display: block;
-    float: right;
-    clear: right;
-    width: 15rem;
-    margin: 0.35rem -17.5rem 0.9rem 0;
-    padding: 0;
-    border: 0;
-  }
-  .sn-num {
-    cursor: default;
-  }
-}
-
 /* ---------- contents rail ---------- */
+/* A slim column of ticks on the left, one per heading, with the current section
+   highlighted. Hover (or focus / tap) opens the full list. It floats over the
+   page and never narrows the text. */
 .toc-rail {
   position: fixed;
   left: 1.4rem;
@@ -646,8 +476,9 @@
   padding: 0;
   background: none;
   border: 0;
-  font-size: 0.85rem;
-  color: rgb(var(--color-muted));
+  font: inherit;
+  font-size: 0.82rem;
+  color: rgba(var(--color-text-base), 0.65);
   cursor: pointer;
 }
 .toc-label svg {
@@ -680,7 +511,7 @@
   height: 1.5px;
   width: 14px;
   border-radius: 1px;
-  background: rgba(var(--color-muted), 0.45);
+  background: rgba(var(--color-text-base), 0.3);
   transition:
     width 0.15s ease,
     background 0.15s ease;
@@ -691,21 +522,21 @@
 .toc-ticks a.active i {
   width: 32px;
   height: 2px;
-  background: rgb(var(--color-teal));
+  background: rgb(var(--color-accent));
 }
 .toc-panel {
   position: absolute;
   left: -0.8rem;
   top: -0.8rem;
   z-index: 1;
-  width: 19.5rem;
+  width: 20rem;
   max-height: 80vh;
   overflow-y: auto;
   padding: 3rem 1rem 1rem 1.1rem;
-  background: rgb(var(--color-surface));
+  background: rgb(var(--color-fill));
   border: 1px solid rgb(var(--color-border));
   border-radius: 12px;
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.14);
+  box-shadow: 0 14px 40px rgb(0 0 0 / 0.16);
   opacity: 0;
   visibility: hidden;
   transform: translateX(-6px);
@@ -747,21 +578,21 @@
 .toc-panel li a {
   display: block;
   padding: 0.3rem 0.2rem;
-  font-size: 0.88rem;
-  line-height: 1.35;
+  font-size: 0.8rem;
+  line-height: 1.4;
   text-decoration: none;
-  color: rgb(var(--color-muted));
+  color: rgba(var(--color-text-base), 0.7);
 }
 .toc-panel li.lvl-3 a {
   padding-left: 1.2rem;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
 }
 .toc-panel li a:hover {
   color: rgb(var(--color-accent));
 }
 .toc-panel li a.active {
-  color: rgb(var(--color-teal));
-  font-weight: 700;
+  color: rgb(var(--color-accent));
+  font-weight: 600;
 }
 /* below ~1200px the rail becomes a "Contents" pill in the bottom-left corner */
 @media (max-width: 1199px) {
@@ -773,10 +604,10 @@
   }
   .toc-label {
     padding: 0.55rem 0.9rem;
-    background: rgb(var(--color-surface));
+    background: rgb(var(--color-fill));
     border: 1px solid rgb(var(--color-border));
     border-radius: 999px;
-    box-shadow: 0 4px 16px rgb(0 0 0 / 0.14);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.16);
   }
   .toc-ticks {
     display: none;
@@ -789,7 +620,6 @@
     max-height: 70vh;
     padding: 1rem 1rem 3.6rem 1.1rem;
   }
-  /* no hover on touch; tapping the pill opens the list */
   .toc-rail:hover .toc-panel {
     opacity: 0;
     visibility: hidden;

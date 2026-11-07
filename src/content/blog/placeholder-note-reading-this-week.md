@@ -4,7 +4,6 @@ author: Vik Dhillon
 pubDatetime: 2026-11-04T18:00:00.000Z
 featured: false
 draft: false
-stage: budding
 description: "A stand-in note. Replace it with something you are actually reading."
 ---
 

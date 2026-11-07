@@ -11,11 +11,6 @@ const blog = defineCollection({
       title: z.string(),
       subtitle: z.string().optional(),
       takeaways: z.array(z.string()).optional(),
-      // Garden-style metadata
-      stage: z.enum(["seedling", "budding", "evergreen"]).default("budding"),
-      audience: z.string().optional(), // "Written for" card
-      cover: z.string().optional(), // card image, e.g. /figures/f14_round2_circuit.png
-      coverAlt: z.string().optional(),
       featured: z.boolean().optional(),
       draft: z.boolean().optional(),
       tags: z.array(z.string()).default([]),

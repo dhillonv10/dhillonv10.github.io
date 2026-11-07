@@ -4,7 +4,6 @@ author: Vik Dhillon
 pubDatetime: 2026-11-03T15:00:00.000Z
 featured: false
 draft: false
-stage: seedling
 description: "A stand-in note about a topic that fits the site. Replace it with your own."
 ---
 

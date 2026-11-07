@@ -3,12 +3,10 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Comments from "@components/Comments.astro";
-import StageIcon from "@components/StageIcon.astro";
 import { getCollection } from "astro:content";
 import getSortedPosts from "@utils/getSortedPosts";
 import readingTime from "@utils/readingTime";
 import inlineMd from "@utils/inlineMd";
-import formatDate from "@utils/formatDate";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import ShareLinks from "@components/ShareLinks.astro";
@@ -25,8 +23,6 @@ const {
   title,
   subtitle,
   takeaways,
-  audience,
-  stage,
   author,
   description,
   ogImage,
@@ -35,30 +31,18 @@ const {
   modDatetime,
 } = post.data;
 
-// Featured posts are essays; everything else is a note.
-const isEssay = Boolean(post.data.featured);
-const kindLabel = isEssay ? "Essays" : "Notes";
-const kindHref = isEssay ? "/essays/" : "/notes/";
-const stageLabel = {
-  seedling: "Seedling",
-  budding: "Budding",
-  evergreen: "Evergreen",
-}[stage];
-
 const { Content, headings } = await post.render();
-const minutes = readingTime(post.body);
 const tocItems = headings.filter(
   h => (h.depth === 2 || h.depth === 3) && h.slug !== "footnote-label"
 );
+const minutes = readingTime(post.body);
 
-// Neighbours within the same kind (newest first):
+// Neighbours in the same order as the Posts list (newest first):
 // "next" is the newer post, "previous" the older one.
-const sameKind = getSortedPosts(await getCollection("blog")).filter(
-  p => Boolean(p.data.featured) === isEssay
-);
-const idx = sameKind.findIndex(p => p.slug === post.slug);
-const newer = idx > 0 ? sameKind[idx - 1] : undefined;
-const older = idx >= 0 ? sameKind[idx + 1] : undefined;
+const sortedPosts = getSortedPosts(await getCollection("blog"));
+const idx = sortedPosts.findIndex(p => p.slug === post.slug);
+const newer = idx > 0 ? sortedPosts[idx - 1] : undefined;
+const older = idx >= 0 ? sortedPosts[idx + 1] : undefined;
 
 const ogImageUrl = typeof ogImage === "string" ? ogImage : ogImage?.src;
 const ogUrl = new URL(
@@ -79,7 +63,7 @@ const layoutProps = {
 ---
 
 <Layout {...layoutProps}>
-  <Header activeNav={isEssay ? "essays" : "notes"} />
+  <Header />
 
   <aside class="toc-rail" id="toc-rail" aria-label="Table of contents">
     <button
@@ -128,52 +112,38 @@ const layoutProps = {
   </aside>
 
   <div class="lw-layout">
-    <main
-      id="main-content"
-      class={`lw-post ${isEssay ? "is-essay" : "is-note"}`}
-    >
+    <main id="main-content" class="lw-post">
       <span id="top"></span>
-
-      <header class="post-head">
-        <p class="post-kicker">
-          <a href={kindHref}>{kindLabel}</a>
-          <StageIcon stage={stage} />
-          <span class="stage">{stageLabel}</span>
-        </p>
-        <h1 transition:name={slugifyStr(title)} class="lw-post-title">
-          {title}
-        </h1>
-        {subtitle && <p class="lw-subtitle">{subtitle}</p>}
-        <div class="lw-byline">
-          <div class="by">
-            <b>{author}</b>
-            <span>{minutes} min read</span>
-            <a href="#comments">Comments</a>
-          </div>
-          <div class="dates">
+      <h1 transition:name={slugifyStr(title)} class="lw-post-title">{title}</h1>
+      {subtitle && <p class="lw-subtitle">{subtitle}</p>}
+      <div class="lw-byline">
+        <b>{author}</b>
+        <time datetime={new Date(pubDatetime).toISOString()}>
+          {
+            new Date(pubDatetime).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              timeZone: "UTC",
+            })
+          }
+        </time>
+        {
+          modDatetime && modDatetime > pubDatetime && (
             <span>
-              Planted <time datetime={new Date(pubDatetime).toISOString()}
-                >{formatDate(pubDatetime)}</time
-              >
+              Updated{" "}
+              {new Date(modDatetime).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                timeZone: "UTC",
+              })}
             </span>
-            <span>
-              Last tended <time
-                datetime={new Date(modDatetime ?? pubDatetime).toISOString()}
-                >{formatDate(modDatetime ?? pubDatetime)}</time
-              >
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {
-        audience && (
-          <aside class="lw-audience" aria-label="Who this is for">
-            <span class="label">Written for</span>
-            <p>{audience}</p>
-          </aside>
-        )
-      }
+          )
+        }
+        <span>{minutes} min read</span>
+        <a href="#comments">Comments</a>
+      </div>
 
       {
         takeaways && takeaways.length > 0 && (
@@ -203,13 +173,13 @@ const layoutProps = {
           <nav class="lw-pager" aria-label="More posts">
             {older && (
               <a class="prev" href={`/posts/${older.slug}/`} rel="prev">
-                <span class="dir">← Previous {isEssay ? "essay" : "note"}</span>
+                <span class="dir">← Previous post</span>
                 <span class="ttl">{older.data.title}</span>
               </a>
             )}
             {newer && (
               <a class="next" href={`/posts/${newer.slug}/`} rel="next">
-                <span class="dir">Next {isEssay ? "essay" : "note"} →</span>
+                <span class="dir">Next post →</span>
                 <span class="ttl">{newer.data.title}</span>
               </a>
             )}
@@ -277,11 +247,7 @@ const layoutProps = {
   /** Attaches links to headings in the document,
    *  allowing sharing of sections easily */
   function addHeadingLinks() {
-    let headings = Array.from(
-      document.querySelectorAll(
-        "#article h2, #article h3, #article h4, #article h5, #article h6"
-      )
-    );
+    let headings = Array.from(document.querySelectorAll("h2, h3, h4, h5, h6"));
     for (let heading of headings) {
       heading.classList.add("group");
       let link = document.createElement("a");
@@ -378,68 +344,31 @@ const layoutProps = {
   }
   setupToc();
 
-  /** Sidenotes: turn each markdown footnote into a note that sits in the right
-   *  margin beside the line that cites it (wide screens) or opens inline when you
-   *  tap its number (narrow screens). Without JavaScript the footnotes stay at
-   *  the bottom of the page. */
-  function setupSidenotes() {
-    const article = document.getElementById("article");
-    if (!article) return;
-    const refs = Array.from(
-      article.querySelectorAll("sup > a[data-footnote-ref]")
-    );
-    let converted = 0;
-    refs.forEach((ref, i) => {
-      const id = decodeURIComponent((ref.getAttribute("href") || "").slice(1));
-      const li = id && document.getElementById(id);
-      const sup = ref.parentElement;
-      if (!li || !sup) return;
-
-      const note = document.createElement("span");
-      note.className = "sidenote";
-      note.innerHTML = li.innerHTML;
-      note
-        .querySelectorAll("a[data-footnote-backref]")
-        .forEach(a => a.remove());
-      // flatten paragraphs so the note can live inside a paragraph
-      note.querySelectorAll("p").forEach(p => {
-        const span = document.createElement("span");
-        span.className = "sn-p";
-        span.innerHTML = p.innerHTML;
-        p.replaceWith(span);
-      });
-
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.className = "sn-toggle";
-      cb.id = "sn-" + (i + 1);
-      const label = document.createElement("label");
-      label.className = "sn-num";
-      label.htmlFor = cb.id;
-      label.setAttribute("role", "button");
-      label.setAttribute("aria-label", "Show note " + (i + 1));
-
-      const wrap = document.createElement("span");
-      wrap.className = "sn-container";
-      wrap.append(label, cb, note);
-      sup.replaceWith(wrap);
-      converted++;
-    });
-    if (converted) article.classList.add("has-sidenotes");
-  }
-  setupSidenotes();
-
-  /** Turn each standalone figure's alt text into a caption. */
+  /** Figures: an image paragraph (optionally followed by the post's own
+   *  "*Figure ...*" caption on the next line) becomes a captioned figure. With no
+   *  caption written, the image's alt text is used. */
   function addCaptions() {
-    document.querySelectorAll("#article p > img:only-child").forEach(img => {
-      const alt = img.getAttribute("alt");
-      const p = img.parentElement;
-      if (!alt || !p || p.querySelector("figcaption")) return;
+    document.querySelectorAll("#article p").forEach(p => {
+      const img = p.firstElementChild;
+      if (!img || img.tagName !== "IMG" || p.classList.contains("lw-figure"))
+        return;
+      const rest = Array.from(p.childNodes)
+        .slice(1)
+        .filter(n => !(n.nodeType === 3 && !n.textContent.trim()));
+      const em =
+        rest.length === 1 && rest[0].nodeType === 1 && rest[0].tagName === "EM"
+          ? rest[0]
+          : null;
+      if (rest.length > 0 && !em) return; // normal text paragraph with an image in it
       p.classList.add("lw-figure");
-      const cap = document.createElement("span");
-      cap.className = "lw-caption";
-      cap.textContent = alt;
-      p.appendChild(cap);
+      if (em) {
+        em.className = "lw-caption";
+      } else if (img.getAttribute("alt")) {
+        const cap = document.createElement("span");
+        cap.className = "lw-caption";
+        cap.textContent = img.getAttribute("alt");
+        p.appendChild(cap);
+      }
     });
   }
   addCaptions();

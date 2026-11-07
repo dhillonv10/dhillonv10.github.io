@@ -5,8 +5,6 @@ export const SITE: Site = {
   author: "Vikram Dhillon",
   desc: "Personal Blog",
   title: "Vik Dhillon",
-  brand: "OpsBug",
-  timeZone: "America/Los_Angeles", // dates are shown in this zone
   ogImage: "astropaper-og.jpg",
   lightAndDarkMode: true,
   postPerPage: 3,

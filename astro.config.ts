@@ -9,9 +9,6 @@ import { SITE } from "./src/config";
 // https://astro.build/config
 export default defineConfig({
   site: SITE.website,
-  redirects: {
-    "/posts": "/essays/",
-  },
   integrations: [
     tailwind({
       applyBaseStyles: false,
