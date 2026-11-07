@@ -11,7 +11,7 @@ takeaways:
   - "**The edited model now ties a tuned classical model.** Gradient boosting, tuned and trained on the same 750 people the agents could use, scores 8.20 years. The difference is +0.05 years (95% CI −0.13 to +0.23): A statistical tie. The edited model is significantly better than a ridge regression and an additive spline model, and level with default gradient boosting."
   - 'The agent *unlocked* what the model already knew (round 1). Then it *wrote new computation* into the network: a pooling attention head, gated neurons, biomarker "reader" heads and finally a per-marker age circuit over every item in the blood panel (rounds 2 to 5).'
   - "**Nothing else broke along the way.** After round 2 fixed a bug that round 1 introduced, multiple-choice answers stayed at the original model's accuracy through round 5. The edited 0.6B model also beats every other open model we could run, including Insilico's own 1.7B and 9B longevity models."
-description: 'Over five rounds, Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training, until it ties a tuned classical model trained on the same data. A replication and extension of "Sparks of Weight-Space Programming."'
+description: 'Over five rounds, Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training, until it ties a tuned classical model trained on the same data.'
 ---
 
 ## Brief results
