@@ -21,6 +21,14 @@ export const GISCUS = {
   categoryId: "",
 };
 
+// Names of the two post lists on the home page. Tag a post in its frontmatter:
+//   type: feature   -> listed under the first heading (your longer, featured pieces)
+//   type: note      -> listed under the second (the default when `type` is omitted)
+export const SECTIONS = {
+  feature: "Bug Reports",
+  note: "Recent Notes",
+} as const;
+
 export const LOCALE = {
   lang: "en", // html lang code. Set this empty and default will be "en"
   langTag: ["en-EN"], // BCP 47 Language Tags. Set this empty [] to use the environment default

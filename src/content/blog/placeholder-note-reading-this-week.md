@@ -2,7 +2,7 @@
 title: "Placeholder note: what I'm reading this week"
 author: Vik Dhillon
 pubDatetime: 2026-11-04T18:00:00.000Z
-featured: false
+type: note
 draft: false
 description: "A stand-in note. Replace it with something you are actually reading."
 ---

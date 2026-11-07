@@ -2,7 +2,7 @@
 title: "Placeholder note: a bug I haven't filed yet"
 author: Vik Dhillon
 pubDatetime: 2026-11-05T12:00:00.000Z
-featured: false
+type: note
 draft: false
 description: "A stand-in note so the Notes list has something to show. Replace it or delete it."
 ---

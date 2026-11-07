@@ -4,7 +4,7 @@ subtitle: "Can an AI Agent Improve a Biology Model by Editing Its Weights?"
 author: Vik Dhillon
 pubDatetime: 2026-11-03T19:00:00-08:00
 slug: ai-agent-edits-biology-model-weights
-featured: true
+type: feature
 draft: false
 takeaways:
   - "**An AI agent improved a biology model by editing its weights directly, with no training.** Over five rounds, Claude Opus 5.5 cut the age-estimation error of Insilico Medicine's `Qwen3-0.6B-Longevity` from **14.2 to 8.25 years**, measured on 2,791 people no agent ever saw."

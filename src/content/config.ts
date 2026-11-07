@@ -11,7 +11,9 @@ const blog = defineCollection({
       title: z.string(),
       subtitle: z.string().optional(),
       takeaways: z.array(z.string()).optional(),
-      featured: z.boolean().optional(),
+      // "feature" = a longer, featured piece; "note" = everything else (default).
+      type: z.enum(["feature", "note"]).optional(),
+      featured: z.boolean().optional(), // older spelling of `type: feature`
       draft: z.boolean().optional(),
       tags: z.array(z.string()).default([]),
       ogImage: image()
