@@ -524,15 +524,19 @@
   height: 2px;
   background: rgb(var(--color-accent));
 }
+/* The list opens to the RIGHT of the ticks, below the label, so neither the label
+   nor the ticks are ever covered. Only the list scrolls; the title stays put. */
 .toc-panel {
   position: absolute;
-  left: -0.8rem;
-  top: -0.8rem;
+  left: 3.6rem;
+  top: 2rem;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
   width: 20rem;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 3rem 1rem 1rem 1.1rem;
+  max-height: calc(100vh - 9.2rem);
+  padding: 1rem 0.4rem 0.8rem 1.1rem;
+  overflow: hidden;
   background: rgb(var(--color-fill));
   border: 1px solid rgb(var(--color-border));
   border-radius: 12px;
@@ -558,9 +562,16 @@
   visibility: visible;
   transform: none;
 }
+/* while the page itself is scrolling, don't pop the list open under a resting pointer */
+.toc-rail.is-scrolling:not(.open) .toc-panel {
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}
 .toc-title {
   display: block;
-  margin: 0 0 0.6rem;
+  flex: none;
+  margin: 0 0.7rem 0.4rem 0;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid rgb(var(--color-border));
   font-family: var(--lw-serif);
@@ -571,9 +582,13 @@
   color: rgb(var(--color-text-base));
 }
 .toc-panel ul {
-  list-style: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   margin: 0;
-  padding: 0;
+  padding: 0 0.7rem 0 0;
+  list-style: none;
 }
 .toc-panel li a {
   display: block;
@@ -594,7 +609,8 @@
   color: rgb(var(--color-accent));
   font-weight: 600;
 }
-/* below ~1200px the rail becomes a "Contents" pill in the bottom-left corner */
+/* below ~1200px the rail becomes a "Contents" pill in the bottom-left corner;
+   the list opens above the pill, so it never sits under it */
 @media (max-width: 1199px) {
   .toc-rail {
     left: 1rem;
@@ -614,16 +630,12 @@
   }
   .toc-panel {
     top: auto;
-    bottom: -0.6rem;
-    left: -0.6rem;
+    bottom: 3.4rem;
+    left: 0;
     width: min(88vw, 22rem);
-    max-height: 70vh;
-    padding: 1rem 1rem 3.6rem 1.1rem;
+    max-height: 65vh;
   }
-  .toc-rail:hover .toc-panel {
-    opacity: 0;
-    visibility: hidden;
-  }
+  .toc-rail:hover .toc-panel,
   .toc-rail:focus-within:not(.open) .toc-panel {
     opacity: 0;
     visibility: hidden;

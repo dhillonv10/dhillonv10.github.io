@@ -321,7 +321,21 @@ const layoutProps = {
         a.classList.toggle("active", a.dataset.target === current)
       );
     }
-    document.addEventListener("scroll", update, { passive: true });
+    let scrollTimer;
+    document.addEventListener(
+      "scroll",
+      () => {
+        update();
+        // don't let a resting pointer pop the list open while the page scrolls
+        rail.classList.add("is-scrolling");
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(
+          () => rail.classList.remove("is-scrolling"),
+          160
+        );
+      },
+      { passive: true }
+    );
     update();
 
     const setOpen = open => {
@@ -332,9 +346,12 @@ const layoutProps = {
       e.stopPropagation();
       setOpen(!rail.classList.contains("open"));
     });
-    rail
-      .querySelectorAll(".toc-panel a")
-      .forEach(a => a.addEventListener("click", () => setOpen(false)));
+    rail.querySelectorAll(".toc-panel a").forEach(a =>
+      a.addEventListener("click", () => {
+        setOpen(false);
+        a.blur(); // otherwise :focus-within would keep the list open
+      })
+    );
     document.addEventListener("click", e => {
       if (!e.target.closest("#toc-rail")) setOpen(false);
     });
