@@ -5,6 +5,8 @@ export type Site = {
   author: string;
   desc: string;
   title: string;
+  timeZone: string;
+  brand: string;
   ogImage?: string;
   lightAndDarkMode: boolean;
   postPerPage: number;

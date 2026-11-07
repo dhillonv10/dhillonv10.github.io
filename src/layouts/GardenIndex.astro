@@ -1,0 +1,27 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import { SITE } from "@config";
+
+export interface Props {
+  title: string;
+  description: string;
+  active: "essays" | "notes" | "library";
+}
+
+const { title, description, active } = Astro.props;
+---
+
+<Layout title={`${title} | ${SITE.title}`} description={description}>
+  <Header activeNav={active} />
+  <main id="main-content" class="index-page">
+    <header class="index-head">
+      <p class="kicker"><a href="/">The Garden</a></p>
+      <h1>{title}</h1>
+      <p class="index-desc">{description}</p>
+    </header>
+    <slot />
+  </main>
+  <Footer />
+</Layout>

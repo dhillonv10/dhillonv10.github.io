@@ -1,0 +1,36 @@
+---
+import type { CollectionEntry } from "astro:content";
+import BugMark from "./BugMark.astro";
+import StageIcon from "./StageIcon.astro";
+import formatDate from "@utils/formatDate";
+
+export interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+const { title, description, cover, coverAlt, stage, pubDatetime } = post.data;
+---
+
+<a class="essay-card" href={`/posts/${post.slug}/`}>
+  <div class="essay-cover">
+    {
+      cover ? (
+        <img src={cover} alt={coverAlt ?? ""} loading="lazy" decoding="async" />
+      ) : (
+        <BugMark class="essay-cover-fallback" />
+      )
+    }
+  </div>
+  <div class="essay-body">
+    <h3>{title}</h3>
+    <p>{description}</p>
+    <div class="meta">
+      <span>Essay</span>
+      <StageIcon stage={stage} />
+      <time datetime={new Date(pubDatetime).toISOString()}
+        >{formatDate(pubDatetime)}</time
+      >
+    </div>
+  </div>
+</a>

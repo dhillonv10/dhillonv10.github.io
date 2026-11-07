@@ -1,0 +1,37 @@
+---
+import type { Book } from "@data/books";
+
+export interface Props {
+  book: Book;
+}
+
+const { book } = Astro.props;
+const Tag = book.url ? "a" : "div";
+---
+
+<Tag
+  class="book"
+  href={book.url}
+  target={book.url ? "_blank" : undefined}
+  rel={book.url ? "noopener" : undefined}
+>
+  <div
+    class="book-cover"
+    style={`--cover:${book.color};--ink:${book.ink ?? "#fff"}`}
+  >
+    {
+      book.cover ? (
+        <img
+          src={book.cover}
+          alt={`Cover of ${book.title}`}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span class="book-cover-title">{book.title}</span>
+      )
+    }
+  </div>
+  <div class="book-title">{book.title}</div>
+  <div class="book-author">{book.author}</div>
+</Tag>

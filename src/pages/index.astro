@@ -3,165 +3,74 @@ import { getCollection } from "astro:content";
 import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import LinkButton from "@components/LinkButton.astro";
-import Hr from "@components/Hr.astro";
-import Card from "@components/Card";
+import EssayCard from "@components/EssayCard.astro";
+import NoteItem from "@components/NoteItem.astro";
+import BookCard from "@components/BookCard.astro";
 import getSortedPosts from "@utils/getSortedPosts";
+import { BOOKS } from "@data/books";
+import { SITE } from "@config";
 
-const posts = await getCollection("blog");
-
-const sortedPosts = getSortedPosts(posts);
-const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
-const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
+const posts = getSortedPosts(await getCollection("blog"));
+const essays = posts.filter(({ data }) => data.featured);
+const notes = posts.filter(({ data }) => !data.featured).slice(0, 12);
 ---
 
 <Layout>
   <Header />
-  <main id="main-content">
-    <section id="hero">
+  <main id="main-content" class="home">
+    <section class="hero">
       <h1>
-        <svg
-          class="lucide lucide-bug-play bug-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path
-            d="M10 19.655A6 6 0 0 1 6 14v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 3.97"
-          ></path>
-          <path
-            d="M14 15.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997a1 1 0 0 1-1.517-.86z"
-          ></path>
-          <path d="M14.12 3.88 16 2"></path>
-          <path d="M21 5a4 4 0 0 1-3.55 3.97"></path>
-          <path d="M3 21a4 4 0 0 1 3.81-4"></path>
-          <path d="M3 5a4 4 0 0 0 3.55 3.97"></path>
-          <path d="M6 13H2"></path>
-          <path d="m8 2 1.88 1.88"></path>
-          <path d="M9 7.13V6a3 3 0 1 1 6 0v1.13"></path>
-        </svg>OpsBug
+        <strong>Vik</strong> looks for the bugs in medicine, AI, and the way the
+        world runs.
       </h1>
-      <a
-        target="_blank"
-        href="/rss.xml"
-        class="rss-link"
-        aria-label="rss feed"
-        title="RSS Feed"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="rss-icon"
-          ><path
-            d="M19 20.001C19 11.729 12.271 5 4 5v2c7.168 0 13 5.832 13 13.001h2z"
-          ></path><path
-            d="M12 20.001h2C14 14.486 9.514 10 4 10v2c4.411 0 8 3.589 8 8.001z"
-          ></path><circle cx="6" cy="18" r="2"></circle>
-        </svg>
-        <span class="sr-only">RSS Feed</span>
-      </a>
-
-      <p>Notes from a physician-scientist with too many tabs open.</p>
+      <p class="hero-sub">Physician, author, researcher.</p>
+      <p class="hero-sub">
+        {SITE.brand} is a notebook of essays and notes, <a href="/about/"
+          >named for a bug worth finding</a
+        >.
+      </p>
     </section>
 
-    <Hr />
+    <section class="garden">
+      <div class="garden-head">
+        <h2>The Garden</h2>
+        <p>Essays and notes, some finished and most still growing.</p>
+      </div>
 
-    {
-      featuredPosts.length > 0 && (
-        <>
-          <section id="featured">
-            <h2>Featured</h2>
-            <ul>
-              {featuredPosts.map(({ data, slug }) => (
-                <Card
-                  href={`/posts/${slug}/`}
-                  frontmatter={data}
-                  secHeading={false}
-                />
-              ))}
-            </ul>
-          </section>
-          {recentPosts.length > 0 && <Hr />}
-        </>
-      )
-    }
+      <div class="garden-grid">
+        <section class="essays" aria-labelledby="essays-title">
+          <h3 id="essays-title" class="section-title">
+            <a href="/essays/">Essays <span aria-hidden="true">→</span></a>
+          </h3>
+          <p class="section-desc">Longer pieces with a point of view.</p>
+          <div class="essay-grid">
+            {essays.map(post => <EssayCard post={post} />)}
+          </div>
+        </section>
 
-    {
-      recentPosts.length > 0 && (
-        <section id="recent-posts">
-          <h2>Recent Posts</h2>
-          <ul>
-            {recentPosts.map(
-              ({ data, slug }, index) =>
-                index < 4 && (
-                  <Card
-                    href={`/posts/${slug}/`}
-                    frontmatter={data}
-                    secHeading={false}
-                  />
-                )
-            )}
+        <section class="notes" aria-labelledby="notes-title">
+          <h3 id="notes-title" class="section-title">
+            <a href="/notes/">Notes <span aria-hidden="true">→</span></a>
+          </h3>
+          <p class="section-desc">
+            Shorter, looser notes on things I'm still figuring out.
+          </p>
+          <ul class="note-list">
+            {notes.map(post => <NoteItem post={post} />)}
           </ul>
         </section>
-      )
-    }
+      </div>
 
-    <div class="all-posts-btn-wrapper">
-      <LinkButton href="/posts/">
-        All Posts
-        <svg xmlns="http://www.w3.org/2000/svg"
-          ><path
-            d="m11.293 17.293 1.414 1.414L19.414 12l-6.707-6.707-1.414 1.414L15.586 11H6v2h9.586z"
-          ></path>
-        </svg>
-      </LinkButton>
-    </div>
+      <section class="library" aria-labelledby="library-title">
+        <h3 id="library-title" class="section-title">
+          <a href="/library/">Library <span aria-hidden="true">→</span></a>
+        </h3>
+        <p class="section-desc">Books I've read and books I mean to.</p>
+        <div class="book-grid">
+          {BOOKS.map(book => <BookCard book={book} />)}
+        </div>
+      </section>
+    </section>
   </main>
-
   <Footer />
 </Layout>
-
-<style>
-  /* ===== Hero Section ===== */
-  #hero {
-    @apply pb-6 pt-8;
-  }
-  #hero h1 {
-    @apply mb-1 mt-4 inline-block text-3xl font-bold sm:mb-0 sm:mt-8 sm:text-5xl;
-  }
-  #hero h1 .bug-icon {
-    width: 0.85em;
-    height: 0.85em;
-    margin-right: 0.2em;
-    margin-bottom: 0.08em;
-    vertical-align: middle;
-    fill: none;
-    stroke: currentColor;
-  }
-  #hero .rss-link {
-    @apply mb-0;
-  }
-  #hero .rss-icon {
-    @apply mb-2 h-6 w-6 scale-110 fill-skin-accent sm:mb-3 sm:scale-125;
-  }
-  #hero p {
-    @apply my-2;
-  }
-
-  /* ===== Featured & Recent Posts Sections ===== */
-  #featured,
-  #recent-posts {
-    @apply pb-6 pt-12;
-  }
-  #featured h2,
-  #recent-posts h2 {
-    @apply text-2xl font-semibold tracking-wide;
-  }
-  .all-posts-btn-wrapper {
-    @apply my-8 text-center;
-  }
-</style>

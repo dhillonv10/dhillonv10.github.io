@@ -1,0 +1,17 @@
+---
+import type { CollectionEntry } from "astro:content";
+import StageIcon from "./StageIcon.astro";
+
+export interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+---
+
+<li class="note-item">
+  <a href={`/posts/${post.slug}/`}>
+    <StageIcon stage={post.data.stage} />
+    <span>{post.data.title}</span>
+  </a>
+</li>

@@ -12,6 +12,10 @@ takeaways:
   - No rescaling of the original model's answers gets below 11.1 years of error; the edited model reaches 8.7."
   - "**The edited 0.6B model beats all 14 open models we could run, up to 9B parameters,** including Insilico's own 1.7B and 9B longevity models. Most general-purpose models gave no age estimate at all."
 description: 'Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training. A replication and extension of "Sparks of Weight-Space Programming."'
+stage: budding
+audience: "Biologists, clinicians and machine-learning engineers who are curious whether an AI agent can improve a model by editing its weights directly. You don't need to know how transformers work in detail, only roughly what a neural network is and what a held-out test set means."
+cover: /covers/weight-space.svg
+coverAlt: "A grid of model weights with a few edited rows highlighted"
 ---
 
 ## Brief results

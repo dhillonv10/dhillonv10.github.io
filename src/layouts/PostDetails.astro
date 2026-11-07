@@ -3,10 +3,12 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Comments from "@components/Comments.astro";
+import StageIcon from "@components/StageIcon.astro";
 import { getCollection } from "astro:content";
 import getSortedPosts from "@utils/getSortedPosts";
 import readingTime from "@utils/readingTime";
 import inlineMd from "@utils/inlineMd";
+import formatDate from "@utils/formatDate";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import ShareLinks from "@components/ShareLinks.astro";
@@ -23,6 +25,8 @@ const {
   title,
   subtitle,
   takeaways,
+  audience,
+  stage,
   author,
   description,
   ogImage,
@@ -31,15 +35,30 @@ const {
   modDatetime,
 } = post.data;
 
+// Featured posts are essays; everything else is a note.
+const isEssay = Boolean(post.data.featured);
+const kindLabel = isEssay ? "Essays" : "Notes";
+const kindHref = isEssay ? "/essays/" : "/notes/";
+const stageLabel = {
+  seedling: "Seedling",
+  budding: "Budding",
+  evergreen: "Evergreen",
+}[stage];
+
 const { Content, headings } = await post.render();
 const minutes = readingTime(post.body);
+const tocItems = headings.filter(
+  h => (h.depth === 2 || h.depth === 3) && h.slug !== "footnote-label"
+);
 
-// Neighbours in the same order as the Posts list (newest first):
+// Neighbours within the same kind (newest first):
 // "next" is the newer post, "previous" the older one.
-const sortedPosts = getSortedPosts(await getCollection("blog"));
-const idx = sortedPosts.findIndex(p => p.slug === post.slug);
-const newer = idx > 0 ? sortedPosts[idx - 1] : undefined;
-const older = idx >= 0 ? sortedPosts[idx + 1] : undefined;
+const sameKind = getSortedPosts(await getCollection("blog")).filter(
+  p => Boolean(p.data.featured) === isEssay
+);
+const idx = sameKind.findIndex(p => p.slug === post.slug);
+const newer = idx > 0 ? sameKind[idx - 1] : undefined;
+const older = idx >= 0 ? sameKind[idx + 1] : undefined;
 
 const ogImageUrl = typeof ogImage === "string" ? ogImage : ogImage?.src;
 const ogUrl = new URL(
@@ -60,74 +79,101 @@ const layoutProps = {
 ---
 
 <Layout {...layoutProps}>
-  <Header />
+  <Header activeNav={isEssay ? "essays" : "notes"} />
 
-  <div class="lw-layout">
-    <aside class="lw-sidebar" id="lw-sidebar" aria-label="Table of contents">
-      <div class="lw-sidebar-head">
-        <span>Contents</span>
-        <button
-          type="button"
-          id="toc-hide"
-          class="lw-toc-btn"
-          aria-label="Hide table of contents"
-          title="Hide contents"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true"
-            ><path d="M15 5l-7 7 7 7"></path></svg
-          >
-        </button>
-      </div>
-      <a href="#top" class="lw-toc-title">{title}</a>
-      <nav class="lw-toc" id="lw-toc">
+  <aside class="toc-rail" id="toc-rail" aria-label="Table of contents">
+    <button
+      type="button"
+      class="toc-label"
+      id="toc-label"
+      aria-expanded="false"
+      aria-controls="toc-panel"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 6h16M4 12h10M4 18h13"></path>
+      </svg>
+      <span>Table of Contents</span>
+    </button>
+    <ol class="toc-ticks" aria-hidden="true">
+      {
+        tocItems.map(h => (
+          <li class={`t${h.depth}`}>
+            <a href={`#${h.slug}`} tabindex="-1" data-target={h.slug}>
+              <i />
+            </a>
+          </li>
+        ))
+      }
+      <li class="t2">
+        <a href="#comments" tabindex="-1" data-target="comments"><i></i></a>
+      </li>
+    </ol>
+    <nav class="toc-panel" id="toc-panel" aria-label="Contents">
+      <a href="#top" class="toc-title">{title}</a>
+      <ul>
         {
-          headings
-            .filter(
-              h =>
-                (h.depth === 2 || h.depth === 3) && h.slug !== "footnote-label"
-            )
-            .map(h => (
-              <a href={`#${h.slug}`} class={`lvl-${h.depth}`}>
+          tocItems.map(h => (
+            <li class={`lvl-${h.depth}`}>
+              <a href={`#${h.slug}`} data-target={h.slug}>
                 {h.text}
               </a>
-            ))
+            </li>
+          ))
         }
-        <a href="#comments" class="lvl-2">Comments</a>
-      </nav>
-    </aside>
+        <li class="lvl-2">
+          <a href="#comments" data-target="comments">Comments</a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
 
-    <main id="main-content" class="lw-post">
+  <div class="lw-layout">
+    <main
+      id="main-content"
+      class={`lw-post ${isEssay ? "is-essay" : "is-note"}`}
+    >
       <span id="top"></span>
-      <h1 transition:name={slugifyStr(title)} class="lw-post-title">{title}</h1>
-      {subtitle && <p class="lw-subtitle">{subtitle}</p>}
-      <div class="lw-byline">
-        <b>{author}</b>
-        <time datetime={new Date(pubDatetime).toISOString()}>
-          {
-            new Date(pubDatetime).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              timeZone: "UTC",
-            })
-          }
-        </time>
-        {
-          modDatetime && modDatetime > pubDatetime && (
+
+      <header class="post-head">
+        <p class="post-kicker">
+          <a href={kindHref}>{kindLabel}</a>
+          <StageIcon stage={stage} />
+          <span class="stage">{stageLabel}</span>
+        </p>
+        <h1 transition:name={slugifyStr(title)} class="lw-post-title">
+          {title}
+        </h1>
+        {subtitle && <p class="lw-subtitle">{subtitle}</p>}
+        <div class="lw-byline">
+          <div class="by">
+            <b>{author}</b>
+            <span>{minutes} min read</span>
+            <a href="#comments">Comments</a>
+          </div>
+          <div class="dates">
             <span>
-              Updated{" "}
-              {new Date(modDatetime).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                timeZone: "UTC",
-              })}
+              Planted <time datetime={new Date(pubDatetime).toISOString()}
+                >{formatDate(pubDatetime)}</time
+              >
             </span>
-          )
-        }
-        <span>{minutes} min read</span>
-        <a href="#comments">Comments</a>
-      </div>
+            <span>
+              Last tended <time
+                datetime={new Date(modDatetime ?? pubDatetime).toISOString()}
+                >{formatDate(modDatetime ?? pubDatetime)}</time
+              >
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {
+        audience && (
+          <aside class="lw-audience" aria-label="Who this is for">
+            <span class="label">Written for</span>
+            <p>{audience}</p>
+          </aside>
+        )
+      }
 
       {
         takeaways && takeaways.length > 0 && (
@@ -157,13 +203,13 @@ const layoutProps = {
           <nav class="lw-pager" aria-label="More posts">
             {older && (
               <a class="prev" href={`/posts/${older.slug}/`} rel="prev">
-                <span class="dir">← Previous post</span>
+                <span class="dir">← Previous {isEssay ? "essay" : "note"}</span>
                 <span class="ttl">{older.data.title}</span>
               </a>
             )}
             {newer && (
               <a class="next" href={`/posts/${newer.slug}/`} rel="next">
-                <span class="dir">Next post →</span>
+                <span class="dir">Next {isEssay ? "essay" : "note"} →</span>
                 <span class="ttl">{newer.data.title}</span>
               </a>
             )}
@@ -174,17 +220,6 @@ const layoutProps = {
       <Comments />
     </main>
   </div>
-  <button
-    type="button"
-    id="toc-show"
-    class="lw-toc-btn lw-toc-show"
-    aria-label="Show table of contents"
-    title="Show contents"
-  >
-    <svg viewBox="0 0 24 24" aria-hidden="true"
-      ><path d="M9 5l7 7-7 7"></path></svg
-    >
-  </button>
   <button
     type="button"
     id="lw-top"
@@ -242,7 +277,11 @@ const layoutProps = {
   /** Attaches links to headings in the document,
    *  allowing sharing of sections easily */
   function addHeadingLinks() {
-    let headings = Array.from(document.querySelectorAll("h2, h3, h4, h5, h6"));
+    let headings = Array.from(
+      document.querySelectorAll(
+        "#article h2, #article h3, #article h4, #article h5, #article h6"
+      )
+    );
     for (let heading of headings) {
       heading.classList.add("group");
       let link = document.createElement("a");
@@ -297,59 +336,98 @@ const layoutProps = {
   }
   attachCopyButtons();
 
-  /** Highlight the current section in the left table of contents */
-  function setupScrollSpy() {
-    const links = Array.from(document.querySelectorAll("#lw-toc a"));
-    const targets = links
-      .map(a => document.getElementById(decodeURIComponent(a.hash.slice(1))))
-      .filter(Boolean);
+  /** Contents rail: highlight the current section, and open the full list on
+   *  hover (CSS), focus, or tap. On small screens it is a "Contents" pill. */
+  function setupToc() {
+    const rail = document.getElementById("toc-rail");
+    const label = document.getElementById("toc-label");
+    if (!rail || !label) return;
+    const links = Array.from(rail.querySelectorAll("a[data-target]"));
+    const ids = Array.from(new Set(links.map(a => a.dataset.target)));
+    const targets = ids.map(id => document.getElementById(id)).filter(Boolean);
+
     function update() {
       let current = null;
       for (const el of targets) {
-        if (el.getBoundingClientRect().top <= 120) current = el.id;
+        if (el.getBoundingClientRect().top <= 140) current = el.id;
       }
       links.forEach(a =>
-        a.classList.toggle(
-          "active",
-          current !== null && decodeURIComponent(a.hash.slice(1)) === current
-        )
+        a.classList.toggle("active", a.dataset.target === current)
       );
     }
     document.addEventListener("scroll", update, { passive: true });
     update();
-  }
-  setupScrollSpy();
 
-  /** Floating table of contents: hidden by default, toggled by the "<" button
-   *  and the edge tab. On narrower screens it closes after you pick a section,
-   *  click elsewhere, or press Esc. */
-  function setupTocToggle() {
-    const root = document.documentElement;
-    const roomy = () => window.matchMedia("(min-width: 1300px)").matches;
-    const set = state => root.setAttribute("data-toc", state);
-    set("closed");
-
-    document
-      .getElementById("toc-hide")
-      ?.addEventListener("click", () => set("closed"));
-    document.getElementById("toc-show")?.addEventListener("click", e => {
+    const setOpen = open => {
+      rail.classList.toggle("open", open);
+      label.setAttribute("aria-expanded", String(open));
+    };
+    label.addEventListener("click", e => {
       e.stopPropagation();
-      set("open");
+      setOpen(!rail.classList.contains("open"));
     });
-    document.querySelectorAll("#lw-toc a, .lw-toc-title").forEach(a =>
-      a.addEventListener("click", () => {
-        if (!roomy()) set("closed");
-      })
-    );
+    rail
+      .querySelectorAll(".toc-panel a")
+      .forEach(a => a.addEventListener("click", () => setOpen(false)));
     document.addEventListener("click", e => {
-      const inside = e.target.closest?.("#lw-sidebar, #toc-show");
-      if (!inside && !roomy()) set("closed");
+      if (!e.target.closest("#toc-rail")) setOpen(false);
     });
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") set("closed");
+      if (e.key === "Escape") setOpen(false);
     });
   }
-  setupTocToggle();
+  setupToc();
+
+  /** Sidenotes: turn each markdown footnote into a note that sits in the right
+   *  margin beside the line that cites it (wide screens) or opens inline when you
+   *  tap its number (narrow screens). Without JavaScript the footnotes stay at
+   *  the bottom of the page. */
+  function setupSidenotes() {
+    const article = document.getElementById("article");
+    if (!article) return;
+    const refs = Array.from(
+      article.querySelectorAll("sup > a[data-footnote-ref]")
+    );
+    let converted = 0;
+    refs.forEach((ref, i) => {
+      const id = decodeURIComponent((ref.getAttribute("href") || "").slice(1));
+      const li = id && document.getElementById(id);
+      const sup = ref.parentElement;
+      if (!li || !sup) return;
+
+      const note = document.createElement("span");
+      note.className = "sidenote";
+      note.innerHTML = li.innerHTML;
+      note
+        .querySelectorAll("a[data-footnote-backref]")
+        .forEach(a => a.remove());
+      // flatten paragraphs so the note can live inside a paragraph
+      note.querySelectorAll("p").forEach(p => {
+        const span = document.createElement("span");
+        span.className = "sn-p";
+        span.innerHTML = p.innerHTML;
+        p.replaceWith(span);
+      });
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "sn-toggle";
+      cb.id = "sn-" + (i + 1);
+      const label = document.createElement("label");
+      label.className = "sn-num";
+      label.htmlFor = cb.id;
+      label.setAttribute("role", "button");
+      label.setAttribute("aria-label", "Show note " + (i + 1));
+
+      const wrap = document.createElement("span");
+      wrap.className = "sn-container";
+      wrap.append(label, cb, note);
+      sup.replaceWith(wrap);
+      converted++;
+    });
+    if (converted) article.classList.add("has-sidenotes");
+  }
+  setupSidenotes();
 
   /** Turn each standalone figure's alt text into a caption. */
   function addCaptions() {

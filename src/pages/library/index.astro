@@ -1,0 +1,15 @@
+---
+import GardenIndex from "@layouts/GardenIndex.astro";
+import BookCard from "@components/BookCard.astro";
+import { BOOKS } from "@data/books";
+---
+
+<GardenIndex
+  title="Library"
+  description="Books I've read and books I mean to."
+  active="library"
+>
+  <div class="book-grid book-grid--wide">
+    {BOOKS.map(book => <BookCard book={book} />)}
+  </div>
+</GardenIndex>
