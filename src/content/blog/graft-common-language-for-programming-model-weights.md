@@ -5,18 +5,18 @@ pubDatetime: 2026-11-08T10:00:00-08:00
 slug: graft-common-language-for-programming-model-weights
 type: feature
 draft: false
-description: "What it would take for other people to write grafts too: a definition of the smallest valid graft, a file format, rules for combining grafts, and a certificate format that proves they are safe, plus a test of whether the library carries over to a second program."
+description: "What it would take for other people to write grafts too: a definition of the smallest valid graft, a file format, rules for combining grafts and a certificate format. It also reports that the library transfers: a fresh agent compiled a second program, 10-year mortality risk, with held-out error of 1.02 percentage points."
 ---
 
-_In Part 2, two Claude Opus agents built a set of reusable weight-space surgeries and used them to compile the PhenoAge formula into `Qwen3-0.6B-Longevity`: held-out error 1.52 years, down from 10.63, with the rest of the model essentially untouched. I called that set of surgeries GRAFT. This post asks what it would take for other people to write grafts too. It proposes a definition of the smallest valid graft, a file format for writing one, rules for combining them, and a certificate format for proving they're safe. It also reports whether the library carries over to a second program._
+_In Part 2, two Claude Opus agents built a set of reusable weight-space surgeries and used them to compile the PhenoAge formula into `Qwen3-0.6B-Longevity`: held-out error 1.52 years, down from 10.63, with the rest of the model essentially untouched. I called that set of surgeries GRAFT. This post asks what it would take for other people to write grafts too. It proposes a definition of the smallest valid graft, a file format for writing one, rules for combining them, and a certificate format for proving they're safe. It also reports whether the library carries over to a second program. It does._
 
 ## TL;DR
 
+- **GRAFT transfers.** A fresh agent compiled a second program, 10-year mortality risk, by reusing the library: eight PhenoAge instructions unchanged, three refit, and a new risk curve built from existing opcodes. It needed no new instructions and one scored call, and was done in under 2½ hours. Held-out error is **1.02 percentage points**, against 8.30 for a constant guess, 6.43 for ridge regression and 1.91 for gradient boosting trained on 750 people. It passes the same side-effect rule.
 - **A graft is a weight edit that declares six things:** what model it targets, exactly which weights it touches, what switches it on, what it computes, a measured contract, and a side-effect certificate. Drop any one and it stops being safe to add to someone else's model.
 - **The smallest valid graft is two MLP neurons:** one gated `step` pair, 6,144 weights in this model. The smallest graft that changes visible behaviour needs three instructions: switch on, compute, write a token.
 - **A universal language is possible; universal weights are not.** The interface (the six fields, file format and certificate) can be model-agnostic. The opcodes are portable within one family of architectures. The actual numbers have to be fitted to each model. That is the same split as source code and binaries, so GRAFT has both: a `.graft` source file is _lowered_ against a specific model into a `.gdelta` (the weights) and a `.gcert` (the test report).
 - **Four conformance levels** (reversible, contracted, certified, reproducible). The PhenoAge program meets all four, even though it missed its accuracy bar by 0.024 years. The levels record claims; they don't require success.
-- **The transfer test:** a fresh agent compiling a second program (10-year mortality risk) using only GRAFT. _[Result pending: the run is in progress.]_
 - **Provenance:** the agents built PhenoAge without this spec. The supervising Claude session drafted it afterwards at my request, formalising what the agents built and documented. Nobody has yet written a graft from it. That's the invitation at the end.
 
 ![Anatomy of a GRAFT](/figures/o6_graft_anatomy.png)
@@ -238,7 +238,7 @@ The Part 2 run already ran into every composition problem in miniature, because 
 | L13     | exp curve from kinks | NEW composition of existing opcodes                                     |
 | L14     | EMIT                 | REUSED instruction, moved one layer                                     |
 
-_(This is the agent's program as currently written; it may change before the run ends.)_
+_(The agent's final program, accepted edit E1.)_
 
 ## 7. The certificate
 
@@ -293,7 +293,48 @@ A library proves itself on its second program. The test I set up is deliberately
   - primary: beat the original model, a constant prediction (MAE 8.30) and ridge regression (6.43) on held-out people, and pass the same side-effect rule;
   - stretch: gradient boosting (1.91).
 
-**Result:** _[Pending. The run is in progress with no time limit; this section will be filled with its held-out score, certificate and reuse table once it finishes and is scored once.]_
+The agent was given the PhenoAge workspace: the library, the PhenoAge program and its fitted vectors, and the run's logs. It was not given this spec, which didn't exist yet. It ran alone, with no planner, and with 10 scored calls.
+
+**Result: it transfers, and it clears every bar.**
+
+![GRAFT transfer](/figures/t1_graft_transfer.png)
+_Figure 2. A: held-out error on 2,823 people, scored once. B: error by true risk level. C: what the agent reused, refit or built new, layer by layer. D: the second program against the first._
+
+| Held-out (n = 2,823), scored once                   | MAE (percentage points) | Edited minus comparator (95% CI) |
+| --------------------------------------------------- | ----------------------- | -------------------------------- |
+| Constant guess                                      | 8.30                    | −7.28 (−7.78 to −6.78)           |
+| Ridge regression (750 people)                       | 6.43                    | −5.41 (−5.63 to −5.20)           |
+| Gradient boosting (750 people, given parsed values) | 1.91                    | **−0.89** (−1.04 to −0.75)       |
+| **Model + GRAFT mortality program**                 | **1.02** (0.96–1.08)    |                                  |
+
+![Answers vs truth](/figures/t3_answers_vs_truth.png)
+_Figure 3. Each held-out person's true risk against the answer the edited model wrote (left) and gradient boosting's prediction (right)._
+
+The original model doesn't know the formula: its dev error is 45.2 points. A held-out run of the original model is in progress to confirm this formally.
+
+- **Dev and held-out agree.** Dev MAE was 1.06 on 200 people, and the agent had predicted 0.8–1.2 before the call. Held-out came in at 1.02.
+- **Every answer is well-formed.** All 2,823 answers are exactly two digits ("08", "23") followed by a stop; none is unparsable or runs on. The median error is 0.4 points, and 77% of people are within 1 point.
+- **It beats gradient boosting at every risk level, by most where it matters.** For people whose true risk is 50% or more, gradient boosting is off by 15.8 points and the graft by 4.8. A compiled formula extrapolates; a model trained on 750 people, most of them at low risk, can't. This is the same pattern as PhenoAge's oldest band.
+- **Its errors still grow with risk.** At 20–50% risk the error is 3.2 points, and 15 people (0.5%) are off by more than 10. The cause is the steep curve: small errors in the PhenoAge read-out it reuses get amplified. You can see one failure mode in Figure 3 as flat runs at 29, 39, 49 and 89. When the tens digit comes out one too low, the units digit can't make up the difference and saturates at 9. Half of all answers of 19 or more end in 9 (216 of 434), and those answers carry 28% of the total error. A wider units range, or emitting the answer as one curve read rather than tens-then-units, is the obvious fix. Whole-number answers also add about 0.26 points of rounding error; the agent's suggested decimal digit is worth an estimated 0.1–0.15.
+- **Side effects pass the pre-registered rule.** Max KL is 0.378 (limit 0.5). One answer the model had a clear preference on changed (probe 48, the limit is 1), and five near-ties flipped. Multiple-choice accuracy went from 61 to 65 out of 105. As with PhenoAge, the strict count fails. An independent re-check outside the sandbox, applying the saved weight change to a fresh copy of the model, reproduces these numbers exactly.
+- **Reproducible.** Rebuilding the edit from the agent's recipe on a fresh copy of the original model reproduces all 2,043,878 changed weights bit for bit (sha256 `c1efad32…`).
+
+**What it cost:**
+
+- The agent's first end-to-end version worked within about an hour of its first sandbox call. It found its leaks with the same bisection trick PhenoAge used, and had an accepted edit about 2 h 20 min after launch (not counting a 41-minute pause of its sandbox).
+- It used 1 of its 10 scored calls, then stopped on its own.
+- PhenoAge, by comparison, took two agents about 30 hours and three scored calls.
+
+![Containment](/figures/t2_containment.png)
+_Figure 4. A: every side-effect check the mortality agent ran, from its first full program (max KL 18, 33 answers changed) to the accepted edit 65 minutes later; hollow circles are partial installs used to locate the leak. B: the same containment phase for both programs, on one clock. PhenoAge took 8½ hours, while the library was still being written; mortality took about one._
+
+Most of that difference is the library, and Figure 4 shows where it pays off. The digit readers, unit conversions, logarithm and summing head were already built, contracted and safe. The agent's work was a new question detector, a new curve and a new output stage. It also ran into two of the documented safety rules again: a gate that opened at position 0 (rule A6) and a gating read with too little margin on unrelated text (rule A4). It fixed both within the hour, because the fixes were already written down.
+
+**What it doesn't show.**
+
+- **It isn't a stack.** The mortality edit is a separate program on the original model: it reuses PhenoAge's neuron slots and refits its question detector, so this model answers mortality but no longer PhenoAge. Putting both programs in one model is the next test, and the linker rules in §6 are written for it.
+- **It's the same panel and the same family of formula.** The reused readers are why it was fast. A program needing different inputs, like eGFR, would reuse less.
+- **One run, one agent.** It shows the library can transfer, not how reliably.
 
 ## 10. What v0.1 doesn't do
 
@@ -305,7 +346,7 @@ A library proves itself on its second program. The test I set up is deliberately
 
 ## 11. An invitation
 
-The spec, the three example files and the PhenoAge certificate are attached. The most useful thing anyone could do with them:
+The spec, the example files, the PhenoAge certificate and a reproducibility package for both programs are attached. The most useful thing anyone could do with them:
 
 1. **Write a hello graft** from the template, on any model in the Llama/Qwen/Mistral family, and publish its `.gcert`.
 2. **Compile a second clinical formula** (eGFR, MELD, FIB-4) and report which instructions you reused, refit or wrote new.
