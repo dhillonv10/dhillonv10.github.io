@@ -1,0 +1,114 @@
+{
+  "graft_cert_version": "0.1",
+  "program": "phenoage",
+  "source": "phenoage.graft.yaml",
+  "edit_id": "E3 (sandbox snapshot 1108-125512_evaluate3)",
+  "target": {
+    "model": "insilicomedicine/Qwen3-0.6B-Longevity",
+    "weights_sha256": "f547df5c82226b524fc44748876685000f34208efe80aeef8f8eb7238b5a5cce",
+    "arch_class": "pre-norm decoder; RMSNorm; SiLU-gated MLP; RoPE GQA attention",
+    "d_model": 1024,
+    "layers": 28,
+    "mlp_width": 3072
+  },
+  "delta": {
+    "format": "gdelta-v0.1: {tensor_name: (int32 [n,2] indices, fp32 [n] new values)}",
+    "file": "weight_delta_vs_unedited.pt",
+    "sha256_rule": "sha256 over tensor names in sorted order; for each, name bytes then fp32 bytes of the new values",
+    "sha256": "96c614175243d5d6000b96537793fa7b6cb429a381c9154129fb671c87eba6c4",
+    "sha256_recorded_in_run": "96c614175243d5d6000b96537793fa7b6cb429a381c9154129fb671c87eba6c4",
+    "sha256_match": true,
+    "changed_scalars": 1957862,
+    "fraction_of_model": "0.26%",
+    "tensors": 36,
+    "by_layer": {
+      "3": 18432,
+      "4": 140285,
+      "6": 79872,
+      "7": 86016,
+      "9": 1140715,
+      "10": 92160,
+      "11": 36864,
+      "12": 289790,
+      "13": 73728
+    },
+    "by_kind": {
+      "down_proj": 169984,
+      "gate_proj": 169984,
+      "up_proj": 169984,
+      "k_proj": 655346,
+      "o_proj": 4096,
+      "q_proj": 786420,
+      "v_proj": 2048
+    }
+  },
+  "resources": {
+    "replaced_mlp_neurons": {
+      "L3": 6,
+      "L4": 2,
+      "L6": 26,
+      "L7": 28,
+      "L9": 30,
+      "L10": 30,
+      "L11": 12,
+      "L12": 8,
+      "L13": 24,
+      "total": 166
+    },
+    "attention_switches_additive": [
+      "L4 kv-group 3 (flag)",
+      "L9 q-heads 0-4 / kv-groups 0-2 (shift)",
+      "L12 q-head 0 / kv-group 0 (sum)"
+    ],
+    "value_channels_taken": ["L4 g3 ch89", "L12 g0 ch14"]
+  },
+  "undo": {
+    "method": "write back the original values at the recorded indices (Registry.restore)",
+    "exact": true
+  },
+  "side_effects": {
+    "suite": "graft-probes-165 (105 multiple-choice, 40 LB-0038 age, 20 chat)",
+    "suite_reference_sha256": "aa23334ac8cda335b79b844cf7e18c30a804c4b217830918b65c3c0b90caeb59",
+    "rule": "max KL <= 0.5 and <= 1 top-1 change among probes with top1-top2 gap >= 0.15 nats",
+    "max_kl": 0.358,
+    "confident_flips": 0,
+    "near_tie_flips": 5,
+    "mc_accuracy": {
+      "original": "61/105",
+      "edited": "63/105"
+    },
+    "pass": true,
+    "strict_rule_pass": false,
+    "independent_recheck": "rebuilt from recipe outside the sandbox: max KL 0.3583, 0 confident flips"
+  },
+  "contracts": {
+    "program": {
+      "claim": "PhenoAge answer within the pre-registered bar",
+      "split": "held-out, n = 2823, scored once",
+      "metric": "MAE (years)",
+      "bound": 1.5,
+      "measured": 1.524,
+      "ci95": [1.473, 1.578],
+      "pass": false,
+      "comparators": {
+        "original_model": 10.63,
+        "gbm_750_labels": 1.75,
+        "copy_stated_age": 7.88
+      }
+    },
+    "instructions": "per-instruction contracts and measured values: see phenoage.graft.yaml"
+  },
+  "reproduction": {
+    "recipe": "isa/ library + phenoage_program.py + 44 fitted vector files",
+    "rebuilt_sha256": "96c614175243d5d6000b96537793fa7b6cb429a381c9154129fb671c87eba6c4",
+    "match": true
+  },
+  "conformance": {
+    "G0_reversible": true,
+    "G1_contracted": true,
+    "G2_certified": true,
+    "G3_reproducible": true,
+    "level": "G3",
+    "note": "conformance says the claims are recorded and checkable; it does not say the program met its target (it missed 1.5 by 0.024)"
+  }
+}

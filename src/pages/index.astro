@@ -87,30 +87,28 @@ const recentPosts = sortedPosts.filter(post => postKind(post) === "note");
               ))}
             </ul>
           </section>
-          {recentPosts.length > 0 && <Hr />}
+          <Hr />
         </>
       )
     }
 
-    {
-      recentPosts.length > 0 && (
-        <section id="recent-posts">
-          <h2>{SECTIONS.note}</h2>
-          <ul>
-            {recentPosts.map(
-              ({ data, slug }, index) =>
-                index < 4 && (
-                  <Card
-                    href={`/posts/${slug}/`}
-                    frontmatter={data}
-                    secHeading={false}
-                  />
-                )
-            )}
-          </ul>
-        </section>
-      )
-    }
+    <section id="recent-posts">
+      <h2>{SECTIONS.note}</h2>
+      <ul>
+        {
+          recentPosts.map(
+            ({ data, slug }, index) =>
+              index < 4 && (
+                <Card
+                  href={`/posts/${slug}/`}
+                  frontmatter={data}
+                  secHeading={false}
+                />
+              )
+          )
+        }
+      </ul>
+    </section>
 
     <div class="all-posts-btn-wrapper">
       <LinkButton href="/posts/">

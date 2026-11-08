@@ -1,0 +1,118 @@
+# The PhenoAge program (accepted edit E3) written in .graft form, AFTER the fact.
+# The program was built as Python (phenoage_program.py, 228 lines of isa/ calls); this file declares the same structure.
+# Layers, slot counts, contracts and measured values are from ISA_SPEC.md (as implemented) and the run's MEASURE_LOG.
+# Write regimes are listed where the run recorded them; "unrecorded" means the run did not state one.
+graft: 0.1
+name: phenoage
+version: 1.0.0-E3
+summary: Answer Levine's PhenoAge (2018) from a free-text NHANES blood panel in mixed units, as two digit tokens.
+
+target:
+  arch_class: prenorm-rmsnorm-gatedmlp-rope
+  model: insilicomedicine/Qwen3-0.6B-Longevity
+  weights_sha256: f547df5c82226b524fc44748876685000f34208efe80aeef8f8eb7238b5a5cce
+
+scope:
+  kind: template
+  question: "What is this participant's PhenoAge (Levine 2018 phenotypic age) in years? Answer with a number."
+  positions: after_anchor
+
+channels:
+  - {name: eA,     written_at: L3,  read_until: L4,  regime: unrecorded,    meaning: anchor code at 3 question-line tokens}
+  - {name: FB,     written_at: L4,  read_until: L13, regime: norm-tracking, meaning: "flag: ~1 after the question line, exactly 0 elsewhere"}
+  - {name: PIN,    written_at: L6,  read_until: L13, regime: dominant,      meaning: "code per digit 0-9, space, dot, answer slot 2"}
+  - {name: IDENT,  written_at: L7,  read_until: L13, regime: dominant,      meaning: "code per marker value-follow (VF) token, answer slot 1"}
+  - {name: DIGITS, written_at: L9,  read_until: L9,  regime: unrecorded,    meaning: "codes of the digits at offsets 1-5 before each VF token"}
+  - {name: BITS,   written_at: L9,  read_until: L10, regime: unrecorded,    meaning: "exact binary digits, padded to constant norm"}
+  - {name: Y,      written_at: L10, read_until: L12, regime: unrecorded,    meaning: "each marker's PhenoAge contribution in years, at its VF token (12 raw per year)"}
+  - {name: PD,     written_at: L12, read_until: L12, regime: unrecorded,    meaning: "pooled sum of Y at the answer tokens (0.1 raw per year)"}
+  - {name: Z,      written_at: L12, read_until: L13, regime: unrecorded,    meaning: "z1 = tens target at answer 1, z2 = units target at answer 2"}
+
+instructions:
+  - id: anchor
+    op: ANCHOR
+    at: {layer: 3, site: mlp, slots: [[2761, 78], [25, 162], [414, 38]]}
+    writes: [eA]
+    contract: {claim: "fires only at ' ', '2', ')' of the question line", metric: max adversarial detector, bound: 0.6, measured: 0.47}
+  - id: flag
+    op: FLAG                      # keyswitch (anchor keys := optimised k*) + vtake ch89 on kv-group 3
+    at: {layer: 4, site: attn, group: 3}
+    reads: [eA]
+    contract: {claim: "every later token attends to the anchors", metric: attention mass (min / mean), bound: 0.75, measured: "0.78 / 0.998"}
+    side_effects: {max_kl_alone: 0.019}
+  - id: fb
+    op: step                      # up = linear read of |x| at the consumer layer
+    at: {layer: 4, site: mlp, slots: [[89, 237]]}
+    writes: [FB]
+    contract: {claim: "FB read on-prompt >> off-prompt at L5", metric: "on-min vs off-max", measured: "4.7 vs 1.0"}
+  - id: pins
+    op: PINS                      # conjunction steps: gate = kappa(SVM(token kind AND in scope) + 1.5(FB - 1) - theta)
+    at: {layer: 6, site: mlp, pairs: 13}
+    gate: "svm(token kind) AND FB"
+    writes: [PIN]
+    contract: {claim: "each digit/space/dot token carries its code; nothing else does", split: held-out practice, metric: wrong pins, bound: 0, measured: "0 of 327k tokens"}
+  - id: ident
+    op: PINS
+    at: {layer: 7, site: mlp, pairs: 14}
+    writes: [IDENT]
+    contract: {claim: "each marker's VF token and answer slot 1 carry their code", metric: wrong pins, bound: 0, measured: 0}
+  - id: shift
+    op: SHIFT                     # keyswitch on all pins + qswitch on VF pins; positional design by pos_design_mass
+    at: {layer: 9, site: attn, q_heads: [0, 1, 2, 3, 4], kv_groups: [0, 1, 2]}
+    reads: [PIN, IDENT]
+    writes: [DIGITS]
+    contract: {claim: "head k attends from each VF token to the token k back", metric: median target-offset attention mass, measured: 0.9999}
+  - id: bits
+    op: BITS                      # step(soft_bit + M(vf - 1) > 0.5) + 1 padding pair
+    at: {layer: 9, site: mlp, pairs: 15}
+    reads: [DIGITS]
+    writes: [BITS]
+    contract: {claim: "exact bits of each copied digit", split: held-out rare-digit rows, metric: errors, measured: "<= 1 / 798 (was up to 26 before the digit-augmented refit)"}
+  - id: affine
+    op: gated_linear              # gate = item pin AND VF; up = value from bits; unit conversion folded in
+    at: {layer: 10, site: mlp, pairs: 13}
+    reads: [IDENT, BITS]
+    writes: [Y]
+    contract: {claim: "Y = this marker's PhenoAge term in years", metric: per-item error sd (years), measured: "0.04-0.28"}
+  - id: crp_channel
+    op: [gated_linear, step]      # CRP value channel + indicator
+    at: {layer: 10, site: mlp, pairs: 2}
+    contract: {claim: "exactly 0 off the CRP VF token", measured: "exact 0"}
+  - id: log_pwl
+    op: kink                      # 12 kinks on designed reads + indicator guard
+    at: {layer: 11, site: mlp, neurons: 12}
+    writes: [Y]
+    contract: {claim: "Y_crp = coefficient * ln(CRP)", metric: error sd (years), measured: "0.22-0.26"}
+    side_effects: {note: "max gate on probes -480 (never opens)"}
+  - id: sum_pool
+    op: [qswitch, keyswitch, vtake]   # SUM_POOL + POOL_VTAKE on RoPE planes 52-63; value ch14 reads G * eY / gamma
+    at: {layer: 12, site: attn, q_heads: [0], kv_groups: [0]}
+    reads: [Y]
+    writes: [PD]
+    params: {sY: 0.1}
+    contract: {claim: "equal-weight sum of all VF tokens' Y at the answer tokens", metric: "VF mass / weight cv", measured: "1.0000 / 0.008"}
+  - id: gated_z
+    op: [gated_linear, step]
+    at: {layer: 12, site: mlp, pairs: 4}
+    reads: [PD, PIN, IDENT]
+    writes: [Z]
+    contract: {claim: "z1 = tens target at answer 1, z2 = units target at answer 2, exactly 0 elsewhere", metric: error, measured: "z1 0.12 tens units; z2 1.4 years"}
+  - id: emit
+    op: EMIT                      # PWL_ONEHOT: 2 x (10 kinks + 1 step), ANSWER-ZERO CONST guard, dominant logit writes
+    at: {layer: 13, site: mlp, neurons: 24}       # 2 x (10 kinks + 1 step pair)
+    reads: [Z]
+    writes: [output]
+    contract: {claim: "argmax of the written digit = round(z)", measured: holds}
+
+program_contract:
+  claim: "first number in the answer = PhenoAge"
+  split: held-out (n = 2,823), scored once
+  metric: MAE (years)
+  bound: 1.5
+  measured: 1.524      # 95% CI 1.473-1.578; MISSED the bar by 0.024
+  dev_measured: 1.38
+
+certificate:
+  probe_suite: graft-probes-165 (reference sha256 aa23334a...)
+  rule: "max KL <= 0.5; <= 1 confident top-1 change (gap >= 0.15 nats); strict count reported"
+  file: phenoage.gcert.json

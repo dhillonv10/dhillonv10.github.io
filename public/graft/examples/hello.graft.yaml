@@ -1,0 +1,52 @@
+# TEMPLATE for the minimal *program*: answer one exact question with a constant token.
+# Not built yet. Suggested first exercise for a new GRAFT author. Fill every <...>, lower it, certify it.
+graft: 0.1
+name: hello-graft
+version: 0.0.1
+summary: When asked "<question>", answer "<token>". Behaviour on every other prompt unchanged.
+
+target:
+  arch_class: prenorm-rmsnorm-gatedmlp-rope
+  model: <hub id>
+  weights_sha256: <sha256 of base weights>
+
+scope:
+  kind: template
+  question: "<exact question line>"
+  positions: after_anchor
+
+channels:
+  - {name: eA,   written_at: L<a>, read_until: L<a+1>, meaning: "anchor code"}
+  - {name: FB,   written_at: L<a+1>, read_until: L<e>, regime: norm-tracking, meaning: "flag: ON after the anchor, exactly 0 elsewhere"}
+  - {name: ANS,  written_at: L<p>, read_until: L<e>, regime: dominant, meaning: "pin on the answer position"}
+
+instructions:
+  - id: anchor
+    op: ANCHOR              # 1-3 step pairs on fixed question-line tokens
+    at: {layer: <a>, site: mlp, slots: auto}
+    writes: [eA]
+    contract: {claim: "fires only on the question line", split: <held-out practice + adversarial texts>, metric: max off-scope detector, bound: <thr>}
+  - id: flag
+    op: FLAG                # keyswitch + vtake on a sink-heavy kv-group, then a norm-tracking step
+    at: {layer: <a+1>, site: attn+mlp, slots: auto}
+    reads: [eA]
+    writes: [FB]
+    contract: {claim: "every later token attends to the anchor", metric: min attention mass, bound: <e.g. 0.75>}
+  - id: answer_pin
+    op: PINS                # conjunction step: answer-slot detector AND FB
+    at: {layer: <p>, site: mlp, slots: auto}
+    gate: "svm(answer slot) AND FB"
+    writes: [ANS]
+    contract: {claim: "pins the first answer token and nothing else", metric: wrong pins, bound: 0}
+  - id: emit
+    op: EMIT                # constant: one dominant write of the lm_head vector of <token>
+    at: {layer: <e>, site: mlp, slots: auto}
+    gate: ANS
+    writes: [output]
+    params: {token: "<token>"}
+    contract: {claim: "argmax at the answer position == <token>", split: held-out, metric: accuracy, bound: 1.0}
+
+certificate:
+  probe_suite: <suite id + sha256>
+  rule: "max KL <= 0.5; <= 1 confident top-1 change; report strict count"
+  file: hello.gcert

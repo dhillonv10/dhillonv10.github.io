@@ -1,0 +1,41 @@
+# The minimal GRAFT: one `step` pair (2 MLP neurons, 6 x 1024 = 6,144 scalars).
+# This is one of the three ANCHOR pairs of the PhenoAge program (accepted edit E3), written out as a stand-alone component.
+# Values below are from the run's records (ISA_SPEC.md, phenoage_program.py); the per-pair side-effect figure was not
+# measured separately (the 3-pair ANCHOR as a whole: removal KL 4e-4).
+graft: 0.1
+name: phenoage-anchor-pos40
+version: 0.1.0
+summary: Fires at one fixed token of the PhenoAge question line, nowhere else.
+
+target:
+  arch_class: prenorm-rmsnorm-gatedmlp-rope
+  model: insilicomedicine/Qwen3-0.6B-Longevity
+  weights_sha256: f547df5c82226b524fc44748876685000f34208efe80aeef8f8eb7238b5a5cce
+
+scope:
+  kind: template
+  question: "What is this participant's PhenoAge (Levine 2018 phenotypic age) in years? Answer with a number."
+  positions: [40]            # the ' ' token inside "(Levine 2018 ..." in the chat-formatted prompt
+
+channels:
+  - {name: eA, written_at: L3, read_until: L4, meaning: "anchor code: 'this is the PhenoAge question line'"}
+
+instructions:
+  - id: anchor40
+    op: step
+    at: {layer: 3, site: mlp, slots: [2761, 78]}          # mode: set (both neurons replaced)
+    gate: "kap * (LDA_read40 . x_hat + (b40 - 0.7) * c3)"  # kap = 300; LDA detector vs all proxy-probe tokens + 12 adversarial texts
+    reads: [x_hat]
+    writes: [eA]
+    params: {A: 10.0, threshold: 0.7, kap: 300}
+    contract:
+      claim: "detector >= threshold at position 40 of every in-scope prompt; max on adversarial texts < threshold"
+      split: practice (held-out rows) + 12 adversarial near-miss texts
+      metric: max adversarial detector value
+      bound: 0.6     # the lowest threshold among the three anchor pairs
+      measured: 0.47
+
+certificate:
+  probe_suite: graft-probes-165 (reference sha256 aa23334a...)
+  rule: "max KL <= 0.5; <= 1 confident top-1 change"
+  measured_as_part_of: "ANCHOR (3 pairs): removal KL 4e-4; full program: see phenoage.gcert.json"
