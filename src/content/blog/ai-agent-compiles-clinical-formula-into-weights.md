@@ -5,10 +5,13 @@ pubDatetime: 2026-11-08T09:00:00-08:00
 slug: ai-agent-compiles-clinical-formula-into-weights
 type: feature
 draft: false
+takeaways:
+  - "**Repeatable weight-space editing.** In Part 1, Claude Opus edited the weights of Insilico Medicine's `Qwen3-0.6B-Longevity` by hand to estimate age from a blood panel. Here, two Claude Opus agents built a set of reusable weight-space surgeries, which I'm calling **GRAFT**."
+  - "**GRAFT compiled Levine's PhenoAge formula into the same model,** with no gradient descent and no human design input."
+  - "**Held-out error fell from 10.63 to 1.52 years** on 2,823 people. That beats a model trained on 750 labelled people."
+  - "**The rest of the model barely noticed:** its behaviour on unrelated prompts is essentially unchanged."
 description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space surgeries, and used it to compile Levine's PhenoAge formula into Qwen3-0.6B-Longevity with no gradient descent and no-human-in-the-loop."
 ---
-
-This continues [Part 1](https://www.opsbug.com/posts/ai-agent-edits-biology-model-weights/), where Claude Opus edited the weights of Insilico Medicine's `Qwen3-0.6B-Longevity` by hand to estimate age from a blood panel. This time two Claude Opus agents built a set of reusable weight-space surgeries, which I'm calling **GRAFT**, and used it to compile Levine's PhenoAge formula into the same model with no gradient descent and no human design input. The model's error on 2,823 held-out people falls from 10.63 to 1.52 years. That beats a model trained on 750 labelled people, and the model's behaviour on unrelated prompts is essentially unchanged.
 
 ## Brief results
 
