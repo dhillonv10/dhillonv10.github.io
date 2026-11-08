@@ -223,18 +223,18 @@ The run produced eight rules. They are now part of the library, and most were pa
 - **Bit-exact rebuild.** Running the recipe (GRAFT library + `phenoage_program.py` + 44 fitted vector files) on a freshly loaded original model, in a separate process, reproduces all **1,957,862 changed weights** (sha256 `96c61417…` = the sandbox snapshot).
 - **Side effects reproduce independently,** outside the sandbox: max KL 0.3583, no clear changes.
 - **Official scoring** uses the same scorer as the sandbox and reproduces its predictions exactly.
-- **A Colab notebook** (attached) downloads the original model, rebuilds the graft from its recipe, checks the hash, and scores dev, held-out and the 165 probes.
+- **A Colab notebook** [attached](/assets/phenoage_colab_bundle.zip) downloads the original model, rebuilds the graft from its recipe, checks the hash, and scores dev, held-out and the 165 probes.
 
-## 19. What this shows, and what's next
+## 9. Next steps
 
-**It shows:**
+**So far, we showed:**
 
 - **Weight edits can be packaged as a library.** GRAFT has opcodes, instructions with measured contracts, and safety rules learned from failures. A short program of library calls compiled a real clinical formula into a pretrained model's weights.
 - **The compiled program is accurate:** better than learning the same mapping from 750 labelled people, and better at the extremes, where learned models can't extrapolate.
 - **It is gated:** the rest of the model barely notices it.
 - **Autonomous agents can build all of this,** with humans setting goals and process but not designs.
 
-**It doesn't show (yet):**
+**Pending:**
 
 - **That the bar was met.** 1.524 is 0.024 above it.
 - **That GRAFT generalises.** A library proves itself on its second program, not its first. That test is coming up (Part 3).
@@ -243,13 +243,9 @@ The run produced eight rules. They are now part of the library, and most were pa
 **Next:**
 
 - **Part 3: GRAFT as a specification.** What the smallest valid graft is, a common file format so other people can write grafts, how grafts combine, and what a side-effect certificate must contain. Plus the transfer test: A fresh agent compiling a second program, 10-year mortality risk from the same blood panel, using only GRAFT.
-- **More programs:** eGFR, MELD and FIB-4, which need new nonlinear instructions (powers, ratios) built from `kink`.
-- **The open precision lever:** stronger per-marker writes with a weaker summing gain (expected −0.1 to −0.15).
-- **A fresh confirmation set.**
-
 ---
 
-### Appendix: every budgeted call (3 of 20 used)
+### Appendix: Every budgeted call (3 of 20 used)
 
 | Call        | Configuration                 | Dev MAE | Side effects                        | Outcome              |
 | ----------- | ----------------------------- | ------- | ----------------------------------- | -------------------- |
