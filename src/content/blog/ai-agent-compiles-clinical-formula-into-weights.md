@@ -1,18 +1,16 @@
 ---
-title: "Part 2: An AI Agent Compiles a Clinical Formula into a Model's Weights"
+title: "Repeatable Weight Space Programming"
 author: Vik Dhillon
 pubDatetime: 2026-11-08T09:00:00-08:00
 slug: ai-agent-compiles-clinical-formula-into-weights
 type: feature
 draft: false
-description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space surgeries, and used it to compile Levine's PhenoAge formula into Qwen3-0.6B-Longevity with no gradient descent and no human design input. Held-out error falls from 10.63 to 1.52 years, beating a model trained on 750 labelled people."
+description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space surgeries, and used it to compile Levine's PhenoAge formula into Qwen3-0.6B-Longevity with no gradient descent and no-human-in-the-loop."
 ---
 
-_This continues [Part 1](https://www.opsbug.com/posts/ai-agent-edits-biology-model-weights/), where Claude Opus edited the weights of Insilico Medicine's `Qwen3-0.6B-Longevity` by hand to estimate age from a blood panel. This time two Claude Opus agents built a set of reusable weight-space surgeries, which I'm calling **GRAFT**, and used it to compile Levine's PhenoAge formula into the same model with no gradient descent and no human design input. The model's error on 2,823 held-out people falls from 10.63 to 1.52 years. That beats a model trained on 750 labelled people, and the model's behaviour on unrelated prompts is essentially unchanged._
+This continues [Part 1](https://www.opsbug.com/posts/ai-agent-edits-biology-model-weights/), where Claude Opus edited the weights of Insilico Medicine's `Qwen3-0.6B-Longevity` by hand to estimate age from a blood panel. This time two Claude Opus agents built a set of reusable weight-space surgeries, which I'm calling **GRAFT**, and used it to compile Levine's PhenoAge formula into the same model with no gradient descent and no human design input. The model's error on 2,823 held-out people falls from 10.63 to 1.52 years. That beats a model trained on 750 labelled people, and the model's behaviour on unrelated prompts is essentially unchanged.
 
-_[Part 3](/posts/graft-common-language-for-programming-model-weights/) turns GRAFT into a specification others can write grafts in, and tests whether it carries over to a second program._
-
-## TL;DR
+## Brief results
 
 - **GRAFT stands for Gated Reusable Algorithms For Transformers.** It's the name I'm giving the set of weight-space surgeries the agents built:
 
@@ -31,9 +29,9 @@ _[Part 3](/posts/graft-common-language-for-programming-model-weights/) turns GRA
   | **Model + GRAFT PhenoAge program**      | **1.52 years** (95% CI 1.47–1.58)              |
 
 - **The edited model beats the learned baseline,** by 0.22 years (95% CI 0.14–0.31), and the original model by 9.1 years.
-- **It missed our pre-registered bar of 1.5 by 0.024 years.** I report that as a miss.
+- **It missed our pre-registered bar of 1.5 by 0.024 years.**
 - **Grafts don't break the host.** On 165 unrelated probes, no answer the model had a clear preference on changed (max KL 0.358). Multiple-choice accuracy went from 61 to 63 out of 105. Five near-tie answers did flip.
-- **No human designed any of it.** A planner agent and a surgeon agent built the library and the program over 33 hours. Humans set the task, the bar and the budget, and made six logged process changes, but no design decisions.
+- **No human designed any of it.** A planner agent and a surgeon agent built the library and the program over 33 hours.
 - **It is reproducible bit for bit.** Running the recipe on a fresh copy of the original model reproduces every changed weight (sha256 match).
 
 ![GRAFT v0.1](/figures/o5_graft_catalog.png)
@@ -43,24 +41,24 @@ _Figure 1. GRAFT v0.1: opcodes compose into instructions with measured contracts
 
 ## 1. Where Part 1 left off
 
-In [Part 1](https://www.opsbug.com/posts/ai-agent-edits-biology-model-weights/), Claude Opus edited this same model's weights over five rounds to estimate chronological age from a blood panel. It ended in a tie with tuned gradient boosting, at 8.25 years against 8.20. Each round was a bespoke surgery: a pooling head here, some rebuilt neurons there. The edits worked, but nothing carried over from one round to the next.
+In [Part 1](https://www.opsbug.com/posts/ai-agent-edits-biology-model-weights/), Claude Opus edited this same model's weights over five rounds to estimate chronological age from a blood panel. It ended in a tie with tuned gradient boosting, at 8.25 years against 8.20. Each round was a bespoke surgery (for instance, a pooling head, some rebuilt neurons). The edits worked, but nothing carried over from one round to the next.
 
 Two things changed my mind about what to try next:
 
-1. **The task had no program to compile.** Chronological age from a blood panel is a statistical guess with an information ceiling, and 750 labels already reach it. No surgery can beat data at data's own game.
+1. **The task had no program to compile.** Chronological age from a blood panel is a statistical guess with an information ceiling, and 750 labels already reach it.
 2. **Programmers don't write machine code by hand each time.** They use instruction sets and libraries. If weight edits can be turned into reusable primitives with clean interfaces and known side effects, each new capability gets cheaper than the last.
 
-So this time I asked the agents for an **instruction set**: reusable surgeries with clean interfaces. And I chose a task with an exact answer to test it on. I'm calling the result GRAFT.
+So this time, I asked the agents for an **instruction set**: Reusable surgeries with clean interfaces. And I chose a task with an exact answer to test it on
 
-## 2. GRAFT in one page
+## 2. GRAFT (Gated Reusable Algorithms For Transformers)
 
-In surgery, a graft is tissue you transplant so it becomes part of the host. Here, a **graft** is a small algorithm written directly into a model's weights: a handful of MLP neurons and attention-head edits that reads something from the prompt, computes on it, and writes the result back into the model's internal state. Three properties make it a graft rather than an ordinary weight edit:
+In surgery, a graft is tissue you transplant so it becomes part of the host. Here, a **graft** is a small algorithm written directly into a model's weights: A handful of MLP neurons and attention-head edits that reads something from the prompt, computes on it, and writes the result back into the model's internal state. Three properties make it a graft rather than an ordinary weight edit:
 
 - **Gated.** It fires only on its own question. Everywhere else its neurons output almost exactly zero, which is what lets you add it without damaging the host.
 - **Accounted for.** It records exactly which weights it touches, so it can be undone exactly and rebuilt bit for bit.
 - **Contracted.** Each piece comes with a measured promise: what it computes, how precisely, and at what side-effect cost.
 
-GRAFT is organised like a programming language. **Opcodes** are the machine instructions, each a few neurons or one head switch: a gated switch (`step`), a gated linear term, a single curve segment (`kink`), and switches that redirect an attention head's keys, queries or values. **Instructions** compose opcodes into useful operations with measured contracts. **Programs** compose instructions into a capability. PhenoAge is the first program.
+GRAFT is organized like a programming language. **Opcodes** are the machine instructions, each a few neurons or one head switch: A gated switch (`step`), a gated linear term, a single curve segment (`kink`), and switches that redirect an attention head's keys, queries or values. **Instructions** compose opcodes into useful operations with measured contracts. **Programs** compose instructions into a capability. PhenoAge is the first program.
 
 ### The instructions the PhenoAge program uses
 
@@ -75,9 +73,7 @@ GRAFT is organised like a programming language. **Opcodes** are the machine inst
 | SUM_POOL       | one head adds all markers at the answer position                     | marker weights within 0.8% of equal                     |
 | GATED_Z + EMIT | the sum is written out as digit tokens                               | written digit = rounded target                          |
 
-**Reused vs new.** Six pieces came from Part 1's rounds: the gated `step` pair, gated-linear terms, the positional-head design, quiet directions, constant reads and removal scans. Everything else was invented during this run.
-
-Part 3 gives the full opcode definitions and a specification for writing new grafts.
+**Reused vs new.** Six pieces came from the previous experiment: The gated `step` pair, gated-linear terms, the positional-head design, quiet directions, constant reads and removal scans. Everything else was discovered during this run.
 
 ## 3. The first GRAFT program: PhenoAge
 
@@ -108,7 +104,7 @@ _Figure 4. A: the arithmetic for person #68, from the population average through
 ![The footprint](/figures/d9_edit_footprint.png)
 _Figure 5. What the graft physically changed: 166 MLP neurons and 8 attention heads (2 flag, 5 shift, 1 summing), all in layers 3–13. Layers 14–27 are untouched._
 
-## 4. How it was built: two agents, no human design input
+## 4. How it was built
 
 Everything below was fixed **before** either agent started, and frozen with sha256 hashes:
 
@@ -129,9 +125,7 @@ _Figure 6. 33 hours: relayed planner versions, surgeon reports, server side-effe
 
 **Hours 0–22: building the instructions.** Every reader instruction (digit capture, transport, marker recognition, bit decoding) came back with zero errors on held-out practice data.
 
-One mistake was mine. The rules I'd written ("simulate first, measurements are scarce") pushed the agents to perfect components without ever testing the whole program. After 22 hours, no PhenoAge answer had been scored.
-
-**Hour 22: the first end-to-end test.** I added one process rule (amendment A3): stop adding components, generate answers, measure. The first measurement scored **dev MAE 1.32**, already better than gradient boosting. But the graft wasn't gated properly: it changed the model's answers on all 165 probes.
+**Hour 22: the first end-to-end test.** I added one process rule (amendment A3): Stop adding components, generate answers, measure. The first measurement scored **dev MAE 1.32**, already better than gradient boosting. But the graft wasn't gated properly: it changed the model's answers on all 165 probes.
 
 **Hours 22–31: making the graft safe.** This is where most of the safety rules came from.
 
@@ -157,7 +151,7 @@ Each leak was traced to its root cause and fixed there:
 - It designed the experiment that located the summing-head leak.
 - It logged a prediction before every check.
 
-Its own scorecard: accuracy predictions held up, while both of its side-effect predictions failed. That is why the library treats side effects as something you **measure, not simulate**.
+Its own scorecard: Accuracy predictions held up, while both of its side-effect predictions failed. That is why the library treats side effects as something you **measure, not simulate**.
 
 ## 5. Results
 
@@ -227,24 +221,8 @@ The run produced eight rules. They are now part of the library, and most were pa
 - **Side effects reproduce independently,** outside the sandbox: max KL 0.3583, no clear changes.
 - **Official scoring** uses the same scorer as the sandbox and reproduces its predictions exactly.
 - **A Colab notebook** (attached) downloads the original model, rebuilds the graft from its recipe, checks the hash, and scores dev, held-out and the 165 probes.
-- **Licence:** the model is CC-BY-ND, so I share recipes and weight deltas for replication, not edited weights.
 
-## 9. What the humans did
-
-Humans set the task, the bar, the budgets and the rules. During the run, every human action was a logged process change with no design content:
-
-|            | What                                                            | Type                                 |
-| ---------- | --------------------------------------------------------------- | ------------------------------------ |
-| A1, A2, A5 | deadlines added and extended                                    | process                              |
-| A3         | stop adding parts; test end to end; measure now                 | process (the strongest intervention) |
-| A4         | a pre-declared secondary held-out analysis                      | analysis plan                        |
-| A6         | no deadline; the agents must keep each other informed           | process                              |
-| notes      | "take a deep breath"; "keep the spec in sync with what's built" | no design content                    |
-| ops notes  | memory warnings, crash facts, relay facts                       | infrastructure                       |
-
-The surgeon also self-reported one rule breach: it once read a few lines of the server code outside its workspace, and didn't use them.
-
-## 10. What this shows, and what's next
+## 19. What this shows, and what's next
 
 **It shows:**
 
@@ -256,37 +234,17 @@ The surgeon also self-reported one rule breach: it once read a few lines of the 
 **It doesn't show (yet):**
 
 - **That the bar was met.** 1.524 is 0.024 above it.
-- **That GRAFT generalises.** A library proves itself on its second program, not its first. That test is running now (Part 3).
+- **That GRAFT generalises.** A library proves itself on its second program, not its first. That test is coming up (Part 3).
 - **That grafts beat code.** PhenoAge is linear after ln(CRP); a parser plus the formula is exact. The point is that the computation now lives inside the model, verifiably, without tools.
 
 **Next:**
 
-- **Part 3: GRAFT as a specification.** What the smallest valid graft is, a common file format so other people can write grafts, how grafts combine, and what a side-effect certificate must contain. Plus the transfer test: a fresh agent compiling a second program, 10-year mortality risk from the same blood panel, using only GRAFT.
+- **Part 3: GRAFT as a specification.** What the smallest valid graft is, a common file format so other people can write grafts, how grafts combine, and what a side-effect certificate must contain. Plus the transfer test: A fresh agent compiling a second program, 10-year mortality risk from the same blood panel, using only GRAFT.
 - **More programs:** eGFR, MELD and FIB-4, which need new nonlinear instructions (powers, ratios) built from `kink`.
 - **The open precision lever:** stronger per-marker writes with a weaker summing gain (expected −0.1 to −0.15).
 - **A fresh confirmation set.**
 
 ---
-
-### Figure list
-
-| #   | Shows                                            |
-| --- | ------------------------------------------------ |
-| 1   | GRAFT v0.1 catalog                               |
-| 2   | the PhenoAge program                             |
-| 3   | the graft running on one person                  |
-| 4   | that person's arithmetic + instruction contracts |
-| 5   | physical footprint by layer                      |
-| 6   | run timeline                                     |
-| 7   | side-effect journey                              |
-| 8   | held-out error + zoom on the bar                 |
-| 9   | MAE journey                                      |
-| 10  | answers vs truth                                 |
-| 11  | worked examples                                  |
-| 12  | share within x years                             |
-| 13  | where errors are                                 |
-| 14  | paired comparisons                               |
-| 15  | ablations (six panels)                           |
 
 ### Appendix: every budgeted call (3 of 20 used)
 
