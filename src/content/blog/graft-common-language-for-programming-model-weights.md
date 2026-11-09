@@ -1,304 +1,41 @@
 ---
-title: "Part 3: GRAFT, a Common Language for Programming Model Weights"
+title: "Part 3: GRAFT Generalizes: A Second Program From the Same Library"
 author: Vik Dhillon
 pubDatetime: 2026-11-08T10:00:00-08:00
 slug: graft-common-language-for-programming-model-weights
 type: feature
 draft: false
-description: "What it would take for other people to write grafts too: a definition of the smallest valid graft, a file format, rules for combining grafts and a certificate format. It also reports that the library transfers: a fresh agent compiled a second program, 10-year mortality risk, with held-out error of 1.02 percentage points."
+description: "A fresh agent took the PhenoAge library and compiled a second clinical program, 10-year mortality risk, into the same model: held-out error of 1.02 percentage points, better than a model trained on 750 people, in about 2 hours instead of 30. Plus what a graft is, the smallest one that works, and what combining grafts has and hasn't meant so far."
 ---
 
-_In Part 2, two Claude Opus agents built a set of reusable weight-space surgeries and used them to compile the PhenoAge formula into `Qwen3-0.6B-Longevity`: held-out error 1.52 years, down from 10.63, with the rest of the model essentially untouched. I called that set of surgeries GRAFT. This post asks what it would take for other people to write grafts too. It proposes a definition of the smallest valid graft, a file format for writing one, rules for combining them, and a certificate format for proving they're safe. It also reports whether the library carries over to a second program. It does._
+_In Part 2, two Claude Opus agents compiled Levine's PhenoAge formula into the weights of `Qwen3-0.6B-Longevity` with a set of reusable surgeries I called GRAFT (Gated Reusable Algorithms For Transformers). One program proves very little: the surgeries could have been a one-off fit to that task. This post tests whether they generalize. A fresh agent took the same library and compiled a second clinical program, 10-year mortality risk, into the same model. It worked: the result beats a model trained on 750 people, and it took about 2 hours instead of 30. Below are the result, the library of surgeries it was built from, what exactly a graft is, the smallest one that works, and an honest account of what "combining grafts" has and hasn't meant so far._
 
 ## TL;DR
 
-- **GRAFT transfers.** A fresh agent compiled a second program, 10-year mortality risk, by reusing the library: eight PhenoAge instructions unchanged, three refit, and a new risk curve built from existing opcodes. It needed no new instructions and one scored call, and was done in under 2½ hours. Held-out error is **1.02 percentage points**, against 44.4 for the original model, 8.30 for a constant guess, 6.43 for ridge regression and 1.91 for gradient boosting trained on 750 people. It passes the same side-effect rule.
-- **A graft is a weight edit that declares six things:** what model it targets, exactly which weights it touches, what switches it on, what it computes, a measured contract, and a side-effect certificate. Drop any one and it stops being safe to add to someone else's model.
-- **The smallest valid graft is two MLP neurons:** one gated `step` pair, 6,144 weights in this model. The smallest graft that changes visible behaviour needs three instructions: switch on, compute, write a token.
-- **A universal language is possible; universal weights are not.** The interface (the six fields, file format and certificate) can be model-agnostic. The opcodes are portable within one family of architectures. The actual numbers have to be fitted to each model. That is the same split as source code and binaries, so GRAFT has both: a `.graft` source file is _lowered_ against a specific model into a `.gdelta` (the weights) and a `.gcert` (the test report).
-- **Four conformance levels** (reversible, contracted, certified, reproducible). The PhenoAge program meets all four, even though it missed its accuracy bar by 0.024 years. The levels record claims; they don't require success.
-- **Provenance:** the agents built PhenoAge without this spec. The supervising Claude session drafted it afterwards at my request, formalising what the agents built and documented. Nobody has yet written a graft from it. That's the invitation at the end.
+- **GRAFT generalizes to a second task.** A fresh agent compiled 10-year mortality risk into the model. Held-out error is **1.02 percentage points** on 2,823 people, against 44.4 for the original model, 8.30 for a constant guess, 6.43 for ridge regression and **1.91 for gradient boosting trained on 750 people**. It passes the same side-effect check as PhenoAge, and the edit rebuilds bit for bit.
+- **Most of it was reuse.** Eight of PhenoAge's instructions went in unchanged and three were refit. The one new piece, a steep risk curve, was assembled from existing opcodes. **No new instructions were needed.** The agent used 1 of its 10 scored calls and had an accepted edit about 2 h 20 min after launch; PhenoAge took two agents about 30 hours.
+- **The library is small:** 8 opcodes (the elementary weight surgeries) compose into 14 instructions with measured contracts, and those compose into programs. It also carries 8 safety rules learned from failures.
+- **A graft** is a set of weight edits that switches on only for its own input, computes something, writes the result into the model, and is fully accounted for: which weights it touches, how to undo it exactly, and what it does to everything else.
+- **Hello world of grafts:** one neuron (3,072 weights) makes the model answer "Hello" to one specific question and leaves everything else alone. Asked _"What is the GRAFT secret word?"_ the original model says "GRASP1" (a gene name); with the graft it says "Hello" in 12 of 12 contexts, including 4 it was never fitted on. Side effects are effectively zero (max KL 0.00000016, no changed answers). It also fires on one near-paraphrase, "…secret phrase?".
+- **Combining grafts, honestly:** instructions are combined inside a program (14 in PhenoAge), and instructions are reused across programs (PhenoAge → mortality). **Two programs living in one model at the same time has not been done yet**; the mortality model no longer answers PhenoAge. That is the next experiment.
 
-![Anatomy of a GRAFT](/figures/o6_graft_anatomy.png)
-_Figure 1. A: the six fields of a minimal graft, with the values of a real one from the PhenoAge program. B: a portable `.graft` source is lowered against one model into a weight delta and a certificate. C: the four conformance levels._
+![GRAFT transfer](/figures/t1_graft_transfer.png)
+_Figure 1. The second program. A: held-out error on 2,823 people, scored once. B: error by true risk level. C: what the agent reused, refit or built new, layer by layer. D: the second program against the first._
 
 ---
 
-## 1. From one program to a language
+## 1. The question: was PhenoAge a one-off?
 
-Part 2's result was one program. The agents left behind a working library (`isa/`, about a dozen Python modules) and an as-implemented instruction table. But a library only its authors can use is just a codebase. For weight-space programming to be a field rather than a stunt, three things have to be true:
+Part 2 ended with one compiled program. The agents had built a library along the way: number readers, a unit converter, a logarithm, a summing head, a digit writer, and the safety rules that kept them from breaking the rest of the model. But a library that has built one program might just be that program, cut into pieces. The honest test is a second program: give the library to a fresh agent, give it a new task, and see whether it can pick the right surgeries, apply them, and beat the baselines.
 
-1. **Someone else can write a graft** without reading our code.
-2. **Two grafts written by different people can live in one model** without breaking each other.
-3. **A reader can check a graft's claims** without trusting its author.
+## 2. The test
 
-Each of those needs a shared definition. That's what this post proposes. I'll be explicit about which parts are measured and which are design.
+- **Task:** 10-year mortality risk in percent, from the same blood panels, with Levine's mortality model: `M = 100·(1 − exp(−1.51714·exp(xb)/0.007692696))`. The question wording is new, and the output is a steep nonlinear curve that PhenoAge never needed.
+- **Agent:** a fresh Claude Opus agent, working alone (no planner), given the PhenoAge workspace: the library, the PhenoAge program and its fitted vectors, and the run's logs. No human design input.
+- **Budget:** 10 scored calls on 200 dev people; the 2,823 held-out people were scored once, by me, after the agent finished.
+- **Pre-registered bar:** beat the original model, a constant prediction (8.30) and ridge regression (6.43) on held-out people, and pass the side-effect rule (max KL ≤ 0.5 over 165 unrelated probes, at most one changed answer among probes where the model had a clear preference). Gradient boosting (1.91) was a stretch comparison.
 
-## 2. What is the smallest valid graft?
-
-The question sounds pedantic, but it forces the definition. A weight edit is a graft when it declares six fields:
-
-| #   | Field            | What it is                                                                           | Without it                        |
-| --- | ---------------- | ------------------------------------------------------------------------------------ | --------------------------------- |
-| 1   | **target**       | the model and the sha256 of the exact weights it was fitted against                  | you don't know what it applies to |
-| 2   | **sites**        | the exact weight slices it touches, each either replaced (`set`) or added to (`add`) | it can't be undone or audited     |
-| 3   | **gate + scope** | the read that switches it on, and the inputs on which it's meant to be on            | it's fine-tuning: a global change |
-| 4   | **payload**      | reads → opcode → writes                                                              | it does nothing                   |
-| 5   | **contract**     | a measured claim, `{scope} graft {result ± tolerance}`, with the data split          | it's an unchecked claim           |
-| 6   | **certificate**  | side-effect bound on a declared probe suite, delta hash, exact undo                  | its risk is unknown               |
-
-**The smallest thing that can carry all six is one opcode:** a single `step` pair, which is two MLP neurons. In this model that's 6,144 weights (each neuron is a gate row, an up row and a down column of width 1,024).
-
-This isn't hypothetical. The PhenoAge program's first stage, ANCHOR, is three of these pairs. Here is one of them written out as a stand-alone graft, with its real values:
-
-```yaml
-graft: 0.1
-name: phenoage-anchor-pos40
-target:
-  model: insilicomedicine/Qwen3-0.6B-Longevity
-  weights_sha256: f547df5c82226b524fc44748876685000f34208efe80aeef8f8eb7238b5a5cce
-scope:
-  kind: template
-  question: "What is this participant's PhenoAge (Levine 2018 phenotypic age) in years? Answer with a number."
-  positions: [40]
-channels:
-  - {
-      name: eA,
-      written_at: L3,
-      read_until: L4,
-      meaning: "this is the PhenoAge question line",
-    }
-instructions:
-  - id: anchor40
-    op: step
-    at: { layer: 3, site: mlp, slots: [2761, 78] }
-    gate: "kap * (LDA_read40 . x_hat + (b40 - 0.7) * c3)"
-    writes: [eA]
-    contract:
-      claim: "fires at position 40 of every in-scope prompt; stays below threshold on near-miss texts"
-      metric: max adversarial detector value
-      bound: 0.6
-      measured: 0.47
-certificate:
-  probe_suite: graft-probes-165
-  measured_as_part_of: "ANCHOR (3 pairs): removal KL 4e-4"
-```
-
-**Components and programs.** That anchor is a _component_: its contract is about the model's internal state ("this direction lights up here and nowhere else"). A _program_'s contract is about what the model says. The smallest program needs three instructions:
-
-1. **switch on** (ANCHOR + FLAG), so it's only on for its question;
-2. **compute** something;
-3. **EMIT** it as a token.
-
-The simplest is "when asked this exact question, answer with this constant". I call it the **hello graft**. The spec includes a template for it. It hasn't been built yet; it's the obvious first exercise for someone new.
-
-## 3. Can there be a universal language?
-
-Partly. It helps to separate three layers:
-
-| Layer         | What it fixes                                                             | How portable                                                                                                                                                                            |
-| ------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Interface** | the six fields, the file format, the certificate, the conformance levels  | **Universal.** Nothing in them depends on the model.                                                                                                                                    |
-| **Opcodes**   | the elementary operations: a gated switch, a curve segment, a head switch | **Portable within an architecture family.** v0.1 defines them for pre-norm decoder transformers with RMSNorm, gated MLPs and rotary attention, i.e. the Llama, Qwen and Mistral family. |
-| **Values**    | every read vector, write vector, neuron slot and threshold                | **Model-specific.** The run's first rule is that placement is empirical: the same edit cost 17× more side effects one layer earlier.                                                    |
-
-So the honest answer is the one compilers settled on decades ago. **The language is portable; the binary isn't.** A `.graft` file says _what_ to compute, _where roughly_ (which layer band, which kind of site) and _what it must guarantee_. A **lowering** pass, run against one specific model, does five things:
-
-1. collects that model's activations on in-scope prompts and on unrelated text;
-2. fits every vector in closed form;
-3. picks quiet neuron slots;
-4. installs everything through a registry that records the original values;
-5. measures each contract.
-
-The output is a `.gdelta` (the sparse weight change plus its hash) and a `.gcert` (what was measured).
-
-Two caveats. GRAFT has only ever been lowered on one model, so cross-model portability is a hypothesis. And mixture-of-experts models, state-space models and encoder-decoders are outside v0.1.
-
-## 4. The opcodes, defined
-
-Everything is stated in terms of what every module in this architecture actually reads: the normalised residual `x̂ = γ ⊙ x / rms(x)`.
-
-- A **read** is a vector dotted with `x̂`, which is physically a weight row.
-- A **write** is a vector added to the residual, which is physically a weight column.
-
-| Opcode                   | What it does                                                                                                                  | Weights                      |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| `step`                   | a gated switch: `≈ down × (up·x̂)` when the gate read is on, exactly ~0 when off                                               | 2 neurons, replaced          |
-| `gated_linear`           | `step` whose output is a linear read: "if this is marker _k_, write _w_ × value"                                              | 2 neurons, replaced          |
-| `kink`                   | one ReLU-like segment; chains of kinks draw curves like ln and exp                                                            | 1 neuron, replaced           |
-| `keyswitch` / `qswitch`  | add a rank-1 change to a head's keys or queries that is only active on a private signal; elsewhere the head behaves naturally | 128 rows, added              |
-| `vtake` / `vadd`         | take over (or add to) one value channel of an attention head                                                                  | 1 value row + output columns |
-| `head_take` / `group_kv` | replace a whole head (defined, discouraged)                                                                                   | 128 rows                     |
-
-The **design routines** that produce the vectors are part of the library, not the format:
-
-- ridge regression for constant reads;
-- minimum-variance private reads;
-- eigenproblems for quiet directions;
-- linear programs over rotary-embedding planes for exact positional attention;
-- linear SVMs for detectors.
-
-The spec only requires that lowering be deterministic and recorded. Anyone may bring a better fitting method.
-
-## 5. Writing a program
-
-A `.graft` file is YAML. Besides the six fields, it has two things that make composition work:
-
-- **Channels** are a symbol table. Each named residual direction (a flag, a digit code, a running sum) has one writer, a layer range in which it may be read, and a declared **write regime**:
-
-  - _perturbative_: tiny;
-  - _dominant_: so large that the token's later state is fixed;
-  - _norm-tracking_: scaled with the token.
-
-  The regime rule is the hardest-won lesson of Part 2. A leak's damage is set by its size, not its direction, because every write changes the token's norm and every later layer rescales by it.
-
-- **Contracts on every instruction,** each naming the data split it was measured on.
-
-Here is an excerpt from the PhenoAge program rewritten in this format:
-
-```yaml
-channels:
-  - {
-      name: FB,
-      written_at: L4,
-      read_until: L13,
-      regime: norm-tracking,
-      meaning: "flag: ~1 after the question, exactly 0 elsewhere",
-    }
-  - {
-      name: PIN,
-      written_at: L6,
-      read_until: L13,
-      regime: dominant,
-      meaning: "code per digit, space, dot",
-    }
-  - {
-      name: Y,
-      written_at: L10,
-      read_until: L12,
-      meaning: "each marker's PhenoAge term in years",
-    }
-
-instructions:
-  - id: pins
-    op: PINS
-    at: { layer: 6, site: mlp, pairs: 13 }
-    gate: "svm(token kind) AND FB"
-    writes: [PIN]
-    contract:
-      {
-        claim: "each digit token carries its code; nothing else does",
-        split: held-out practice,
-        metric: wrong pins,
-        bound: 0,
-        measured: "0 of 327k tokens",
-      }
-  - id: log_pwl
-    op: kink
-    at: { layer: 11, site: mlp, neurons: 12 }
-    writes: [Y]
-    contract:
-      {
-        claim: "Y_crp = coefficient * ln(CRP)",
-        metric: error sd (years),
-        measured: "0.22-0.26",
-      }
-
-program_contract:
-  claim: "first number in the answer = PhenoAge"
-  split: held-out (n = 2,823), scored once
-  metric: MAE (years)
-  bound: 1.5
-  measured: 1.524 # missed the bar by 0.024
-```
-
-The full file declares all 14 instructions with their layers, slot counts and measured contracts. The PhenoAge program itself was written as 228 lines of Python, not in this format. The `.graft` version is a faithful transcription, made afterwards.
-
-## 6. Combining grafts
-
-The Part 2 run already ran into every composition problem in miniature, because its 14 instructions were written at different times and re-installed hundreds of times. The library's registry enforced some rules; others were learned by breaking them. The spec makes them requirements for any tool that installs more than one graft:
-
-1. **Slot ownership.** A replaced slice has exactly one owner, and a second claim is an error. Additive slices stack, with one delta per owner, so each can be removed.
-2. **Channel table.** One writer per channel. Readers sit after the writer and within the declared range.
-3. **Regimes hold at every write.**
-4. **Subtract before re-installing.** When stacking onto weights that already contain an accepted graft, remove that graft's additive parts first, or they're applied twice. (This bug happened.)
-5. **Every combination is re-certified.** Side effects don't add up. In the run, removing 10 neurons from one layer cost a max KL of 0.11, and removing 24 cost 0.55.
-
-**Reuse is declared.** When one program builds on another, each instruction is marked `REUSED` (same weights), `REFIT` (same instruction and slots, fitted again) or `NEW`. The mortality program in §9 is the first real case:
-
-| Layer   | Instruction          | Status in the mortality program                                         |
-| ------- | -------------------- | ----------------------------------------------------------------------- |
-| L3      | ANCHOR               | REFIT: same 3 neuron pairs, detectors refit on the new question wording |
-| L4      | FLAG, FB             | REUSED (FLAG's key offset re-centred on the new anchors)                |
-| L6–L7   | PINS                 | REUSED unchanged                                                        |
-| L9      | SHIFT, BITS          | REUSED unchanged                                                        |
-| L10–L11 | AFFINE, LOG_PWL      | REUSED unchanged                                                        |
-| L12     | SUM_POOL             | REUSED unchanged                                                        |
-| L12     | GATED_Z              | REFIT reads                                                             |
-| L13     | exp curve from kinks | NEW composition of existing opcodes                                     |
-| L14     | EMIT                 | REUSED instruction, moved one layer                                     |
-
-_(The agent's final program, accepted edit E1.)_
-
-## 7. The certificate
-
-A `.gcert` is a JSON file that lets a reader check a graft's claims without trusting its author. I generated the one for PhenoAge directly from the run's records. Highlights:
-
-| Field            | PhenoAge E3                                                                                                                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| target           | `Qwen3-0.6B-Longevity`, weights sha256 `f547df5c…`                                                                                                                                     |
-| delta            | 1,957,862 changed weights (0.26%), 36 tensors, sha256 `96c61417…` (recomputed from the delta file; matches the run's record)                                                           |
-| resources        | 166 replaced MLP neurons in layers 3–13; additive switches on 6 query heads and 5 key groups; 2 value channels                                                                         |
-| undo             | exact: originals written back at the recorded indices                                                                                                                                  |
-| side effects     | 165-probe suite: max KL 0.358 (limit 0.5), 0 confident answer changes, 5 near-tie changes; multiple-choice 61 → 63 / 105; **passes** the pre-registered rule, **fails** the strict one |
-| program contract | held-out MAE 1.524 (95% CI 1.47–1.58) vs bar 1.5: **missed**; comparators: original model 10.63, gradient boosting 1.75                                                                |
-| reproduction     | recipe rebuilds the delta in a separate process: sha256 match                                                                                                                          |
-
-**Two design choices matter.**
-
-- **The certificate records failures as readily as successes.** A format that only has room for passing results invites cherry-picking.
-- **The side-effect rule reports two numbers.** One is the pre-registered rule: max KL ≤ 0.5, and at most one changed answer among probes where the model had a clear preference. The other is the strict count, which includes coin-flip answers. Both are reported, always.
-
-## 8. Conformance levels
-
-| Level  | Name         | Requires                                                             |
-| ------ | ------------ | -------------------------------------------------------------------- |
-| **G0** | Reversible   | sites declared, delta hashed, exact undo                             |
-| **G1** | Contracted   | G0 + a measured contract on every instruction and on the program     |
-| **G2** | Certified    | G1 + a side-effect certificate on a declared probe suite             |
-| **G3** | Reproducible | G2 + the recipe rebuilds the delta bit for bit from the base weights |
-
-PhenoAge is G3. That is a statement about how checkable it is, not how good it is. It missed its bar, and the certificate says so.
-
-**Eight authoring rules** come with the levels. They are Part 2's safety rules restated as requirements:
-
-- verify placement on the real side-effect suite;
-- switch heads, never remove them;
-- every write is tiny, dominant or norm-tracking;
-- guard every read that gates a large write;
-- never tune on the certificate's probes;
-- zero every read at position 0;
-- subtract before re-installing;
-- one configuration per install.
-
-Each one was paid for with a failure in the run, and the spec links each to its evidence.
-
-## 9. Does GRAFT transfer? The second program
-
-A library proves itself on its second program. The test I set up is deliberately basic: **can a fresh agent take GRAFT, pick surgeries from it, apply them to a new task, and beat the baseline?**
-
-- **Task:** 10-year mortality risk in percent, from the same blood panel, using Levine's mortality model: `M = 100·(1 − exp(−1.51714·exp(xb)/0.007692696))`. The question wording is new, and the output is a steep nonlinear curve that PhenoAge never needed.
-- **Agent:** a fresh Claude Opus surgeon with the GRAFT library, the accepted PhenoAge edit as a starting point, and no human design input.
-- **Pre-registered bar:**
-  - primary: beat the original model, a constant prediction (MAE 8.30) and ridge regression (6.43) on held-out people, and pass the same side-effect rule;
-  - stretch: gradient boosting (1.91).
-
-The agent was given the PhenoAge workspace: the library, the PhenoAge program and its fitted vectors, and the run's logs. It was not given this spec, which didn't exist yet. It ran alone, with no planner, and with 10 scored calls.
-
-**Result: it transfers, and it clears every bar.**
-
-![GRAFT transfer](/figures/t1_graft_transfer.png)
-_Figure 2. A: held-out error on 2,823 people, scored once. B: error by true risk level. C: what the agent reused, refit or built new, layer by layer. D: the second program against the first._
+## 3. The result: it generalizes
 
 | Held-out (n = 2,823), scored once                   | MAE (percentage points) | Edited minus comparator (95% CI) |
 | --------------------------------------------------- | ----------------------- | -------------------------------- |
@@ -308,62 +45,169 @@ _Figure 2. A: held-out error on 2,823 people, scored once. B: error by true risk
 | Gradient boosting (750 people, given parsed values) | 1.91                    | **−0.89** (−1.04 to −0.75)       |
 | **Model + GRAFT mortality program**                 | **1.02** (0.96–1.08)    |                                  |
 
+Every pre-registered criterion is met, and the stretch comparison too.
+
 ![Answers vs truth](/figures/t3_answers_vs_truth.png)
-_Figure 3. Each held-out person's true risk against the answer the edited model wrote (left) and gradient boosting's prediction (right)._
+_Figure 2. Each held-out person's true risk against the answer the edited model wrote (left) and gradient boosting's prediction (right)._
 
-The original model doesn't know the formula. On held-out its error is 44.4 points (the edit is better by 43.4, 95% CI 42.5–44.4), because it answers "70" or "72" for almost half of all people, whatever their profile.
+- **The original model doesn't know the formula.** It answers "70" or "72" for almost half of all people, whatever their profile.
+- **Dev and held-out agree.** Dev MAE was 1.06 on 200 people; the agent had predicted 0.8–1.2 before its one scored call. Held-out came in at 1.02.
+- **Every answer is well-formed:** all 2,823 are exactly two digits ("08", "23") followed by a stop. The median error is 0.4 points, and 77% of people are within 1 point.
+- **It beats gradient boosting at every risk level, by most where it matters.** For people whose true risk is 50% or more, gradient boosting is off by 15.8 points and the graft by 4.8. A compiled formula extrapolates; a model trained on 750 mostly low-risk people can't. PhenoAge showed the same pattern in its oldest band.
+- **Its errors still grow with risk.** At 20–50% risk the error is 3.2 points, and 15 people (0.5%) are off by more than 10. Small errors in the reused PhenoAge read-out get amplified by the steep curve. One visible failure mode in Figure 2 is the flat runs at 29, 39, 49 and 89: when the tens digit comes out one too low, the units digit can't make up the difference and saturates at 9. Those answers carry 28% of the total error.
+- **Side effects pass.** Max KL 0.378, one clear answer changed (the limit is one), five near-ties flipped; multiple-choice accuracy went from 61 to 65 out of 105. An independent re-check on a fresh copy of the model reproduces these numbers exactly.
+- **Reproducible.** Rebuilding the edit from the agent's recipe reproduces all 2,043,878 changed weights bit for bit.
 
-- **Dev and held-out agree.** Dev MAE was 1.06 on 200 people, and the agent had predicted 0.8–1.2 before the call. Held-out came in at 1.02.
-- **Every answer is well-formed.** All 2,823 answers are exactly two digits ("08", "23") followed by a stop; none is unparsable or runs on. The median error is 0.4 points, and 77% of people are within 1 point.
-- **It beats gradient boosting at every risk level, by most where it matters.** For people whose true risk is 50% or more, gradient boosting is off by 15.8 points and the graft by 4.8. A compiled formula extrapolates; a model trained on 750 people, most of them at low risk, can't. This is the same pattern as PhenoAge's oldest band.
-- **Its errors still grow with risk.** At 20–50% risk the error is 3.2 points, and 15 people (0.5%) are off by more than 10. The cause is the steep curve: small errors in the PhenoAge read-out it reuses get amplified. You can see one failure mode in Figure 3 as flat runs at 29, 39, 49 and 89. When the tens digit comes out one too low, the units digit can't make up the difference and saturates at 9. Half of all answers of 19 or more end in 9 (216 of 434), and those answers carry 28% of the total error. A wider units range, or emitting the answer as one curve read rather than tens-then-units, is the obvious fix. Whole-number answers also add about 0.26 points of rounding error; the agent's suggested decimal digit is worth an estimated 0.1–0.15.
-- **Side effects pass the pre-registered rule.** Max KL is 0.378 (limit 0.5). One answer the model had a clear preference on changed (probe 48, the limit is 1), and five near-ties flipped. Multiple-choice accuracy went from 61 to 65 out of 105. As with PhenoAge, the strict count fails. An independent re-check outside the sandbox, applying the saved weight change to a fresh copy of the model, reproduces these numbers exactly.
-- **Reproducible.** Rebuilding the edit from the agent's recipe on a fresh copy of the original model reproduces all 2,043,878 changed weights bit for bit (sha256 `c1efad32…`).
-
-**What it cost:**
-
-- The agent's first end-to-end version worked within about an hour of its first sandbox call. It found its leaks with the same bisection trick PhenoAge used, and had an accepted edit about 2 h 20 min after launch (not counting a 41-minute pause of its sandbox).
-- It used 1 of its 10 scored calls, then stopped on its own.
-- PhenoAge, by comparison, took two agents about 30 hours and three scored calls.
+## 4. Why it was fast: the library did most of the work
 
 ![Containment](/figures/t2_containment.png)
-_Figure 4. A: every side-effect check the mortality agent ran, from its first full program (max KL 18, 33 answers changed) to the accepted edit 65 minutes later; hollow circles are partial installs used to locate the leak. B: the same containment phase for both programs, on one clock. PhenoAge took 8½ hours, while the library was still being written; mortality took about one._
+_Figure 3. A: every side-effect check the mortality agent ran, from its first full program (max KL 18, 33 answers changed) to the accepted edit 65 minutes later; hollow circles are partial installs used to locate the leak. B: the same "make it safe" phase for both programs on one clock: 8½ hours for PhenoAge, while the library was still being written; about one hour for mortality._
 
-Most of that difference is the library, and Figure 4 shows where it pays off. The digit readers, unit conversions, logarithm and summing head were already built, contracted and safe. The agent's work was a new question detector, a new curve and a new output stage. It also ran into two of the documented safety rules again: a gate that opened at position 0 (rule A6) and a gating read with too little margin on unrelated text (rule A4). It fixed both within the hour, because the fixes were already written down.
+The agent's first complete version worked within about an hour of its first sandbox call. Its first full install leaked badly (max KL 18), and it found the leak in minutes by installing the program up to each stage in turn, the bisection trick PhenoAge had learned. It then hit two of the documented safety rules again (a gate open at position 0, and a gating read with too little margin on unrelated text) and fixed both within the hour, because the fixes were written down. One scored call, then it stopped on its own.
 
-**What it doesn't show.**
+What it reused, refit and built:
 
-- **It isn't a stack.** The mortality edit is a separate program on the original model: it reuses PhenoAge's neuron slots and refits its question detector, so this model answers mortality but no longer PhenoAge. Putting both programs in one model is the next test, and the linker rules in §6 are written for it.
-- **It's the same panel and the same family of formula.** The reused readers are why it was fast. A program needing different inputs, like eGFR, would reuse less.
-- **One run, one agent.** It shows the library can transfer, not how reliably.
+| Layer   | Instruction                                    | In the mortality program                                                 |
+| ------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
+| L3      | ANCHOR (spot the question)                     | **refit** on the new question wording, same 3 neuron pairs               |
+| L4      | FLAG (switch on for this prompt only)          | **refit**: key offset re-centred on the new anchor                       |
+| L4      | FB (on/off signal for the rest of the prompt)  | reused unchanged                                                         |
+| L6–L7   | PINS (label every digit and marker)            | reused unchanged                                                         |
+| L9      | SHIFT, BITS (move digits; exact binary digits) | reused unchanged                                                         |
+| L10–L11 | AFFINE, LOG_PWL (per-marker years; ln(CRP))    | reused unchanged                                                         |
+| L12     | SUM_POOL (add the ten terms)                   | reused unchanged                                                         |
+| L12     | GATED_Z (tens/units targets)                   | **refit** reads                                                          |
+| L13     | the risk curve                                 | **new**, built from 10 `kink` opcodes and 2 `step` opcodes               |
+| L14     | EMIT + stop (write two digits, then end)       | instruction reused, moved one layer; stop step new, from a `step` opcode |
 
-## 10. What v0.1 doesn't do
+## 5. The library: repeatable surgeries
 
-- **One model.** Lowered only on Qwen3-0.6B.
-- **Exact-wording gates.** The graft switches on for a fixed question line. Paraphrases are out of scope and untested. "Any question asking for PhenoAge" needs new gate instructions.
-- **Measured, not proved.** Contracts and certificates are empirical. A certificate is only as good as its probe suite, and 165 probes is small.
-- **Composition across authors is untested.** The linker rules are necessary, not sufficient.
-- **Architectures.** No mixture-of-experts, state-space models or encoder-decoders yet.
+Everything above was assembled from a small set of parts. They come in three levels, like a processor's instruction set.
 
-## 11. An invitation
+**Opcodes** are the elementary surgeries: each one is a specific, small weight edit with an exact mathematical effect.
 
-The spec, the example files, the PhenoAge certificate and a reproducibility package for both programs are attached. The most useful thing anyone could do with them:
+| Opcode                   | What it does                                                                        | Weights it touches           | Used in                                            |
+| ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------- |
+| `step`                   | a gated switch: writes a fixed vector times a read when its gate is on, ~0 when off | 2 MLP neurons                | both programs                                      |
+| `gated_linear`           | "if this token is marker _k_, write _w_ × its value"                                | 2 MLP neurons                | both                                               |
+| `kink`                   | one ReLU-like segment; chains of kinks draw curves (ln, exp)                        | 1 MLP neuron                 | both (ln in PhenoAge, the risk curve in mortality) |
+| `keyswitch` / `qswitch`  | redirect an attention head's keys or queries, only when a private signal is present | 128 rows, added on top       | both                                               |
+| `vtake` / `vadd`         | take over or add to one value channel of an attention head                          | 1 value row + output columns | both                                               |
+| `head_take` / `group_kv` | replace a whole head                                                                | 128 rows                     | built, never needed                                |
 
-1. **Write a hello graft** from the template, on any model in the Llama/Qwen/Mistral family, and publish its `.gcert`.
-2. **Compile a second clinical formula** (eGFR, MELD, FIB-4) and report which instructions you reused, refit or wrote new.
-3. **Break a certificate.** Find a prompt the PhenoAge graft changes that the 165 probes missed.
+**Instructions** are opcodes composed into useful operations, each with a **measured contract**: what it guarantees, how precisely, and at what side-effect cost. These are the "surgeries" an agent picks from.
 
-If GRAFT is useful, it'll be because someone other than the agents that built it could use it.
+| Instruction       | Built from                            | Contract (as measured in PhenoAge)                                         | Mortality                   |
+| ----------------- | ------------------------------------- | -------------------------------------------------------------------------- | --------------------------- |
+| ANCHOR            | `step` pairs on fixed question tokens | fires only on the question line                                            | refit                       |
+| FLAG              | `keyswitch` + `vtake`                 | every later token "knows" this is the target question (0.998 attention)    | refit                       |
+| FB                | `step` (norm-tracking)                | a clean on/off signal for the rest of the prompt                           | reused                      |
+| PINS              | conjunction `step`s                   | every digit, marker and answer slot labelled; 0 wrong in 327,000 tokens    | reused                      |
+| SHIFT             | `keyswitch` + `qswitch`               | a marker's digits copied onto it (99.99% of attention on the right digit)  | reused                      |
+| BITS              | `step`s                               | exact binary digits, ≤ 1 error in 798 on rare digits                       | reused                      |
+| AFFINE            | `gated_linear`                        | each marker's contribution, unit conversion folded in (sd 0.04–0.28 years) | reused                      |
+| LOG_PWL           | 12 `kink`s                            | ln(x) to sd 0.22 years                                                     | reused                      |
+| SUM_POOL          | `qswitch` + `keyswitch`               | one head adds all markers at the answer (weights within 0.8% of equal)     | reused                      |
+| POOL_VTAKE        | `vtake`                               | carries the sum to the answer slot, gain-limited for safety                | reused                      |
+| GATED_Z           | `gated_linear` + `step`               | tens and units targets at the two answer positions                         | refit                       |
+| EMIT              | `kink`s + `step`                      | writes the digit token whose number is closest to the target               | reused (moved)              |
+| ANSWER-ZERO guard | constant read                         | keeps answer-only gates shut everywhere else                               | refit, with EMIT            |
+| DIGIT-AUGMENT     | refit procedure                       | decoders refit on rare digits (30-year misses → 0)                         | reused (its refit decoders) |
+
+**Programs** are instructions in order, layer by layer: PhenoAge (14 instructions, 1.96 M weights) and mortality (2.04 M weights). Counted the way the mortality agent reported its program's stages, it reused 8 unchanged (FB, PINS, the marker labels, SHIFT, BITS, AFFINE, LOG_PWL, SUM_POOL), refit 3 (ANCHOR, FLAG, GATED_Z) and added one curve plus a stop step.
+
+![The GRAFT library](/figures/o5_graft_catalog.png)
+_Figure 4. The library on one page: opcodes compose into instructions with measured contracts; instructions compose into programs. Both programs are compiled._
+
+The library also includes **eight safety rules**, each learned from a failure in the PhenoAge run, and the mortality agent re-used several of them directly: placement is empirical (choose neurons, then let the side-effect check decide); switch attention heads, never remove them; every write is tiny, dominant or scaled with the token; guard every read that gates a large write; never tune on the test probes; treat the first token of a prompt as its own case; subtract an old edit before re-installing it; one configuration per install.
+
+## 6. What is a graft?
+
+A **graft** is a set of weight edits in a pretrained model with four properties:
+
+1. **Gated.** It switches on only for its own input (a specific question, a specific token). Everywhere else its neurons output essentially zero. Without a gate, a weight edit is fine-tuning: it changes the model everywhere.
+2. **It computes something.** It reads information already in the model's internal state, transforms it (a sum, a logarithm, a lookup), and writes the result back where later layers, or the output, will use it.
+3. **Accounted for.** The exact weights it touches are listed, it can be undone exactly by writing the originals back, and it rebuilds bit for bit from its recipe.
+4. **Measured.** Each graft carries a measured claim about what it computes, and a measurement of what it does to everything else (here: 165 unrelated probes, before and after).
+
+Every value in a graft comes from a closed-form fit (least squares, linear discriminants, linear programs, eigenvectors) or a measurement. Nothing is trained by gradient descent.
+
+## 7. Anatomy of a graft
+
+A graft is made of five parts. Here they are for the smallest real one, the hello-world graft from §8, which is a single MLP neuron:
+
+| Part        | What it is                           | In the hello-world graft                                                                                            |
+| ----------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Site**    | the exact weights edited             | neuron 2097 of the last layer (layer 27): its gate row, up row and down column; 3,072 weights                       |
+| **Gate**    | the read that decides when it fires  | a linear detector on the last layer's input, fit to tell this one question apart from every token of unrelated text |
+| **Read**    | what it takes from the model's state | a constant read (≈ 1 on every token), so how much the neuron writes is set by the gate alone                        |
+| **Compute** | the nonlinearity                     | the neuron's own SiLU: ≈ 0 when the gate is negative, linear when positive (the `kink` opcode)                      |
+| **Write**   | where the result goes                | the direction that raises the logit of "Hello", sized to dominate the last layer's output                           |
+
+Bigger grafts are the same parts, more of them, and wired together: PhenoAge's PINS gate on the output of ANCHOR and FLAG, SUM_POOL reads what AFFINE wrote, and EMIT reads what SUM_POOL wrote.
+
+![Anatomy of the hello-world graft](/figures/h1_hello_graft.png)
+_Figure 5. The hello-world graft. A: its anatomy, one neuron. B: the gate value on the target question versus every token of held-out unrelated text. C: what the model answers before and after._
+
+## 8. Hello world of grafts
+
+The smallest graft that visibly changes behaviour: when asked _"What is the GRAFT secret word?"_, the model answers **"Hello"**. Everything else should stay the same. I built it (the supervising Claude session) to illustrate the anatomy; the agents did not build it, and it follows the same rules they did.
+
+**How it was built** (closed-form fits only):
+
+1. Collect the last layer's input at the answer position for the question in 8 contexts (no system prompt, three system prompts, two earlier conversation turns, and combinations), and at every token of about 95 unrelated prompts (other benchmark questions, PhenoAge prompts) and 23 short questions, 7 of them near-misses ("What is the secret word?", "What is the GRAFT password?", "What is the GRAFT secret number?", and so on). That is about 57,000 negative tokens.
+2. Fit a linear detector for "this is the secret-word question" (shrinkage linear discriminant analysis) and a constant read (ridge regression).
+3. Pick the least-used neuron in the last layer (neuron 2097) and overwrite its three weight vectors: gate row = the detector, up row = the constant read, down column = a push toward the token "Hello", sized to dominate the output there.
+
+**What it does** (Figure 5; run on a Colab GPU):
+
+| Test                                                        | Original model     | With the graft                                                                                    |
+| ----------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------- |
+| _"What is the GRAFT secret word?"_ in the 8 fitted contexts | "GRASP1"           | **"Hello, I am…"** (8 / 8)                                                                        |
+| The same question in 4 contexts it was never fitted on      | "GRASP1", "GRASP." | **"Hello…"** (4 / 4)                                                                              |
+| 8 held-out near-miss questions                              | various            | 7 unchanged, word for word; 1 changed (below)                                                     |
+| Gate on 14,913 held-out tokens of unrelated text            |                    | open on 1 token (the near-miss below); median gate value −307, against +17 to +29 on the question |
+| Side effects on 165 unrelated probes                        |                    | max KL 0.00000016; 0 changed answers; multiple-choice 61 → 61 / 105                               |
+
+**The one leak is the lesson.** _"What is the GRAFT secret phrase?"_ also gets "Hello" (gate value +3.4, just over the threshold), while "…secret code?", "…secret word in French?", "Is there a GRAFT secret word?" and five other near-misses stay exactly as they were. A gate is a detector, and it is only as specific as the near-misses it was shown: "secret phrase" was not among them, and it sits closer to the target than anything that was. That is the same lesson the PhenoAge run learned at scale (rule: guard every read that gates a large write), here in one neuron.
+
+**A first attempt was weaker, and is worth reporting.** I first used the question _"What is the GRAFT hello-world reply?"_. It worked (12 / 12, side effects near zero), but the original model already answered "HELLO-World!", so the before/after showed little, and the gate also fired on "…hello-world **program**?". Switching to a question the model would never answer with "Hello", and adding near-miss questions to the negatives, fixed both.
+
+## 9. Combining grafts: what was actually done
+
+"Combining" has meant three different things, and only two of them have been done.
+
+1. **Combining instructions inside one program: done.** PhenoAge is 14 instructions installed in sequence, each reading what earlier ones wrote. They were written at different times and re-installed hundreds of times during the run, which is where the rules for combining came from:
+   - **Each replaced neuron has one owner.** A second instruction claiming the same neuron is an error.
+   - **Additive edits stack, and can double up.** Re-installing an instruction on weights that already contain it applies its additive part twice unless the old copy is subtracted first. This bug happened.
+   - **Side effects don't add up neatly.** Removing 10 neurons from one layer cost a max KL of 0.11; removing 24 cost 0.55. Every combination has to be measured again.
+2. **Reusing instructions across programs: done.** The mortality program reused 8 of PhenoAge's instructions unchanged, refit 3, and built one new curve from existing opcodes (§4). This is the result of this post.
+3. **Two programs in one model at the same time: not done yet.** The mortality edit is a separate edit of the original model. It reuses PhenoAge's neurons and refits its question detector, so the mortality model answers mortality but no longer PhenoAge. Running both side by side, each gated by its own question, is the next experiment, and the ownership and re-measurement rules above are what it will need.
+
+## 10. What this shows, and what it doesn't
+
+**It shows:**
+
+- A library of weight surgeries built for one task carried over to a second task, with no new instructions, and the second program beat a learned model.
+- The second program was about 15× cheaper to build, because the parts and the safety rules already existed.
+- The smallest unit is genuinely small: one gated neuron installed a new answer without measurably disturbing the rest of the model, though its gate also caught one close paraphrase.
+
+**It doesn't show (yet):**
+
+- **Two programs in one model.** See §9.
+- **A different kind of task.** Mortality reuses PhenoAge's inputs and readers, which is why it was fast. A task with different inputs would reuse less.
+- **A different model.** Everything so far is on one model, `Qwen3-0.6B-Longevity`.
+- **Reliability.** One second program, one agent run.
+- **Paraphrases.** Both programs switch on for an exact question wording.
 
 ---
 
-### Files
+### Figure list
 
-| File                                                                  | What                                                                |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [`GRAFT_SPEC.md`](/graft/GRAFT_SPEC.md)                               | the v0.1 specification (normative)                                  |
-| [`examples/anchor.graft.yaml`](/graft/examples/anchor.graft.yaml)     | the minimal graft: one `step` pair from PhenoAge, real values       |
-| [`examples/phenoage.graft.yaml`](/graft/examples/phenoage.graft.yaml) | the full PhenoAge program in `.graft` form, with measured contracts |
-| [`examples/phenoage.gcert.json`](/graft/examples/phenoage.gcert.json) | its certificate, generated from the run's records                   |
-| [`examples/hello.graft.yaml`](/graft/examples/hello.graft.yaml)       | template for the minimal program (not yet built)                    |
-| [`make_cert.py`](/graft/make_cert.py)                                 | regenerates the certificate from the records                        |
+| #   | Shows                                                                                     |
+| --- | ----------------------------------------------------------------------------------------- |
+| 1   | the second program: held-out error, error by risk, reuse map, cost vs PhenoAge            |
+| 2   | answers vs truth, edited model and gradient boosting                                      |
+| 3   | the mortality agent's side-effect log, and the safety phase of both programs on one clock |
+| 4   | the GRAFT library: opcodes → instructions → programs                                      |
+| 5   | the hello-world graft: anatomy, gate separation, before/after                             |
