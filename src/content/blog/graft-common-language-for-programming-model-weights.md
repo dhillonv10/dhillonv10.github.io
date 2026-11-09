@@ -12,7 +12,7 @@ _In Part 2, two Claude Opus agents built a set of reusable weight-space surgerie
 
 ## TL;DR
 
-- **GRAFT transfers.** A fresh agent compiled a second program, 10-year mortality risk, by reusing the library: eight PhenoAge instructions unchanged, three refit, and a new risk curve built from existing opcodes. It needed no new instructions and one scored call, and was done in under 2½ hours. Held-out error is **1.02 percentage points**, against 8.30 for a constant guess, 6.43 for ridge regression and 1.91 for gradient boosting trained on 750 people. It passes the same side-effect rule.
+- **GRAFT transfers.** A fresh agent compiled a second program, 10-year mortality risk, by reusing the library: eight PhenoAge instructions unchanged, three refit, and a new risk curve built from existing opcodes. It needed no new instructions and one scored call, and was done in under 2½ hours. Held-out error is **1.02 percentage points**, against 44.4 for the original model, 8.30 for a constant guess, 6.43 for ridge regression and 1.91 for gradient boosting trained on 750 people. It passes the same side-effect rule.
 - **A graft is a weight edit that declares six things:** what model it targets, exactly which weights it touches, what switches it on, what it computes, a measured contract, and a side-effect certificate. Drop any one and it stops being safe to add to someone else's model.
 - **The smallest valid graft is two MLP neurons:** one gated `step` pair, 6,144 weights in this model. The smallest graft that changes visible behaviour needs three instructions: switch on, compute, write a token.
 - **A universal language is possible; universal weights are not.** The interface (the six fields, file format and certificate) can be model-agnostic. The opcodes are portable within one family of architectures. The actual numbers have to be fitted to each model. That is the same split as source code and binaries, so GRAFT has both: a `.graft` source file is _lowered_ against a specific model into a `.gdelta` (the weights) and a `.gcert` (the test report).
@@ -302,6 +302,7 @@ _Figure 2. A: held-out error on 2,823 people, scored once. B: error by true risk
 
 | Held-out (n = 2,823), scored once                   | MAE (percentage points) | Edited minus comparator (95% CI) |
 | --------------------------------------------------- | ----------------------- | -------------------------------- |
+| Original model                                      | 44.44                   | −43.42 (−44.39 to −42.52)        |
 | Constant guess                                      | 8.30                    | −7.28 (−7.78 to −6.78)           |
 | Ridge regression (750 people)                       | 6.43                    | −5.41 (−5.63 to −5.20)           |
 | Gradient boosting (750 people, given parsed values) | 1.91                    | **−0.89** (−1.04 to −0.75)       |
@@ -310,7 +311,7 @@ _Figure 2. A: held-out error on 2,823 people, scored once. B: error by true risk
 ![Answers vs truth](/figures/t3_answers_vs_truth.png)
 _Figure 3. Each held-out person's true risk against the answer the edited model wrote (left) and gradient boosting's prediction (right)._
 
-The original model doesn't know the formula: its dev error is 45.2 points. A held-out run of the original model is in progress to confirm this formally.
+The original model doesn't know the formula. On held-out its error is 44.4 points (the edit is better by 43.4, 95% CI 42.5–44.4), because it answers "70" or "72" for almost half of all people, whatever their profile.
 
 - **Dev and held-out agree.** Dev MAE was 1.06 on 200 people, and the agent had predicted 0.8–1.2 before the call. Held-out came in at 1.02.
 - **Every answer is well-formed.** All 2,823 answers are exactly two digits ("08", "23") followed by a stop; none is unparsable or runs on. The median error is 0.4 points, and 77% of people are within 1 point.
