@@ -2,7 +2,7 @@ import type { Site, SocialObjects } from "./types";
 
 export const SITE: Site = {
   website: "https://opsbug.com/", // replace this with your deployed domain
-  author: "Vikram Dhillon",
+  author: "Vik Dhillon",
   desc: "Personal Blog",
   title: "Vik Dhillon",
   ogImage: "astropaper-og.jpg",
@@ -11,14 +11,11 @@ export const SITE: Site = {
   scheduledPostMargin: 15 * 60 * 1000, // 15 minutes
 };
 
-// Comments are powered by giscus (GitHub Discussions). To turn them on:
-// 1. Enable Discussions on the repo, 2. install https://github.com/apps/giscus,
-// 3. get repoId/categoryId at https://giscus.app and paste them below.
 export const GISCUS = {
   repo: "dhillonv10/dhillonv10.github.io",
-  repoId: "",
-  category: "Announcements",
-  categoryId: "",
+  repoId: "R_kgDOMAmurA",
+  category: "Blog Comments",
+  categoryId: "DIC_kwDOMAmurM4DKyOA",
 };
 
 // Names of the two post lists on the home page. Tag a post in its frontmatter:
@@ -26,7 +23,7 @@ export const GISCUS = {
 //   type: note      -> listed under the second (the default when `type` is omitted)
 export const SECTIONS = {
   feature: "Deep Dives",
-  note: "Recent Notes",
+  note: "Brief Notes",
 } as const;
 
 export const LOCALE = {
