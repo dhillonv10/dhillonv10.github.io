@@ -5,28 +5,39 @@ pubDatetime: 2026-11-08T10:00:00-08:00
 slug: graft-common-language-for-programming-model-weights
 type: feature
 draft: false
+takeaways:
+  - "**Does GRAFT generalize?** In the previous post, two Claude Opus agents compiled Levine's PhenoAge formula into `Qwen3-0.6B-Longevity` using a set of reusable weight-space surgeries I called **GRAFT**. Here is a fresh agent took the same library and compiled a second clinical program, **10-year mortality risk**, into the same model."
+  - "**It worked, with no new instructions.** Held-out error is **1.02 percentage points** on 2,823 people. That beats a model trained on 750 people (1.91) and the original model (44.4)."
+  - "**It took about 2 hours instead of 30,** because the parts and the safety rules already existed. Eight of PhenoAge's instructions were reused unchanged."
 description: "A fresh agent took the PhenoAge library and compiled a second clinical program, 10-year mortality risk, into the same model: held-out error of 1.02 percentage points, better than a model trained on 750 people, in about 2 hours instead of 30. Plus what a graft is, the smallest one that works, and what combining grafts has and hasn't meant so far."
 ---
 
-_In Part 2, two Claude Opus agents compiled Levine's PhenoAge formula into the weights of `Qwen3-0.6B-Longevity` with a set of reusable surgeries I called GRAFT (Gated Reusable Algorithms For Transformers). One program proves very little: the surgeries could have been a one-off fit to that task. This post tests whether they generalize. A fresh agent took the same library and compiled a second clinical program, 10-year mortality risk, into the same model. It worked: the result beats a model trained on 750 people, and it took about 2 hours instead of 30. Below are the result, the library of surgeries it was built from, what exactly a graft is, the smallest one that works, and an honest account of what "combining grafts" has and hasn't meant so far._
+## Brief results
 
-## TL;DR
+- **The second program beats a learned model.** Held-out error is **1.02 percentage points** on 2,823 people, against 44.4 for the original model, 8.30 for a constant guess, 6.43 for ridge regression and **1.91 for gradient boosting trained on 750 people**. It passes the same side-effect check as PhenoAge, and the edit rebuilds bit for bit.
 
-- **GRAFT generalizes to a second task.** A fresh agent compiled 10-year mortality risk into the model. Held-out error is **1.02 percentage points** on 2,823 people, against 44.4 for the original model, 8.30 for a constant guess, 6.43 for ridge regression and **1.91 for gradient boosting trained on 750 people**. It passes the same side-effect check as PhenoAge, and the edit rebuilds bit for bit.
-- **Most of it was reuse.** Eight of PhenoAge's instructions went in unchanged and three were refit. The one new piece, a steep risk curve, was assembled from existing opcodes. **No new instructions were needed.** The agent used 1 of its 10 scored calls and had an accepted edit about 2 h 20 min after launch; PhenoAge took two agents about 30 hours.
-- **The library is small:** 8 opcodes (the elementary weight surgeries) compose into 14 instructions with measured contracts, and those compose into programs. It also carries 8 safety rules learned from failures.
+- **Most of it was reuse.** Eight of PhenoAge's instructions went in unchanged and three were refit. The one new piece, a steep risk curve, was assembled from existing opcodes. The agent used 1 of its 10 scored calls and had an accepted edit about 2 h 20 min after launch; PhenoAge took two agents about 30 hours.
+
+- **The library is small:**
+
+  - **8 opcodes** (the elementary weight surgeries);
+  - **14 instructions** with measured contracts;
+  - **8 safety rules** learned from failures.
+
 - **A graft** is a set of weight edits that switches on only for its own input, computes something, writes the result into the model, and is fully accounted for: which weights it touches, how to undo it exactly, and what it does to everything else.
+
 - **Hello world of grafts:** one neuron (3,072 weights) makes the model answer "Hello" to one specific question and leaves everything else alone. Asked _"What is the GRAFT secret word?"_ the original model says "GRASP1" (a gene name); with the graft it says "Hello" in 12 of 12 contexts, including 4 it was never fitted on. Side effects are effectively zero (max KL 0.00000016, no changed answers). It also fires on one near-paraphrase, "…secret phrase?".
-- **Combining grafts, honestly:** instructions are combined inside a program (14 in PhenoAge), and instructions are reused across programs (PhenoAge → mortality). **Two programs living in one model at the same time has not been done yet**; the mortality model no longer answers PhenoAge. That is the next experiment.
+
+- **Combining grafts, honestly:** instructions are combined inside a program (14 in PhenoAge) and reused across programs (PhenoAge → mortality). **Two programs in one model at the same time has not been done yet.**
 
 ![GRAFT transfer](/figures/t1_graft_transfer.png)
 _Figure 1. The second program. A: held-out error on 2,823 people, scored once. B: error by true risk level. C: what the agent reused, refit or built new, layer by layer. D: the second program against the first._
 
 ---
 
-## 1. The question: was PhenoAge a one-off?
+## 1. Was PhenoAge a one-off?
 
-Part 2 ended with one compiled program. The agents had built a library along the way: number readers, a unit converter, a logarithm, a summing head, a digit writer, and the safety rules that kept them from breaking the rest of the model. But a library that has built one program might just be that program, cut into pieces. The honest test is a second program: give the library to a fresh agent, give it a new task, and see whether it can pick the right surgeries, apply them, and beat the baselines.
+[Part 2](https://www.opsbug.com/posts/ai-agent-compiles-clinical-formula-into-weights/) ended with one compiled program. The agents had built a library along the way: Number readers, a unit converter, a logarithm, a summing head, a digit writer, and the safety rules that kept them from breaking the rest of the model. But a library that has built one program might just be that program, cut into pieces. The honest test is a second program: Give the library to a fresh agent, give it a new task, and see whether it can pick the right surgeries, apply them, and beat the baselines.
 
 ## 2. The test
 
@@ -80,11 +91,11 @@ What it reused, refit and built:
 | L13     | the risk curve                                 | **new**, built from 10 `kink` opcodes and 2 `step` opcodes               |
 | L14     | EMIT + stop (write two digits, then end)       | instruction reused, moved one layer; stop step new, from a `step` opcode |
 
-## 5. The library: repeatable surgeries
+## 5. The library: Repeatable _surgeries_
 
 Everything above was assembled from a small set of parts. They come in three levels, like a processor's instruction set.
 
-**Opcodes** are the elementary surgeries: each one is a specific, small weight edit with an exact mathematical effect.
+**Opcodes** are the elementary surgeries. Each one is a specific, small weight edit with an exact mathematical effect.
 
 | Opcode                   | What it does                                                                        | Weights it touches           | Used in                                            |
 | ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------- |
@@ -95,7 +106,7 @@ Everything above was assembled from a small set of parts. They come in three lev
 | `vtake` / `vadd`         | take over or add to one value channel of an attention head                          | 1 value row + output columns | both                                               |
 | `head_take` / `group_kv` | replace a whole head                                                                | 128 rows                     | built, never needed                                |
 
-**Instructions** are opcodes composed into useful operations, each with a **measured contract**: what it guarantees, how precisely, and at what side-effect cost. These are the "surgeries" an agent picks from.
+**Instructions** are opcodes composed into useful operations, each with a **measured contract**: What it guarantees, how precisely, and at what side-effect cost. These are the _"surgeries"_ an agent picks from.
 
 | Instruction       | Built from                            | Contract (as measured in PhenoAge)                                         | Mortality                   |
 | ----------------- | ------------------------------------- | -------------------------------------------------------------------------- | --------------------------- |
@@ -194,20 +205,7 @@ The smallest graft that visibly changes behaviour: when asked _"What is the GRAF
 
 **It doesn't show (yet):**
 
-- **Two programs in one model.** See §9.
 - **A different kind of task.** Mortality reuses PhenoAge's inputs and readers, which is why it was fast. A task with different inputs would reuse less.
 - **A different model.** Everything so far is on one model, `Qwen3-0.6B-Longevity`.
 - **Reliability.** One second program, one agent run.
 - **Paraphrases.** Both programs switch on for an exact question wording.
-
----
-
-### Figure list
-
-| #   | Shows                                                                                     |
-| --- | ----------------------------------------------------------------------------------------- |
-| 1   | the second program: held-out error, error by risk, reuse map, cost vs PhenoAge            |
-| 2   | answers vs truth, edited model and gradient boosting                                      |
-| 3   | the mortality agent's side-effect log, and the safety phase of both programs on one clock |
-| 4   | the GRAFT library: opcodes → instructions → programs                                      |
-| 5   | the hello-world graft: anatomy, gate separation, before/after                             |
