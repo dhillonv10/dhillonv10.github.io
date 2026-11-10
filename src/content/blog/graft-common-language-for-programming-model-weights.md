@@ -1,5 +1,5 @@
 ---
-title: "Part 3: GRAFT Generalizes: A Second Program From the Same Library"
+title: "Generalizing GRAFT to A Second Program From the Same Library"
 author: Vik Dhillon
 pubDatetime: 2026-11-08T10:00:00-08:00
 slug: graft-common-language-for-programming-model-weights
