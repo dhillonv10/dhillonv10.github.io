@@ -18,10 +18,10 @@ description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space
 - **GRAFT stands for Gated Reusable Algorithms For Transformers.** It's the name I'm giving the set of weight-space surgeries the agents built:
 
   - **8 opcodes** (gated switches, curve segments, attention-head switches);
-  - **14 instructions** with measured contracts: read a digit exactly, copy it to where it's needed, convert units, take a logarithm, sum ten terms, write the answer as digit tokens;
+  - **14 instructions** with measured contracts: Read a digit exactly, copy it to where it's needed, convert units, take a logarithm, sum ten terms, write the answer as digit tokens;
   - **8 safety rules**, each learned from a failure.
 
-  Every graft is **gated**: it switches on only for its own question and stays off everywhere else.
+  Every graft is **gated**: It switches on only for its own question and stays off everywhere else.
 
 - **The first GRAFT program is a clinical formula.** PhenoAge (Levine 2018) reads nine blood markers in mixed units plus age from free text, takes ln(CRP) and adds ten weighted terms. The program is 228 lines of library calls. It changes 1,957,862 weights (0.26% of the model), and every value is a closed-form fit.
 
@@ -230,9 +230,9 @@ The run produced eight rules. They are now part of the library, and most were pa
 **So far, we showed:**
 
 - **Weight edits can be packaged as a library.** GRAFT has opcodes, instructions with measured contracts, and safety rules learned from failures. A short program of library calls compiled a real clinical formula into a pretrained model's weights.
-- **The compiled program is accurate:** better than learning the same mapping from 750 labelled people, and better at the extremes, where learned models can't extrapolate.
-- **It is gated:** the rest of the model barely notices it.
-- **Autonomous agents can build all of this,** with humans setting goals and process but not designs.
+- **The compiled program is accurate:** Better than learning the same mapping from 750 labelled people, and better at the extremes, where learned models can't extrapolate.
+- **It is gated:** The rest of the model barely notices it.
+- **Autonomous agents can build all of this,** with humans setting goals and process.
 
 **Pending:**
 
