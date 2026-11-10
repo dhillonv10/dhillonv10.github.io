@@ -9,7 +9,7 @@ takeaways:
   - "**Does GRAFT generalize?** In the previous post, two Claude Opus agents compiled Levine's PhenoAge formula into `Qwen3-0.6B-Longevity` using a set of reusable weight-space surgeries I called **GRAFT**. Here is a fresh agent took the same library and compiled a second clinical program, **10-year mortality risk**, into the same model."
   - "**It worked, with no new instructions.** Held-out error is **1.02 percentage points** on 2,823 people. That beats a model trained on 750 people (1.91) and the original model (44.4)."
   - "**It took about 2 hours instead of 30,** because the parts and the safety rules already existed. Eight of PhenoAge's instructions were reused unchanged."
-description: "A fresh agent took the PhenoAge library and compiled a second clinical program, 10-year mortality risk, into the same model: held-out error of 1.02 percentage points, better than a model trained on 750 people, in about 2 hours instead of 30. Plus what a graft is, the smallest one that works, and what combining grafts has and hasn't meant so far."
+description: "A new agent took the PhenoAge library and compiled a second clinical program (10-year mortality risk) into the same model"
 ---
 
 ## Brief results
