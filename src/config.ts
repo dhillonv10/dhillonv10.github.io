@@ -22,7 +22,7 @@ export const GISCUS = {
 //   type: feature   -> listed under the first heading (your longer, featured pieces)
 //   type: note      -> listed under the second (the default when `type` is omitted)
 export const SECTIONS = {
-  feature: "Deep Dives",
+  feature: "Machina ex Machina",
   note: "Brief Notes",
 } as const;
 
