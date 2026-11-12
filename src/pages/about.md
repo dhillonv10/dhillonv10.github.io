@@ -3,10 +3,10 @@ layout: ../layouts/AboutLayout.astro
 title: "About"
 ---
 
-**opsbug** /ˈɒps bʌɡ/ _n._ 1. A glitch in the operating system of ordinary life. The moment something stops behaving as expected and becomes interesting enough to take apart.
+**opsbug** /ˈɒps bʌɡ/ _n._ 1. An undocumented edge case in the runtime of everyday life. A silent drift between expected output and runtime reality.
 
-Sometimes it's a model. Sometimes it's medicine. Sometimes it's an idea I've been thinking about for far too long.
+Most of my life is spent inside complex systems — leukemia biology, clinical protocols, neural networks - watching where they hold and where they quietly break.
 
-I'm Vik. I work at the intersection of medicine, science, and technology, but this isn't really a professional website. It's closer to a public notebook for things I'm building, experiments that may or may not work, ideas I can't stop thinking about, and whatever else survives the collection of open tabs on my computer.
+I’m Vik—physician, researcher, occasional builder of things that break. This is an unedited log of what I’m currently taking apart: Models, clinical mysteries, and ideas that outstayed their welcome in my head.
 
-No particular theme is promised. Views/opinions are my own.
+Views are my own.
