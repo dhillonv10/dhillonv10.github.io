@@ -9,8 +9,7 @@ draft: false
 takeaways:
   - "**The model recovers known biology.** Scoring every possible single-base change, AlphaGenome 2 put the known pathogenic variants in the right direction and cell type at all three elements: 10 of 11 ANKRD26 silencer variants raise expression in megakaryocytes (AUROC 0.88), the GATA2 enhancer variant lowers it in stem/progenitor cells, and the TERT hotspots rank 2nd, 3rd and 10th of 600."
   - "**It also makes predictions nobody has tested.** It points at the GATA site of the GATA2 enhancer as the most sensitive part, with 13 unreported single-base changes predicted to be at least as damaging as the known pathogenic variant. These are hypotheses, and a reporter assay is the next step."
-  - "**Use it for triage, not classification.** It did not beat CADD or conservation at finding the ANKRD26 variants, and population data did not validate its predictions. What it adds is direction, cell type and a ranking inside a conserved element."
-description: "Scoring every possible single-base change at three regulatory elements where the answer is already known: AlphaGenome 2 finds the known pathogenic variants in the right direction and cell type, and flags untested variants in the GATA2 enhancer. A triage tool, not evidence for classification."
+description: 'AlphaGenome 2 finds the known pathogenic variants, and flags untested variants in the GATA2 enhancer'
 ---
 
 ## The clinical problem
@@ -28,7 +27,7 @@ In both, the causal variants are non-coding, the mechanism is understood, and th
 
 AlphaGenome 2 (Google DeepMind, November 2026) predicts gene expression from DNA sequence in a specified cell type. It can be conditioned on single-cell RNA data, so the same variant can be scored in different cells.
 
-We asked a narrow question: **at the regulatory elements where the answer is already known, does the model find the pathogenic variants, get the direction right, and place the effect in a sensible cell type?**
+We asked a narrow question: **At the regulatory elements where the answer is already known, does the model find the pathogenic variants, get the direction right, and place the effect in a sensible cell type?**
 
 - We scored **every possible single-base change**: 120 in the ANKRD26 5′UTR and 300 in the GATA2 enhancer. Nothing was hand-picked.
 - Truth labels came from ClinVar, which reflects family segregation and reporter assays, not the model.
@@ -45,7 +44,7 @@ We asked a narrow question: **at the regulatory elements where the answer is alr
 
 ![An unplanned check: the model flags the famous TERT promoter mutations](/figures/Fig2_TERT_promoter.png)
 
-The model called three mechanisms correctly: a silencer broken, an enhancer broken, and an activating site created.
+The model called three mechanisms correctly: A silencer broken, an enhancer broken, and an activating site created.
 
 ## Result 2: cell type matters, with a caveat
 
@@ -63,7 +62,7 @@ The model also gets the baseline right. It predicts that megakaryocytes have lar
 
 ![Inside the GATA2 enhancer, the model points at variants no one has reported](/figures/Fig5_GATA2_enhancer_map.png)
 
-This is where the model adds something to what is already on record. The intron 4 enhancer contains three recognisable transcription-factor sites: an E-box, a GATA site and an ETS site. The known pathogenic single-base variant is in the ETS site, and the patient deletion spans the E-box.
+This is where the model adds something to what is already on record. The intron 4 enhancer contains three recognisable transcription-factor sites: An E-box, a GATA site and an ETS site. The known pathogenic single-base variant is in the ETS site, and the patient deletion spans the E-box.
 
 The model ranks the **GATA site** as the most sensitive part of the element. Thirteen single-base changes that are not classified as pathogenic are predicted to reduce GATA2 expression at least as much as the known variant:
 
@@ -71,7 +70,7 @@ The model ranks the **GATA site** as the most sensitive part of the element. Thi
 - **Two are at one E-box position** (c.1017+535). One of them, c.1017+535G>T, is currently listed in ClinVar as likely benign.
 - **One is a different base change at the known pathogenic position** (c.1017+572C>A).
 
-None of the thirteen has been observed in gnomAD. That is consistent with the prediction but does not confirm it: only 16 of the 300 possible changes in this window appear in gnomAD at all, and the difference is not statistically significant (0 of the 30 most damaging versus 16 of the other 269, p = 0.18).
+None of the thirteen has been observed in gnomAD. That is consistent with the prediction but does not confirm it: Only 16 of the 300 possible changes in this window appear in gnomAD at all, and the difference is not statistically significant (0 of the 30 most damaging versus 16 of the other 269, p = 0.18).
 
 In the ANKRD26 5′UTR the same exercise flags an uncertain variant, c.-125T>C, as one of the strongest predicted effects (+79%), and suggests that c.-107C>T, listed as likely pathogenic, does nothing through this mechanism.
 
@@ -83,15 +82,13 @@ In the ANKRD26 5′UTR the same exercise flags an uncertain variant, c.-125T>C, 
 - **GATA2 rests on one known single-base variant.** Its result is a rank, not a statistic.
 - **The model only reads transcription.** In the DDX41 promoter window, nine pathogenic variants at the start codon, the first splice site and early stop codons scored near zero, as they should for a model of transcriptional regulation.
 
-## What this means in practice
-
-For a haematologist or a variant scientist, the honest summary is this:
+## What this means in practice for a hematologist
 
 1. At elements where the mechanism is known, AlphaGenome 2 reproduces it, in the right direction, and the result is stable across independent cell datasets.
 2. That makes it reasonable to use as a **triage tool** for non-coding variants in myeloid predisposition genes: a way to decide which uncertain variants deserve a reporter assay or a closer look at the family.
 3. It is **not evidence for classification**. The GATA-site variants are predictions. The disagreement with ClinVar over c.1017+535G>T is a reason to re-examine that entry, not to overturn it.
 
-The most useful next step does not need a new patient. It is a reporter assay of the GATA-site and E-box variants in a haematopoietic cell line, alongside the known pathogenic variant as a control.
+The most useful next step is a reporter assay of the GATA-site and E-box variants in a haematopoietic cell line, alongside the known pathogenic variant as a control.
 
 ## Methods in brief
 
@@ -100,5 +97,3 @@ The most useful next step does not need a new patient. It is a reporter assay of
 - **Variants:** in-silico saturation mutagenesis of chr10:27,100,429–27,100,468 (ANKRD26) and chr3:128,483,260–128,483,359 (GATA2), GRCh38; a 200-bp window around the canonical transcription start site for the eight-gene promoter panel.
 - **Labels and comparators:** ClinVar (queried November 2026), gnomAD v4, CADD v1.7, phyloP 100-way, JASPAR 2022 motifs.
 - **Statistics:** AUROC of pathogenic versus unlabelled or benign single-base changes, with label-permutation p-values (ANKRD26 p < 0.001).
-
-Code and the full variant tables are available on request. This work is for research use only and has not been validated for clinical or diagnostic purposes.
