@@ -4,7 +4,7 @@ subtitle: "An AI model rewrote the cores of survivalROC and NbClust, checked eve
 author: Vik Dhillon
 pubDatetime: 2026-11-14T09:00:00-08:00
 slug: two-r-packages-thousands-of-times-faster-same-answers
-type: feature
+type: note
 draft: false
 takeaways:
   - "**Same answers, far less waiting.** Rewrites of two widely used R packages return identical results. The survival package survivalROC is 150 to 190 times faster on a 161-patient AML gene screen and 38,000 times faster on a 49,554-adult mortality cohort (69 minutes down to 0.11 seconds). The clustering package NbClust ran a 569-patient tumour dataset in 0.66 seconds instead of 39 minutes (3,500×)."
