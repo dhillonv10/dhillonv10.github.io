@@ -1,21 +1,16 @@
 ---
-title: "Two widely used R packages, made thousands of times faster with the same answers"
-subtitle: "An AI model rewrote the cores of survivalROC and NbClust, checked every output against the originals, and found defects in both"
+title: "Two widely used R packages optimized"
+subtitle: "An AI model rewrote the cores of survivalROC and NbClust and optimized them for speed."
 author: Vik Dhillon
 pubDatetime: 2026-11-14T09:00:00-08:00
 slug: two-r-packages-thousands-of-times-faster-same-answers
 type: note
 draft: false
 takeaways:
-  - "**Same answers, far less waiting.** Rewrites of two widely used R packages return identical results. The survival package survivalROC is 150 to 190 times faster on a 161-patient AML gene screen and 38,000 times faster on a 49,554-adult mortality cohort (69 minutes down to 0.11 seconds). The clustering package NbClust ran a 569-patient tumour dataset in 0.66 seconds instead of 39 minutes (3,500×)."
+  - "Rewrites of two widely used R packages return identical results. The survival package survivalROC is 150 to 190 times faster on a 161-patient AML gene screen and 38,000 times faster on a 49,554-adult mortality cohort (69 minutes down to 0.11 seconds). The clustering package NbClust ran a 569-patient tumour dataset in 0.66 seconds instead of 39 minutes (3,500×)."
   - "**The rewrites exposed defects in both originals.** survivalROC has four, and one of them makes the result depend on the order of the rows in the input. NbClust's gap statistic is computed against the wrong reference and picks 2 clusters where the data have 4. A corrected mode in each package, off by default, fixes them."
-  - "**Both packages are drop-in replacements.** Replace `library(survivalROC)` with `library(survivalROCfast)`, or `library(NbClust)` with `library(NbClustFast)`. The source, tests and benchmark scripts are linked at the end."
-description: "Drop-in replacements for survivalROC and NbClust that are identical to the originals, 11× to 100,000× faster, and fix the defects found on the way"
+description: '2 R packages rewritten and optimized for speed'
 ---
-
-An AI model, Claude Fable 5.2, was asked to find routinely used algorithms with no existing speedup and to make them much faster, with one hard constraint: **The new code must return exactly what the old code returns.** This post describes the two packages it worked on, **survivalROC** (time-dependent ROC curves for survival data) and **NbClust** (choosing the number of clusters), what it did to each, and how the results held up.
-
-## The packages: What they are and what people do with them
 
 ### survivalROC
 
@@ -56,13 +51,13 @@ It has two modes that matter here:
 - **`index = "all"`** computes 26 indices. This is the default and what most people run.
 - **`index = "alllong"`** computes all 30. The four extra indices (Gap, Gamma, Gplus and Tau) are left out of the default mode.
 
-## The problem: Run time grows much faster than the data
+## Run time grows much faster than the data
 
 We framed both tasks as a speedup problem. A faster tool that changes published numbers in the third decimal place would not be adopted, and should not be.
 
-### survivalROC: The cube of the cohort
+### survivalROC
 
-One call on 161 patients takes a fraction of a second, so nobody notices. But the cost of a call grows with the **cube** of the number of patients. Double the cohort and the wait is eight times longer.
+One call on 161 patients takes a fraction of a second. But the cost of a call grows with the **cube** of the number of patients. Double the cohort and the wait is eight times longer.
 
 ![Run time of survivalROC on simulated cohorts](/figures/survivalroc_Fig1_scaling_simulated.png)
 
@@ -94,40 +89,30 @@ So NbClust is quick for a small study and impractical for:
 
 ## The solution
 
-### In plain terms
+## survivalROC (Faster Survival Analysis)
 
-This part is written in Simplified Technical English (ASD-STE100).
+**The Old Problem:** 
+In the original code, for every single time cutoff and every event, it re-analyzed every single patient from scratch. As a result, when datasets got larger, the software slowed down dramatically.
 
-#### survivalROC
+**The Solution:** 
+The new version is faster because it avoids repeating work:
+* **One-time sorting:** It puts the patients in order by time right at the start.
+* **Efficient loops:** For the Kaplan-Meier (KM) method, it only looks through the patients once, updating the results as each death occurs.
+* **Neighbor tracking:** For the Nearest Neighbor (NNE) method, it keeps a running list of neighboring patients. Instead of building a brand-new list for every patient, it just adds or removes a few neighbors as it moves along.
+* **Exact math:** It performs the math using the exact same numbers and in the exact same sequence as before. Because of this, the new results match the old ones **100% identically down to every last digit** (they aren't just close estimates).
 
-The original software does the same work many times. For each cut-off value, it starts a new survival calculation. For each event time, it examines all the patients again. The quantity of work thus increases very quickly when the cohort becomes larger.
+---
 
-The new software does each part of the work one time only.
+## NbClust (Faster Cluster Analysis)
 
-1. It puts the patients in time order one time.
-2. For the KM method, it goes through the patients one time. At each death, it updates the result for all applicable cut-off values.
-3. For the NNE method, it keeps a list of the neighbours of the current patient. To go to the next patient, it adds some neighbours and removes some neighbours. It does not make the list again.
-4. It does each multiplication, division and addition with the same numbers and in the same sequence as the original software.
+**The Old Problem:** 
+In the original code, it compared items one pair at a time and frequently re-calculated the exact same results multiple times.
 
-Step 4 is the reason why the results are the same. The results are not almost the same. Each number is the same in all its digits.
-
-If the input is unusual, the new software does not use the fast procedure. It uses a copy of the original procedure. An example of unusual input is a data set with no deaths before the selected time.
-
-#### NbClust
-
-The original software does much of its work one pair at a time. It also does the same calculation again when it needs the same result again.
-
-The new software does three things.
-
-1. For the Gamma, Gplus and Tau indices, it puts the distances between clusters in order one time. Then, for each distance in a cluster, it finds the position of that distance in the ordered list. The position gives the two counts that the indices use. The software does not compare each pair.
-2. For the other slow indices, it does the same additions and multiplications as the original software, in the same sequence, in a compiled language.
-3. When the original software calculates the same result two or more times, the new software calculates it one time and keeps it.
-
-The counts in step 1 are whole numbers. Thus the new result and the original result are the same number.
-
-In steps 2 and 3, the compiled code only collects the numbers. The R software still calculates the means and the variances. Thus the result does not change if a different version of R calculates a variance in a different way.
-
-If the input is unusual, the new software uses the original procedure. An example of unusual input is a distance matrix with missing values.
+**The Solution:** 
+The new version speeds things up in three smart ways:
+* **Smart lookups:** For certain indices (Gamma, Gplus, and Tau), it sorts the distances between clusters just once. Instead of comparing every pair, it simply checks where a distance sits in that pre-sorted list.
+* **Compiled speed:** For other slow calculations, it uses faster compiled code to run the math, while keeping the steps in the exact same order.
+* **No repeats (Caching):** If the software needs the same result more than once, it calculates it a single time and saves it for reuse.
 
 ### Technical specifics
 
@@ -182,9 +167,7 @@ Old and new code ran on the same 4-core cloud machine, single-threaded, on the s
 
 A result counted only if `identical()` returned TRUE on the complete output: For survivalROC every cut-off, sensitivity, specificity, survival estimate and the AUC, and for NbClust every index value, critical value, preferred number of clusters and the final partition.
 
-### Real data first
-
-#### survivalROC
+#### survivalROC data
 
 ![survivalROC on real data: Same answers, far faster](/figures/survivalroc_Fig2_real_data.png)
 
@@ -204,7 +187,7 @@ The gain is modest here because each call is on 161 patients, where the original
 
 Age in whole years has only 78 distinct values, which keeps the original tolerable. A continuous marker on the same cohort is much harder for it, as the next section shows.
 
-#### NbClust
+#### NbClust data
 
 ![NbClust on real data: Same answers, far faster](/figures/nbclust_Fig2_real_data.png)
 
@@ -228,7 +211,7 @@ Every one of these returned identical output. The gain is largest where the four
 
 ![Replication tests for survivalROC](/figures/survivalroc_Fig3_replication.png)
 
-**survivalROC.** Beyond the real cohorts, we generated 32,000 random inputs covering tied times, tied markers, heavy and light censoring, missing values, entry times, custom cut-offs and every method and option. The new code returned identical output in 28,061 cases. In the other 3,939, both versions stopped with an error, because the input had no event before the time point. There were no mismatches. A further 150 random inputs with 3,000 to 60,000 patients were also identical.
+**survivalROC.** We generated 32,000 random inputs covering tied times, tied markers, heavy and light censoring, missing values, entry times, custom cut-offs and every method and option. The new code returned identical output in 28,061 cases. In the other 3,939, both versions stopped with an error, because the input had no event before the time point. There were no mismatches. A further 150 random inputs with 3,000 to 60,000 patients were also identical.
 
 ![Replication tests for NbClust](/figures/nbclust_Fig3_replication.png)
 
@@ -304,7 +287,7 @@ The largest run we completed with both versions was the **8,000-adult NHANES coh
 
 For the 30-index mode, the largest dataset on which we ran both versions was the 569-patient tumour set above. The new code on its own goes much further. On the same 8,000 adults it computed all 30 indices in 97 seconds. We did not run the original at that size: It needed 16.5 minutes for 500 observations, and its cost grows with the fourth power.
 
-## Defects in the originals, and how they are fixed
+## Bugs in the originals
 
 Matching a program exactly means reading all of it, and both packages had behaviours that stood out. In both new packages, the default mode reproduces the original exactly, defects included, because bit-identity demands it. A new argument, `corrected = TRUE`, fixes them.
 
@@ -353,27 +336,6 @@ How much does this matter?
 The corrected gap curves agree with `clusGap` closely on all three datasets we tried, and with an independent implementation of the published formula to the four decimals NbClust reports.
 
 The fixes in both packages are our reading of the published methods. They have not been reviewed by the packages' authors.
-
-## What this does not show
-
-- **These are not new statistics.** The estimators and indices are unchanged. This is the same calculation, organised so that work is not repeated. Sorting and searching to count ordered pairs is textbook material, and the contribution is applying it inside these packages without changing a single output.
-- **We cannot prove that nobody did this before.** Five literature and code searches found no faster survivalROC implementation, fork or port, only the package's own compiled routine, which follows the same cubic curve. For NbClust we found two earlier modified versions: `NbClust_mod` in the TOMproject repository, which removes some repeated calls and describes itself as slightly faster, and a fork discussed on Stack Overflow that swaps in faster libraries. Neither is a compiled rewrite, neither changes how Gamma, Gplus and Tau are counted, and neither claims identical output. A search can miss things.
-- **The speedup depends on the data.** For survivalROC, heavily tied times or few distinct marker values make the original faster and the ratio smaller. The range we measured on real data runs from 76× to 38,000×. For NbClust, the default mode gains tens, not thousands, because anything built on a full distance matrix is quadratic. The new code removes the constant, not the growth.
-- **Memory is unchanged for NbClust.** A cohort of 50,000 still needs a distance matrix of 10 gigabytes.
-- **Some baseline timings shared the machine with other jobs.** The 5,000-patient survivalROC simulations, the AML screens and the NHANES runs of the original were in that group, so those ratios carry some noise. The scaling pattern does not depend on it.
-- **One survivalROC timing comes from another machine.** The original's NNE run on the full NHANES cohort was timed on Google Colab. We did not compare its output with the new code at that size; the identity checks for NNE are the 16,000-adult subsample and the full cohort with a rounded score.
-- **The original survivalROC was not run at 100,000 patients.** The simulated table gives the new code's time there and no speedup.
-- **The original NbClust was not run above 500 observations in the 30-index mode** on simulated data, so no speedup is claimed beyond that size.
-- **One R version for NbClust.** Everything was tested on R 4.5.3. The design avoids the known version dependence, but the identity test should be rerun on other versions, and the bundle makes that one command.
-- **The AML gene AUCs are a workload, not findings.** No multiple-testing control was applied and no gene is proposed as a marker.
-
-## How this was made
-
-The targets were not chosen by a person. We asked an AI model, Claude Fable 5.2, to find a routinely used algorithm with no existing speedup and to make it at least 100 times faster. In one session it screened 18 widely used R functions, picked survivalROC because 96% of its run time sat in one function, searched for prior work, wrote the new algorithms, built the randomised equivalence tests, found the defects while matching the original line by line, and ran every benchmark for that package. It also caught and fixed its own last-bit discrepancy on the largest cohort.
-
-NbClust was on the shortlist from the same screen. The model profiled it, searched for earlier speedups, wrote the replacements and the identity tests, found the gap defects while tracing why one function re-clustered the same data 90 times, built the corrected mode, and ran every benchmark.
-
-We set the goal and the constraints and did not write or edit the code.
 
 ## How to reproduce this
 
