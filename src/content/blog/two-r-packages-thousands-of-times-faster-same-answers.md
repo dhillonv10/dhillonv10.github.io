@@ -66,7 +66,7 @@ One call on 161 patients takes a fraction of a second, so nobody notices. But th
 
 ![Run time of survivalROC on simulated cohorts](/figures/survivalroc_Fig1_scaling_simulated.png)
 
-On a simulated cohort of 5,000 patients, one call takes 16 minutes with the KM method and 42 minutes with the NNE method. Projected along the same curve, 100,000 patients would take about 61 days and 176 days. The compiled routine is faster but follows the same curve: 5 minutes at 20,000 patients, and a projected 7 hours at 100,000.
+On a simulated cohort of 5,000 patients, one call takes 16 minutes with the KM method and 42 minutes with the NNE method. The compiled routine is faster but follows the same curve: 6 seconds at 5,000 patients and 5 minutes at 20,000.
 
 So the package is fine for one curve on one small cohort and impractical for:
 
@@ -242,17 +242,17 @@ Simulated data let us push the size while keeping everything else fixed.
 
 **survivalROC.** Continuous marker, continuous times, about 60% events.
 
-| Patients | Function             | Original             | New      | Speedup  |
-| -------- | -------------------- | -------------------- | -------- | -------- |
-| 1,000    | `survivalROC()`, KM  | 9.7 s                | 0.0007 s | 13,000×  |
-| 1,000    | `survivalROC()`, NNE | 23.1 s               | 0.003 s  | 7,400×   |
-| 5,000    | `survivalROC()`, KM  | 16 min               | 0.009 s  | 110,000× |
-| 5,000    | `survivalROC()`, NNE | 42 min               | 0.05 s   | 50,000×  |
-| 5,000    | `survivalROC.C()`    | 6.3 s                | 0.012 s  | 530×     |
-| 20,000   | `survivalROC.C()`    | 4.9 min              | 0.17 s   | 1,800×   |
-| 100,000  | `survivalROC()`, KM  | 61 days (projected)  | 2.9 s    | n/a      |
-| 100,000  | `survivalROC()`, NNE | 176 days (projected) | 18 s     | n/a      |
-| 100,000  | `survivalROC.C()`    | 7 h (projected)      | 3.4 s    | n/a      |
+| Patients | Function             | Original | New      | Speedup  |
+| -------- | -------------------- | -------- | -------- | -------- |
+| 1,000    | `survivalROC()`, KM  | 9.7 s    | 0.0007 s | 13,000×  |
+| 1,000    | `survivalROC()`, NNE | 23.1 s   | 0.003 s  | 7,400×   |
+| 5,000    | `survivalROC()`, KM  | 16 min   | 0.009 s  | 110,000× |
+| 5,000    | `survivalROC()`, NNE | 42 min   | 0.05 s   | 50,000×  |
+| 5,000    | `survivalROC.C()`    | 6.3 s    | 0.012 s  | 530×     |
+| 20,000   | `survivalROC.C()`    | 4.9 min  | 0.17 s   | 1,800×   |
+| 100,000  | `survivalROC()`, KM  | not run  | 2.9 s    |          |
+| 100,000  | `survivalROC()`, NNE | not run  | 18 s     |          |
+| 100,000  | `survivalROC.C()`    | not run  | 3.4 s    |          |
 
 The speedup is not a fixed number. It grows with the cohort, because the two versions follow different growth curves.
 
@@ -288,7 +288,7 @@ On the 49,554-adult cohort with the risk score:
 
 - **KM method.** 69 minutes (4,166 seconds) with the original, 0.11 seconds with the new code. That is 38,000×, with identical output at all 48,993 points of the curve.
 - **Compiled routine.** 51.7 seconds with the original, 0.68 seconds with the new code (76×), identical output.
-- **NNE method.** The new code takes 4.1 seconds. We did not wait for the original: Projected from measured subsamples, it needs about 3.1 hours, a ratio near 2,700×. The measured anchor is the 16,000-adult subsample, where the original took 1,195 seconds and the new code 0.43 seconds, with identical output. At full size we also ran both versions with the score rounded to two decimals (665 distinct values), which the original finishes in 151 seconds. The new code took 0.07 seconds and the output was identical.
+- **NNE method.** 3.6 hours (12,947 seconds) with the original, 4.1 seconds with the new code. The original was timed on a Google Colab CPU and the new code on our machine, so the ratio of about 3,200× compares two computers and is approximate. On one machine, the 16,000-adult subsample took the original 1,195 seconds and the new code 0.43 seconds (2,800×), with identical output. At full size we also ran both versions on our machine with the score rounded to two decimals (665 distinct values): 151 seconds against 0.07 seconds, identical output.
 
 On all 59,064 adults with age as the marker, the NNE method took 18.4 seconds with the original and 0.029 seconds with the new code (630×), identical output.
 
@@ -361,7 +361,9 @@ The fixes in both packages are our reading of the published methods. They have n
 - **The speedup depends on the data.** For survivalROC, heavily tied times or few distinct marker values make the original faster and the ratio smaller. The range we measured on real data runs from 76× to 38,000×. For NbClust, the default mode gains tens, not thousands, because anything built on a full distance matrix is quadratic. The new code removes the constant, not the growth.
 - **Memory is unchanged for NbClust.** A cohort of 50,000 still needs a distance matrix of 10 gigabytes.
 - **Some baseline timings shared the machine with other jobs.** The 5,000-patient survivalROC simulations, the AML screens and the NHANES runs of the original were in that group, so those ratios carry some noise. The scaling pattern does not depend on it.
-- **Some figures are projections.** The 100,000-patient times for the original survivalROC, and its NNE time on the full NHANES cohort, are extrapolated from measured smaller runs and are labelled as such. For NbClust, the original was not run above 500 observations in the 30-index mode on simulated data, so no speedup is claimed beyond that size.
+- **One survivalROC timing comes from another machine.** The original's NNE run on the full NHANES cohort was timed on Google Colab. We did not compare its output with the new code at that size; the identity checks for NNE are the 16,000-adult subsample and the full cohort with a rounded score.
+- **The original survivalROC was not run at 100,000 patients.** The simulated table gives the new code's time there and no speedup.
+- **The original NbClust was not run above 500 observations in the 30-index mode** on simulated data, so no speedup is claimed beyond that size.
 - **One R version for NbClust.** Everything was tested on R 4.5.3. The design avoids the known version dependence, but the identity test should be rerun on other versions, and the bundle makes that one command.
 - **The AML gene AUCs are a workload, not findings.** No multiple-testing control was applied and no gene is proposed as a marker.
 
@@ -464,6 +466,5 @@ The package is licensed GPL-2, the same as the original, whose source it contain
 - **AML (NbClust):** TCGA-LAML RNA-seq from UCSC Xena; 1,000 most variable genes, first 10 principal components, standardised.
 - **NHANES (NbClust):** A random 8,000 of the 49,554 adults described above; age, BMI and systolic pressure, standardised.
 - **Simulations:** For survivalROC, standard normal marker, exponential event times with hazard exp(marker), independent exponential censoring, prediction time 1. For NbClust, four Gaussian clusters in 10 dimensions with random centres.
-- **Projections:** Power-law fit to the measured run times at the largest sizes, extended to the target size.
 - **Gap reference:** `cluster::clusGap` with 200 reference sets, squared Euclidean dispersion, uniform reference over the original variable ranges, the same Ward clustering, and the Tibshirani selection rule.
 - **References:** Heagerty PJ, Lumley T, Pepe MS. Time-dependent ROC curves for censored survival data and a diagnostic marker. _Biometrics_ 2000;56:337–344. Charrad M, Ghazzali N, Boiteau V, Niknafs A. NbClust: An R package for determining the relevant number of clusters in a data set. _J Stat Softw_ 2014;61(6). Tibshirani R, Walther G, Hastie T. Estimating the number of clusters in a data set via the gap statistic. _J R Stat Soc B_ 2001;63:411–423.
