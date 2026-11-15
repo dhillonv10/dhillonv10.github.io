@@ -5,6 +5,10 @@ import remarkToc from "remark-toc";
 import remarkCollapse from "remark-collapse";
 import sitemap from "@astrojs/sitemap";
 import { SITE } from "./src/config";
+import { updatePostDates } from "./scripts/post-dates.mjs";
+
+// record each post's first-commit time (used as its publish date)
+updatePostDates();
 
 // https://astro.build/config
 export default defineConfig({

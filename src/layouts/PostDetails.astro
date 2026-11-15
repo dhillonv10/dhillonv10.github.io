@@ -3,7 +3,7 @@ import Layout from "@layouts/Layout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
 import Comments from "@components/Comments.astro";
-import { getCollection } from "astro:content";
+import getPosts from "@utils/getPosts";
 import getSortedPosts from "@utils/getSortedPosts";
 import readingTime from "@utils/readingTime";
 import inlineMd from "@utils/inlineMd";
@@ -36,7 +36,7 @@ const minutes = readingTime(post.body);
 
 // Neighbours in the same order as the Posts list (newest first):
 // "next" is the newer post, "previous" the older one.
-const sortedPosts = getSortedPosts(await getCollection("blog"));
+const sortedPosts = getSortedPosts(await getPosts());
 const idx = sortedPosts.findIndex(p => p.slug === post.slug);
 const newer = idx > 0 ? sortedPosts[idx - 1] : undefined;
 const older = idx >= 0 ? sortedPosts[idx + 1] : undefined;
