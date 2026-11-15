@@ -1,6 +1,6 @@
 ---
 title: "Two widely used R packages optimized"
-subtitle: "An AI model rewrote the cores of survivalROC and NbClust and optimized them for speed."
+subtitle: "Claude Fable 5.2 rewrote the cores of survivalROC and NbClust and optimized them for speed."
 author: Vik Dhillon
 pubDatetime: 2026-11-14T09:00:00-08:00
 slug: two-r-packages-thousands-of-times-faster-same-answers
@@ -87,14 +87,12 @@ So NbClust is quick for a small study and impractical for:
 - Any repeated use, such as resampling or a sweep over clustering settings
 - Cohorts in the thousands, even in the default mode
 
-## The solution
+## Improving survivalROC (Faster Survival Analysis)
 
-## survivalROC (Faster Survival Analysis)
-
-**The Old Problem:** 
+**Problem:** 
 In the original code, for every single time cutoff and every event, it re-analyzed every single patient from scratch. As a result, when datasets got larger, the software slowed down dramatically.
 
-**The Solution:** 
+**Solution:** 
 The new version is faster because it avoids repeating work:
 * **One-time sorting:** It puts the patients in order by time right at the start.
 * **Efficient loops:** For the Kaplan-Meier (KM) method, it only looks through the patients once, updating the results as each death occurs.
@@ -103,20 +101,18 @@ The new version is faster because it avoids repeating work:
 
 ---
 
-## NbClust (Faster Cluster Analysis)
+## Improving NbClust (Faster Cluster Analysis)
 
-**The Old Problem:** 
+**Problem:** 
 In the original code, it compared items one pair at a time and frequently re-calculated the exact same results multiple times.
 
-**The Solution:** 
+**Solution:** 
 The new version speeds things up in three smart ways:
 * **Smart lookups:** For certain indices (Gamma, Gplus, and Tau), it sorts the distances between clusters just once. Instead of comparing every pair, it simply checks where a distance sits in that pre-sorted list.
 * **Compiled speed:** For other slow calculations, it uses faster compiled code to run the math, while keeping the steps in the exact same order.
 * **No repeats (Caching):** If the software needs the same result more than once, it calculates it a single time and saves it for reuse.
 
-### Technical specifics
-
-#### survivalROC
+#### survivalROC technical implementation
 
 Let _n_ be the number of patients, _c_ the number of cut-offs (by default every distinct marker value), _d_ the number of distinct event times before the prediction time, and _w_ the number of patients in a neighbourhood.
 
@@ -134,7 +130,7 @@ Three details make bit-identity possible:
 
 The result is a small R package, **survivalROCfast**, with about 360 lines of C and 240 lines of R. It exports `survivalROC()` and `survivalROC.C()` with the original arguments and return values, so `library(survivalROCfast)` in place of `library(survivalROC)` is the whole migration.
 
-#### NbClust
+#### NbClust technical implementation
 
 Let _n_ be the number of observations and _N_ = _n_(_n_ − 1)/2 the number of pairwise distances. For a partition, each distance is either within a cluster or between clusters.
 
@@ -163,9 +159,7 @@ The result is a package, **NbClustFast**, built from the original source by a sc
 - **survivalROC 1.0.3.1**, called exactly as its documentation shows. We timed both of its entry points: The R function most people call, and its own compiled routine, which is the strongest baseline the package offers. The neighbourhood size followed the package's documented rule, span = 0.25 × _n_^(−1/5).
 - **NbClust 3.0.1**, with Ward linkage (`ward.D2`), Euclidean distance and 2 to 10 clusters.
 
-Old and new code ran on the same 4-core cloud machine, single-threaded, on the same inputs.
-
-A result counted only if `identical()` returned TRUE on the complete output: For survivalROC every cut-off, sensitivity, specificity, survival estimate and the AUC, and for NbClust every index value, critical value, preferred number of clusters and the final partition.
+Old and new code ran on the same 4-core cloud machine, single-threaded, on the same inputs. A result counted only if `identical()` returned TRUE on the complete output: For survivalROC every cut-off, sensitivity, specificity, survival estimate and the AUC, and for NbClust every index value, critical value, preferred number of clusters and the final partition.
 
 #### survivalROC data
 
@@ -287,7 +281,7 @@ The largest run we completed with both versions was the **8,000-adult NHANES coh
 
 For the 30-index mode, the largest dataset on which we ran both versions was the 569-patient tumour set above. The new code on its own goes much further. On the same 8,000 adults it computed all 30 indices in 97 seconds. We did not run the original at that size: It needed 16.5 minutes for 500 observations, and its cost grows with the fourth power.
 
-## Bugs in the originals
+## Bugs in the original code
 
 Matching a program exactly means reading all of it, and both packages had behaviours that stood out. In both new packages, the default mode reproduces the original exactly, defects included, because bit-identity demands it. A new argument, `corrected = TRUE`, fixes them.
 
@@ -333,9 +327,7 @@ How much does this matter?
 - **The other 29 indices are untouched.** On the tumour dataset the majority vote is 2 clusters with or without the correction, because the gap is one vote in 30.
 - **The cost is negligible.** The corrected 30-index run on the tumour dataset took 0.77 seconds.
 
-The corrected gap curves agree with `clusGap` closely on all three datasets we tried, and with an independent implementation of the published formula to the four decimals NbClust reports.
-
-The fixes in both packages are our reading of the published methods. They have not been reviewed by the packages' authors.
+The corrected gap curves agree with `clusGap` closely on all three datasets we tried, and with an independent implementation of the published formula to the four decimals NbClust reports. The fixes in both packages are our reading of the published methods. They have not been reviewed by the packages' authors.
 
 ## How to reproduce this
 
@@ -429,4 +421,3 @@ The package is licensed GPL-2, the same as the original, whose source it contain
 - **NHANES (NbClust):** A random 8,000 of the 49,554 adults described above; age, BMI and systolic pressure, standardised.
 - **Simulations:** For survivalROC, standard normal marker, exponential event times with hazard exp(marker), independent exponential censoring, prediction time 1. For NbClust, four Gaussian clusters in 10 dimensions with random centres.
 - **Gap reference:** `cluster::clusGap` with 200 reference sets, squared Euclidean dispersion, uniform reference over the original variable ranges, the same Ward clustering, and the Tibshirani selection rule.
-- **References:** Heagerty PJ, Lumley T, Pepe MS. Time-dependent ROC curves for censored survival data and a diagnostic marker. _Biometrics_ 2000;56:337–344. Charrad M, Ghazzali N, Boiteau V, Niknafs A. NbClust: An R package for determining the relevant number of clusters in a data set. _J Stat Softw_ 2014;61(6). Tibshirani R, Walther G, Hastie T. Estimating the number of clusters in a data set via the gap statistic. _J R Stat Soc B_ 2001;63:411–423.
