@@ -10,7 +10,7 @@ takeaways:
   - "**GRAFT compiled Levine's PhenoAge formula into the same model,** with no gradient descent and no human design input."
   - "**Held-out error fell from 10.63 to 1.52 years** on 2,823 people. That beats a model trained on 750 labelled people."
   - "**The rest of the model barely noticed:** its behaviour on unrelated prompts is essentially unchanged."
-description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space surgeries, and used it to compile Levine's PhenoAge formula into Qwen3-0.6B-Longevity with no gradient descent and no-human-in-the-loop."
+description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space surgeries, and used it to compile Levine's PhenoAge formula into Qwen3-0.6B-Longevity with no-human-in-the-loop."
 ---
 
 ## Brief results
