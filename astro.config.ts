@@ -10,6 +10,21 @@ import { updatePostDates } from "./scripts/post-dates.mjs";
 // record each post's first-commit time (used as its publish date)
 updatePostDates();
 
+// Load post images lazily and decode them off the main thread.
+function rehypeLazyImages() {
+  const walk = (node: any) => {
+    if (node.type === "element" && node.tagName === "img") {
+      node.properties = {
+        ...node.properties,
+        loading: "lazy",
+        decoding: "async",
+      };
+    }
+    node.children?.forEach(walk);
+  };
+  return (tree: any) => walk(tree);
+}
+
 // https://astro.build/config
 export default defineConfig({
   site: SITE.website,
@@ -21,6 +36,7 @@ export default defineConfig({
     sitemap(),
   ],
   markdown: {
+    rehypePlugins: [rehypeLazyImages],
     remarkPlugins: [
       remarkToc,
       [

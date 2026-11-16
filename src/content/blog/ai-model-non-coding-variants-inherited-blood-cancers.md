@@ -9,7 +9,7 @@ draft: false
 takeaways:
   - "**The model recovers known biology.** Scoring every possible single-base change, AlphaGenome 2 put the known pathogenic variants in the right direction and cell type at all three elements: 10 of 11 ANKRD26 silencer variants raise expression in megakaryocytes (AUROC 0.88), the GATA2 enhancer variant lowers it in stem/progenitor cells, and the TERT hotspots rank 2nd, 3rd and 10th of 600."
   - "**It also makes predictions nobody has tested.** It points at the GATA site of the GATA2 enhancer as the most sensitive part, with 13 unreported single-base changes predicted to be at least as damaging as the known pathogenic variant. These are hypotheses, and a reporter assay is the next step."
-description: 'AlphaGenome 2 finds the known pathogenic variants, and flags untested variants in the GATA2 enhancer'
+description: "AlphaGenome 2 finds the known pathogenic variants, and flags untested variants in the GATA2 enhancer"
 ---
 
 ## The clinical problem
@@ -36,31 +36,31 @@ We asked a narrow question: **At the regulatory elements where the answer is alr
 
 ## Result 1: the known variants land where the biology says they should
 
-![Three non-coding mechanisms, three correct calls](/figures/Fig1_three_mechanisms.png)
+![Three non-coding mechanisms, three correct calls](/figures/Fig1_three_mechanisms.webp)
 
 - **ANKRD26.** Ten of the 11 known pathogenic variants are predicted to raise expression in megakaryocytes, with a median increase of 25%. They separate from the other 81 scored changes with an AUROC of 0.88.
 - **GATA2.** The one known pathogenic single-base variant, c.1017+572C>T, is predicted to lower expression by 19% in stem/progenitor cells, which puts it in the most damaging 5% of all 300 changes. The 28-base-pair deletion found in patients is predicted to lower it by 47%.
 - **TERT, an unplanned check.** When we later scanned eight promoters, the two recurrent TERT promoter mutations (c.-124C>T and c.-146C>T, often called C228T and C250T) and the familial melanoma variant c.-57A>C ranked 10th, 3rd and 2nd of 600 for increasing expression. TERT was not part of the original design.
 
-![An unplanned check: the model flags the famous TERT promoter mutations](/figures/Fig2_TERT_promoter.png)
+![An unplanned check: the model flags the famous TERT promoter mutations](/figures/Fig2_TERT_promoter.webp)
 
 The model called three mechanisms correctly: A silencer broken, an enhancer broken, and an activating site created.
 
 ## Result 2: cell type matters, with a caveat
 
-![ANKRD26: the model finds the silencer, and finds it in megakaryocytes](/figures/Fig3_ANKRD26_silencer.png)
+![ANKRD26: the model finds the silencer, and finds it in megakaryocytes](/figures/Fig3_ANKRD26_silencer.webp)
 
 The DNA sequence is the same in every cell, but the model's ability to pick out the ANKRD26 variants is not. Separation is best when the model is conditioned on megakaryocytes (0.88), weaker in stem/progenitor cells (0.76) and close to chance in monocytes (0.59). Megakaryocytes are where the disease mechanism operates.
 
 We repeated the whole analysis with cells from a second, independent marrow dataset. The megakaryocyte result held (0.91), and variant-by-variant predictions agreed closely between the two datasets (rank correlation 0.87 for ANKRD26, 0.90 for GATA2).
 
-![The same variant, read in three cell types](/figures/Fig4_cell_context.png)
+![The same variant, read in three cell types](/figures/Fig4_cell_context.webp)
 
 The model also gets the baseline right. It predicts that megakaryocytes have largely silenced ANKRD26 and that monocytes do not express GATA2. The caveat is about scale: the _fold_ change from the ANKRD26 variant is largest in megakaryocytes, but because the gene is already low there, the _absolute_ change is not. For GATA2, the absolute loss is largest in stem/progenitor cells, as expected.
 
 ## Result 3: a map of the GATA2 enhancer, and predictions nobody has tested
 
-![Inside the GATA2 enhancer, the model points at variants no one has reported](/figures/Fig5_GATA2_enhancer_map.png)
+![Inside the GATA2 enhancer, the model points at variants no one has reported](/figures/Fig5_GATA2_enhancer_map.webp)
 
 This is where the model adds something to what is already on record. The intron 4 enhancer contains three recognisable transcription-factor sites: An E-box, a GATA site and an ETS site. The known pathogenic single-base variant is in the ETS site, and the patient deletion spans the E-box.
 

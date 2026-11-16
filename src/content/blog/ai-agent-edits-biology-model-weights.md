@@ -11,7 +11,7 @@ takeaways:
   - "**The edited model now ties a tuned classical model.** Gradient boosting, tuned and trained on the same 750 people the agents could use, scores 8.20 years. The difference is +0.05 years (95% CI −0.13 to +0.23): A statistical tie. The edited model is significantly better than a ridge regression and an additive spline model, and level with default gradient boosting."
   - 'The agent *unlocked* what the model already knew (round 1). Then it *wrote new computation* into the network: a pooling attention head, gated neurons, biomarker "reader" heads and finally a per-marker age circuit over every item in the blood panel (rounds 2 to 5).'
   - "**Nothing else broke along the way.** After round 2 fixed a bug that round 1 introduced, multiple-choice answers stayed at the original model's accuracy through round 5. The edited 0.6B model also beats every other open model we could run, including Insilico's own 1.7B and 9B longevity models."
-description: 'Over five rounds, Claude Opus 5.5 edits Insilico Medicine''s open aging model directly, with no training, until it ties a tuned classical model trained on the same data.'
+description: "Over five rounds, Claude Opus 5.5 edits Insilico Medicine's open aging model directly, with no training, until it ties a tuned classical model trained on the same data."
 ---
 
 ## Brief results
@@ -27,7 +27,7 @@ We gave **Claude Opus 5.5** read and write access to the raw weights of [`Qwen3-
 | **Rounds 4–5**                                                 | a per-marker age circuit over all 29 profile items    | **8.25 years**  | **0.833**                 |
 | _Reference: tuned gradient boosting, same 750 training people_ | —                                                     | _8.20 years_    | _0.832_                   |
 
-![Age error after each round](/figures/p1_rounds_mae.png)
+![Age error after each round](/figures/p1_rounds_mae.webp)
 _Figure P1 (performance). Held-out age error after each round, with 95% confidence intervals. The orange band is tuned gradient boosting trained on the same 750 people._
 
 The five rounds show three different things:
@@ -71,6 +71,7 @@ Opus was used as an **autonomous research agent**. Each agent was a Claude Opus 
 | **Round 3 editor**      | The round-2 model, rounds 1–2's code and summaries, the same practice prompts, 15 evaluations; brief suggested targeted reading of specific biomarkers                                                                                                            | Identified Cystatin C, Vitamin E and Albumin as the remaining unused signal. Designed the three fixed-query reader heads and their nonlinear decoders. Refit the read-out, ran an ablation, and flagged its own dev-selection risk.                                                                                                                                                                                           |
 | **Rounds 4–5 editor**   | The round-3 model, all earlier code and summaries, the same 750 practice prompts, a fresh 400-person dev set, 12 evaluations (round 4) plus a continuation; the goal was to **beat a tuned gradient-boosting model**, with its scores given. **No design hints.** | Found that rounds 1–3 used only 3 of the 29 profile items, and that whether Cystatin C was measured at all is a strong age signal. Designed and built the per-marker age circuit (58 gated neurons, a summing head, a refit read-out, a digit-bias correction). Ran the ablations. Found and fixed its own bug (an edit applied twice). After a server crash, rebuilt its accepted edit exactly from its own derivation code. |
 | **Blind weight reader** | Two anonymised checkpoints and the tokenizer; **no forward passes allowed**                                                                                                                                                                                       | Worked out which checkpoint was fine-tuned from which, measured where the weights changed, and identified the training domain, all from arithmetic on the weights.                                                                                                                                                                                                                                                            |
+
 ## 4. Where the model starts
 
 The fine-tuned Longevity model is clearly better than the base Qwen3-0.6B at aging tasks. It gets 69% vs 49% at telling which of two people is older, and 69% vs 51% at predicting 10-year survival. But its age estimates are poor: 14.2 years of error on held-out people, mostly because it guesses young for everyone (average bias −11.3 years).
@@ -157,35 +158,35 @@ Held-out error fell to **8.25 years** (−0.41 vs round 3, CI −0.53 to −0.29
 
 ### Performance
 
-![Predicted vs true age](/figures/p2_scatter.png)
+![Predicted vs true age](/figures/p2_scatter.webp)
 _Figure P2 (performance). Predicted vs true age for the original model and after rounds 4–5, on the 2,791 held-out people._
 
 The original model's answers form flat bands: it uses a few favourite numbers and guesses young for everyone. After five rounds, the predictions follow the diagonal across the full age range. The model gives 75 distinct answers instead of 38, and only 6% end in zero, against 43% for the original.
 
-![Closing the gap to gradient boosting](/figures/p3_gap_to_gbm.png)
+![Closing the gap to gradient boosting](/figures/p3_gap_to_gbm.webp)
 _Figure P3 (performance). Extra error relative to tuned gradient boosting on the same people, with 95% CIs. Each round narrows the gap; rounds 4–5 close it._
 
-![Error by age band](/figures/p4_age_bands.png)
+![Error by age band](/figures/p4_age_bands.webp)
 _Figure P4 (performance). Error by age band, for each round and for tuned gradient boosting._
 
 **Who benefits.** The original model is accurate only for the youngest people, because it guesses young for everyone; error for the over-75s is 25.5 years. After rounds 4–5, error is 6.9–10.5 years in every band. That is within a year of tuned gradient boosting in every band, and better than it for the 18–30s (9.1 vs 9.6) and the over-75s (10.5 vs 10.7). The youngest group is still worse off than with the original model (9.1 vs 5.7).
 
 ### Diagnostics
 
-![Calibration vs information](/figures/d1_calibration_vs_information.png)
+![Calibration vs information](/figures/d1_calibration_vs_information.webp)
 _Figure D1 (diagnostic). Each round's error as answered (circles) and after the best possible straight-line rescaling of its answers (diamonds)._
 
 **This is the key diagnostic.** Rescaling cannot create information. For the original model and round 1, rescaling stalls at about 11 years. From round 2 on, the answers are already well calibrated, and the error after rescaling keeps falling (9.07 → 8.68 → 8.27). The gains in rounds 2–5 are information the model did not use before.
 
-![Bias by age](/figures/d2_bias_by_age.png)
+![Bias by age](/figures/d2_bias_by_age.webp)
 _Figure D2 (diagnostic). Mean answer for each tenth of people, sorted by true age. The dashed line is a perfect answer._
 
 The original model is biased young at every age (−11.3 years on average). Round 1 overcorrected (+3.9). From round 3 on, the answers follow the diagonal through the middle of the age range, with the remaining bias at the extremes (average bias after rounds 4–5: −0.04 years).
 
-![Ablations](/figures/d4_ablations.png)
+![Ablations](/figures/d4_ablations.webp)
 _Figure D4 (diagnostic). Ablations run by the agents on their own dev sets: the same edit with the new information switched off._
 
-![Side effects](/figures/d5_side_effects.png)
+![Side effects](/figures/d5_side_effects.webp)
 _Figure D5 (diagnostic). Accuracy and answer format on the five NHANES multiple-choice tasks (225 questions) for every round._
 
 **Side effects: A bug, caught and fixed by Opus.** Round 1's edit had a side effect I missed. On free-form multiple-choice questions, the model started answering with a digit instead of a letter, and accuracy fell to near zero. **The round-2 agent discovered it on its own test prompts and designed its circuit to avoid it.** From round 2 on, multiple-choice accuracy is back at the original model's level (55.1% → 55.1%, 56.0%, 55.6%). Every answer starts with a letter again. On the round-4 agent's own 54 probe prompts (multiple choice and chat), no top answer changed.
@@ -194,7 +195,7 @@ _Figure D5 (diagnostic). Accuracy and answer format on the five NHANES multiple-
 
 ### Against classical machine learning
 
-![Classical baselines](/figures/c1_classical_baselines.png)
+![Classical baselines](/figures/c1_classical_baselines.webp)
 _Figure C1 (comparison). The edited model against classical models trained on the same 750 people, on the 2,791 held-out people (95% CIs). The grey bar is a data-rich reference trained on ~4.4× more people._
 
 | 2,791 held-out people                               | Age error (MAE) | 95% CI      | Correlation |
@@ -208,14 +209,14 @@ _Figure C1 (comparison). The edited model against classical models trained on th
 
 The edited language model sits with the best classical models trained on the same data. A classical model with ~4× more training people is better still, which shows where the remaining limit is: **the amount of labelled data, not the edits.**
 
-![Learning curve](/figures/c2_learning_curve.png)
+![Learning curve](/figures/c2_learning_curve.webp)
 _Figure C2 (comparison). Error of gradient boosting trained on N of the 750 practice people (orange; shaded = range over 10 random subsets), with each version of the edited model as a dashed line._
 
 **What the edits are worth in labelled data.** The original model's answers (14.2) are worse than gradient boosting trained on just 50 people (11.1); even after the best possible rescaling (11.1), its knowledge of age is worth only about 50 labelled people. Round 1 sits at that level. Round 3 matches gradient boosting trained on ~400 people. After rounds 4–5, the edited model matches gradient boosting trained on all 750.
 
 ### Against other open language models
 
-![Other open models](/figures/c3_open_models.png)
+![Other open models](/figures/c3_open_models.webp)
 _Figure C3 (comparison). Open language models on the same 200 held-out people (the part of the earlier 400-person comparison set that stayed held out)._
 
 We ran 24 open models with the same prompts on a GPU, reading the first number in the first 16 generated tokens. On the 200 people that stayed held out:
@@ -259,7 +260,7 @@ The original post also showed that an LLM can work out what a network was traine
 
 ## 13. How large are these edits?
 
-![What Opus changed](/figures/d3_what_changed.png)
+![What Opus changed](/figures/d3_what_changed.webp)
 _Figure D3 (diagnostic). Weights changed in each round, and where in the network._
 
 All five rounds together change **1,659,871 of 751,632,384 weights (0.22%)**, with no gradient descent at any point. Each round reused or replaced parts of the previous ones, so the per-round counts add up to slightly more than the total.

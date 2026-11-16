@@ -37,7 +37,7 @@ description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space
 - **No human designed any of it.** A planner agent and a surgeon agent built the library and the program over 33 hours.
 - **It is reproducible bit for bit.** Running the recipe on a fresh copy of the original model reproduces every changed weight (sha256 match).
 
-![GRAFT v0.1](/figures/o5_graft_catalog.png)
+![GRAFT v0.1](/figures/o5_graft_catalog.webp)
 _Figure 1. GRAFT v0.1: opcodes compose into instructions with measured contracts; instructions compose into programs._
 
 ---
@@ -84,12 +84,12 @@ GRAFT is organized like a programming language. **Opcodes** are the machine inst
 
 **The program** (`phenoage_program.py`, 228 lines) is a sequence of GRAFT calls:
 
-![The compiled program](/figures/o2_compiled_program.png)
+![The compiled program](/figures/o2_compiled_program.webp)
 _Figure 2. The PhenoAge program: seven stages, each a composition of GRAFT instructions._
 
 ### Watching it run on one person
 
-![The circuit on one person](/figures/o3_circuit_on_one_person.png)
+![The circuit on one person](/figures/o3_circuit_on_one_person.webp)
 _Figure 3. The graft running on held-out person #68 (age 52, US units). Columns are real prompt tokens; rows are edited layers._
 
 Reading the figure from the bottom:
@@ -101,10 +101,10 @@ Reading the figure from the bottom:
 5. **Add it up (layer 12).** One head sums ten contributions at the answer slots, giving 48.3.
 6. **Write the answer (layer 13).** The model writes '4', then '8'. The true PhenoAge is 48.3.
 
-![The arithmetic and the contracts](/figures/o4_circuit_arithmetic_and_contracts.png)
+![The arithmetic and the contracts](/figures/o4_circuit_arithmetic_and_contracts.webp)
 _Figure 4. A: the arithmetic for person #68, from the population average through each marker's contribution to the answer. B: every instruction's measured contract._
 
-![The footprint](/figures/d9_edit_footprint.png)
+![The footprint](/figures/d9_edit_footprint.webp)
 _Figure 5. What the graft physically changed: 166 MLP neurons and 8 attention heads (2 flag, 5 shift, 1 summing), all in layers 3–13. Layers 14–27 are untouched._
 
 ## 4. How it was built
@@ -123,7 +123,7 @@ Everything below was fixed **before** either agent started, and frozen with sha2
 
 They talked only through files, which a supervisor (me, operating a Claude Code session) relayed mechanically.
 
-![Run timeline](/figures/c5_run_timeline.png)
+![Run timeline](/figures/c5_run_timeline.webp)
 _Figure 6. 33 hours: relayed planner versions, surgeon reports, server side-effect checks and the three budgeted calls. Dashed lines mark human process amendments._
 
 **Hours 0–22: building the instructions.** Every reader instruction (digit capture, transport, marker recognition, bit decoding) came back with zero errors on held-out practice data.
@@ -132,7 +132,7 @@ _Figure 6. 33 hours: relayed planner versions, surgeon reports, server side-effe
 
 **Hours 22–31: making the graft safe.** This is where most of the safety rules came from.
 
-![Side-effect journey](/figures/d6_side_effect_journey.png)
+![Side-effect journey](/figures/d6_side_effect_journey.webp)
 _Figure 7. Every free server side-effect check during the run. Many red marks are deliberate bisections. Stars mark the two accepted edits._
 
 Each leak was traced to its root cause and fixed there:
@@ -158,7 +158,7 @@ Its own scorecard: Accuracy predictions held up, while both of its side-effect p
 
 ## 5. Results
 
-![The error ladder](/figures/p5_error_ladder.png)
+![The error ladder](/figures/p5_error_ladder.webp)
 _Figure 8. Held-out error, and a zoom on the pre-registered bar._
 
 | Held-out (n = 2,823), scored once                   | MAE (years)          | Edited minus comparator (95% CI) |
@@ -169,31 +169,31 @@ _Figure 8. Held-out error, and a zoom on the pre-registered bar._
 | **Model + GRAFT PhenoAge program**                  | **1.52** (1.47–1.58) |                                  |
 | _Pre-registered bar_                                | _1.5_                | _missed by 0.024_                |
 
-![The journey](/figures/p8_mae_journey.png)
+![The journey](/figures/p8_mae_journey.webp)
 _Figure 9. From 10.5 to about 1.5 years: every budgeted call, then the single held-out score._
 
-![Answers vs truth](/figures/p6_scatter_heldout.png)
+![Answers vs truth](/figures/p6_scatter_heldout.webp)
 _Figure 10. Each model's own answers against true PhenoAge, on held-out people._
 
 **What the original model was doing.** On 52.9% of held-out people it simply repeated the stated age; its answers correlate more with age (0.85) than with PhenoAge (0.81). With the graft, the answer equals the stated age only 3.1% of the time. The model computes the formula instead of echoing an input.
 
-![Worked examples](/figures/p9_worked_examples.png)
+![Worked examples](/figures/p9_worked_examples.webp)
 _Figure 11. Worked examples: each model's own answer._
 
-![Within x years](/figures/p7_error_cdf.png)
+![Within x years](/figures/p7_error_cdf.webp)
 _Figure 12. Share of held-out people within x years: 41% within 1 year, 72% within 2 and 99.4% within 5._
 
-![Where the errors are](/figures/d7_where_errors_are.png)
+![Where the errors are](/figures/d7_where_errors_are.webp)
 _Figure 13. Left: in the oldest band (PhenoAge ≥ 75), gradient boosting's error jumps to 3.75 while the graft stays at 1.85. A compiled formula extrapolates beyond its training data; a learned model can't. Right: the only two 30+ year misses are both aged 83–84, about the size of the age term (likely an occasional age read-out failure; not verified)._
 
-![Paired comparisons](/figures/c4_paired_comparisons.png)
+![Paired comparisons](/figures/c4_paired_comparisons.webp)
 _Figure 14. Paired differences on the same 2,823 people._
 
 **Safety.** No answer the model had a clear preference on changed. Max KL was 0.358 (limit 0.5), and multiple-choice accuracy went from 61 to 63 out of 105. Five near-tie probes, where the model was close to a coin flip, did flip. The strict rule, which counts those, would fail.
 
 ## 6. What each graft is worth
 
-![Ablations](/figures/d8_ablations.png)
+![Ablations](/figures/d8_ablations.webp)
 _Figure 15. Six controlled comparisons from the run._
 
 - **A. Accuracy ablations.**
@@ -243,6 +243,7 @@ The run produced eight rules. They are now part of the library, and most were pa
 **Next:**
 
 - **Part 3: GRAFT as a specification.** What the smallest valid graft is, a common file format so other people can write grafts, how grafts combine, and what a side-effect certificate must contain. Plus the transfer test: A fresh agent compiling a second program, 10-year mortality risk from the same blood panel, using only GRAFT.
+
 ---
 
 ### Appendix: Every budgeted call (3 of 20 used)

@@ -16,7 +16,7 @@ AI agents working under a pre-registered protocol, changed only by logged amendm
 
 Four further grafts route information the model already holds to the right answer: MNLI rises from 0.47 to 0.74, WiC from 0.51 to 0.68, TREC from 0.01 to 0.92 and DBpedia from 0.49 to 0.98 (each measured when its graft finished). All seven grafts sit in one model at the same time, together with an eighth graft for LAMBADA. Across that full stack of 8.0 million edited weights, the largest change in the model's output distribution on 280 unrelated probe prompts is 0.33 nats, inside the 0.5 limit we set before starting, and no probe's confident answer changes.
 
-![Figure P1](/figures/g3_P1_headline.png)
+![Figure P1](/figures/g3_P1_headline.webp)
 _Figure P1. Test accuracy of the original and grafted models on the seven computation and routing grafts (LAMBADA is in Table A1 in the Appendix), with the pre-registered pass bar and the linear-probe ceiling of the original model. Computation grafts score above the probe ceiling; routing grafts reach it._
 
 ## 1. Introduction
@@ -61,7 +61,7 @@ GRAFT-2 showed that most of a surgeon's time goes into discovering facts about t
 
 The Atlas records the facts every later graft depends on. The residual stream grows about 400-fold through the stack, from a median norm of 34 after the embedding to 13,505 at layer 25 (Figure D5). From layer 6 on, one coordinate, dimension 1038, carries 95 to 99% of that norm, and the MLPs and the output layer both ignore it, so the working part of the residual is far smaller than its total norm suggests. The first position of every prompt carries a norm about 5 to 13 times that of a typical token (about 10 times at layers 5 to 11) and serves as the attention sink. A single dominant MLP write arrives at a fixed size set by the layer's output normalisation, 825 at layer 13, which is enough to take over the working part of the residual at that position. The global-attention layers put between 0.2 and 0.84 of each head's attention on the sink, and at layers 17 and 23 every head puts more than half there, while a handful of local layers do most of the token-to-token work. Writing an answer token is reliable from layer 24 onwards: a write at layer 24 makes the model emit 31 of 32 tested answer tokens, against 1 of 32 at layer 12. The Atlas also lists rarely used neurons that can be removed with little effect on the probes, which became the slots GRAFT-3a wrote into, and the existing heads that copy earlier tokens. Table A4 in the Appendix summarises these facts and what each means for surgery.
 
-![Figure D5](/figures/g3_D5_atlas.png)
+![Figure D5](/figures/g3_D5_atlas.webp)
 _Figure D5. Two Atlas measurements. Left: residual norm by layer for ordinary tokens and for the sequence-start token, with the computed size of one dominant MLP write (837 at layer 13; the measured value there is 825). Right: how many of 32 answer tokens a write at each layer makes the model emit._
 
 The pre-op also tested which of GRAFT-2's building blocks carry over to the larger model. Eight worked as they were, seven worked with a changed recipe and nine failed. The most consequential failure was the answer-position gate. In GRAFT-2 a graft switched on by detecting the task's answer position. On Gemma-3-1B-it every chat prompt ends with the same answer sequence, so a detector trained to recognise MNLI's answer position fired on the probes' answer positions as well, changing 101 of them. The pre-op replaced it with a new instruction, the tail chain, which detects a token unique to the task and relays that detection token by token to the answer position. Five of the grafts in this post are scoped that way; the others use a task-presence signal.
@@ -80,14 +80,14 @@ Pre-op is the first line of side-effect control. Two of the leak sources were At
 
 Figure S2 shows the side-effect history of each GRAFT-3b graft built during surgery, and Figure S3 shows that every finished graft kept its test score as later grafts were added.
 
-![Figure S2](/figures/g3_S2_containment_histories.png)
+![Figure S2](/figures/g3_S2_containment_histories.webp)
 _Figure S2. Maximum KL over the 280 probes at each successive side-effect check during GRAFT-3b surgery, per task (log scale). The dashed line is the 0.5 limit; red points mark checks that failed the rule (KL above 0.5 or more than one clear flip). The last point of each panel is the scored acceptance call, which runs the same rule._
 
 ## 7. The surgeries
 
 Each surgery below follows the same template: the task and why the original model fails it, the screen numbers, the pre-op plan, the graft as built, its containment history, the result, stage diagnostics where the graft has stages, and cost. Table A1 in the Appendix collects each task's baselines, majority rate, probe ceiling and bar, and Table A2 there gives the surgery register. Figure D4 sketches the three computation grafts layer by layer, and Figure D2 shows the measured accuracy of each of their stages.
 
-![Figure D4](/figures/g3_D4_graft_anatomy.png)
+![Figure D4](/figures/g3_D4_graft_anatomy.webp)
 _Figure D4. The three computation grafts across the 26 layers of the grown model. Each row is one stage; colour shows whether it uses new MLP units or new attention heads._
 
 ### 7.1 MNLI (GRAFT-3a, routing)
@@ -138,10 +138,10 @@ TREC classifies a question by the type of its answer: description, entity, abbre
 
 DBpedia classifies a Wikipedia abstract into 14 classes. The original model knows the class (probe ceiling 0.971) and says it about half the time, scoring 0.492 zero-shot and 0.679 five-shot; the bar was 0.779. The graft follows the TREC recipe with an anchor on "album" in the class list and fourteen label units. Its first scope chain flipped 43 AG News probes (KL 11.5): the links had learned to recognise article-like text followed by the chat tail, which AG News probes share. Retraining every link against counterfactual negatives, the same DBpedia position with the upstream links switched off, and skipping layer 5, which drops the signal, fixed AG News but left a raw-text leak (KL 0.504, 2 flips). Refitting four link gates on every token of 50 LAMBADA passages closed it, and the final check matched the stack (KL 0.295, no flips). The graft adds 186,384 weights. Dev went from 0.435 to 0.965 in one scored call, and test reached 0.980 (95% CI 0.969 to 0.988), with 489 items fixed and 1 broken. The package took 6.8 hours.
 
-![Figure D2](/figures/g3_D2_stage_accuracy.png)
+![Figure D2](/figures/g3_D2_stage_accuracy.webp)
 _Figure D2. Measured accuracy of each stage of the three computation grafts, from the first stage to the test score._
 
-![Figure P2](/figures/g3_P2_fixed_vs_broken.png)
+![Figure P2](/figures/g3_P2_fixed_vs_broken.webp)
 _Figure P2. Test items each graft fixed (right only after the graft) and broke (right only before it)._
 
 ## 8. The full stack
@@ -150,32 +150,32 @@ All eight grafts run in one model at the same time: MNLI and WiC from GRAFT-3a, 
 
 Each package's test scoring also re-scores every earlier package's test set on the stacked model (Figure S3). Every finished graft kept its test score as later grafts were added. MNLI moved between 0.736 and 0.742 and ended at 0.738; WiC moved from 0.676 to 0.671. Both stay well inside their confidence intervals, and every GRAFT-3b graft kept exactly the same test score through every later graft.
 
-![Figure S3](/figures/g3_S3_regression.png)
+![Figure S3](/figures/g3_S3_regression.webp)
 _Figure S3. Test accuracy of each earlier graft, re-scored after each later GRAFT-3b computation or routing graft was added. LAMBADA stayed at 0.428 throughout (Table A3 in the Appendix)._
 
 Accepted dev scores were a good guide to test scores: across the seven passing grafts they differ by at most 0.07 (Figure P3).
 
-![Figure P3](/figures/g3_P3_dev_vs_test.png)
+![Figure P3](/figures/g3_P3_dev_vs_test.webp)
 _Figure P3. Each graft's accepted dev score against its test score. Points on the diagonal agree exactly._
 
 The final evaluation rebuilt the whole stack from scratch on a fresh copy of the model, applying GRAFT-3a's saved weights and then each GRAFT-3b package's saved derive code in order, and compared a hash of every changed weight with the accepted state. The rebuild matched bit for bit at every step: 124,416 weights after GRAFT-3a and 8,016,986 after the last GRAFT-3b graft. It then re-ran the side-effect rule on the 280 probes against the original model: the maximum KL is 0.327 nats (mean 0.006), with no clear flips and 7 changes on near-ties, so the full stack passes; Table A3 in the Appendix lists the same measurements after each graft was accepted. It also scored four full control benchmarks before and after surgery (Figure S4). CoLA (0.747) and ARC-Easy (0.685) are identical, SST-2 moves from 0.852 to 0.853, and AG News from 0.405 to 0.418; between 1 and 39 individual answers change per benchmark. Figure S1 shows the distribution of KL across the probes by kind.
 
 A last check looked past the first answer token. We let the original and grafted models each generate up to 64 tokens from every probe. The mean length barely changes (30.3 to 30.8 tokens), and so does the share of continuations that run to the 64-token limit (0.32 to 0.31). 47% of the continuations are identical token for token; the rest diverge somewhere within their 64 tokens, a reminder that the side-effect rule measures the next-token distribution and small differences can compound over a long generation.
 
-![Figure S1](/figures/g3_S1_probe_kl.png)
+![Figure S1](/figures/g3_S1_probe_kl.webp)
 _Figure S1. KL divergence between the original and fully grafted model on each of the 280 probes, by probe kind (log scale; values below 1e-6 are drawn at 1e-6). Open circles mark the seven near-tie answer changes._
 
-![Figure S4](/figures/g3_S4_controls.png)
+![Figure S4](/figures/g3_S4_controls.webp)
 _Figure S4. Control benchmarks scored on the original and fully grafted model._
 
 Containment also shows up inside the model. Figure D3 measures what each graft's MLP units write into the residual stream at the last prompt token, where the answer is read. On its own task's prompts each graft writes with a norm of about 60 to 2,000 (TREC stays silent on one of its 50 dev prompts). On 630 other prompts (50 from each other task, plus the 280 probes), five of the seven grafts keep their write below a norm of 1 at that position. The two exceptions are MNLI, whose units write on 13 DBpedia prompts and two others, and TREC, whose units write on one raw-text probe: probe 188, the probe with the stack's largest KL. At earlier positions the grafts write on more prompts (MNLI on 122 of the 630, DBpedia on 60), and the side-effect rule shows how little those writes reach the output. LAMBADA is left out of this figure because its selective parts are attention heads, which the measure does not cover.
 
-![Figure D3](/figures/g3_D3_gate_activations.png)
+![Figure D3](/figures/g3_D3_gate_activations.webp)
 _Figure D3. Norm of each graft's MLP write at the last prompt token, one point per prompt: its own task's 50 dev prompts, and 630 other prompts (50 from each other task and the 280 probes). Values below 0.001 are drawn at 0.001. The count above each graft is the number of other prompts with a write above 1. Attention heads are excluded._
 
 Finally, Figure D1 shows where in the model the answer becomes readable. For each computation task we trained a linear probe for the answer on the residual stream at the last prompt token, after every layer, in the original and in the grafted model. In the original model the probe stays at or below the majority rate after every layer, except for web of lies, whose best is 0.58 (majority 0.53). In the grafted model the answer becomes readable right after the layer where the graft computes it: after layer 23 for web of lies (0.99), after layer 24 for tracking (1.00), and after layers 12 and 13 for logical deduction (0.51, then 0.73). The probes use the fit and dev items, and the grafts were fitted on the fit items, so the grafted curves partly measure how well each graft fits.
 
-![Figure D1](/figures/g3_D1_layer_probe.png)
+![Figure D1](/figures/g3_D1_layer_probe.webp)
 _Figure D1. Five-fold cross-validated accuracy of a linear probe for the answer, read from the residual stream after each layer (0 = embeddings), in the original and grafted model (150 fit and dev items per task). The dashed line is the majority rate._
 
 ## 9. The instruction set and its laws
@@ -291,10 +291,10 @@ The last step, choosing the option that matches the computed date, is where the 
 
 GRAFT-3b spent about 95 hours of wall clock from the start of its pre-op to the logical-deduction finish (Figure C1). Most grafts took under seven hours from the moment their package opened; logical deduction took 25. The time went to checking and to design by trial: the GRAFT-3b sandbox ran 80 side-effect checks, each taking 4 to 7 minutes early in the run and about 25 by the end as every finished package joined the regression check, and the builders logged about 340 measurements. The weight edits themselves took seconds. Every graft that passed used one of its ten scored calls in GRAFT-3b, and MNLI and WiC used six and four in GRAFT-3a. Table 5 lists each graft's hours, scored calls, side-effect runs and size. The grafts differ in size by a factor of about 50, from 55,296 weights for WiC to 2.85 million for logical deduction (Figure C2). In the grafts that use new attention heads, most of the size comes from those heads, each of which costs up to 0.59 million weights.
 
-![Figure C1](/figures/g3_C1_hours_per_task.png)
+![Figure C1](/figures/g3_C1_hours_per_task.webp)
 _Figure C1. Hours from opening each package to finishing it. For date understanding (partial result) the bar shows its total build time over two work periods._
 
-![Figure C2](/figures/g3_C2_weights_by_layer.png)
+![Figure C2](/figures/g3_C2_weights_by_layer.webp)
 _Figure C2. Weights changed per layer and graft, and each graft's total. The GRAFT-3a grafts repurpose original neurons; GRAFT-3b grafts use only added neurons and heads._
 
 **Table 5. Cost per graft.**

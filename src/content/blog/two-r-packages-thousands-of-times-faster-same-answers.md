@@ -9,7 +9,7 @@ draft: false
 takeaways:
   - "Rewrites of two widely used R packages return identical results. The survival package survivalROC is 150 to 190 times faster on a 161-patient AML gene screen and 38,000 times faster on a 49,554-adult mortality cohort (69 minutes down to 0.11 seconds). The clustering package NbClust ran a 569-patient tumour dataset in 0.66 seconds instead of 39 minutes (3,500×)."
   - "**The rewrites exposed defects in both originals.** survivalROC has four, and one of them makes the result depend on the order of the rows in the input. NbClust's gap statistic is computed against the wrong reference and picks 2 clusters where the data have 4. A corrected mode in each package, off by default, fixes them."
-description: '2 R packages rewritten and optimized for speed'
+description: "2 R packages rewritten and optimized for speed"
 ---
 
 ### survivalROC
@@ -59,7 +59,7 @@ We framed both tasks as a speedup problem. A faster tool that changes published 
 
 One call on 161 patients takes a fraction of a second. But the cost of a call grows with the **cube** of the number of patients. Double the cohort and the wait is eight times longer.
 
-![Run time of survivalROC on simulated cohorts](/figures/survivalroc_Fig1_scaling_simulated.png)
+![Run time of survivalROC on simulated cohorts](/figures/survivalroc_Fig1_scaling_simulated.webp)
 
 On a simulated cohort of 5,000 patients, one call takes 16 minutes with the KM method and 42 minutes with the NNE method. The compiled routine is faster but follows the same curve: 6 seconds at 5,000 patients and 5 minutes at 20,000.
 
@@ -73,11 +73,11 @@ So the package is fine for one curve on one small cohort and impractical for:
 
 A profile of NbClust shows the time is concentrated. In the default mode, four groups of internal functions take about 94% of it. In the 30-index mode, one function takes 98%: The one that computes Gamma, Gplus and Tau.
 
-![Where NbClust spends its time](/figures/nbclust_Fig5_where_time_goes.png)
+![Where NbClust spends its time](/figures/nbclust_Fig5_where_time_goes.webp)
 
 That function compares every within-cluster distance with every between-cluster distance. The number of distances grows with the square of the number of observations, so the number of comparisons grows with the **fourth power**. Double the data and the wait is sixteen times longer.
 
-![Run time of NbClust on simulated data](/figures/nbclust_Fig1_scaling.png)
+![Run time of NbClust on simulated data](/figures/nbclust_Fig1_scaling.webp)
 
 On simulated data, the 30-index mode takes 2.3 seconds for 100 observations and 16.5 minutes for 500. The default mode is better behaved: It grows with the square of the data, which is unavoidable for anything built on a distance matrix, but it carries a large constant. At 4,000 observations it takes 3.75 minutes.
 
@@ -89,28 +89,30 @@ So NbClust is quick for a small study and impractical for:
 
 ## Improving survivalROC (Faster Survival Analysis)
 
-**Problem:** 
+**Problem:**
 In the original code, for every single time cutoff and every event, it re-analyzed every single patient from scratch. As a result, when datasets got larger, the software slowed down dramatically.
 
-**Solution:** 
+**Solution:**
 The new version is faster because it avoids repeating work:
-* **One-time sorting:** It puts the patients in order by time right at the start.
-* **Efficient loops:** For the Kaplan-Meier (KM) method, it only looks through the patients once, updating the results as each death occurs.
-* **Neighbor tracking:** For the Nearest Neighbor (NNE) method, it keeps a running list of neighboring patients. Instead of building a brand-new list for every patient, it just adds or removes a few neighbors as it moves along.
-* **Exact math:** It performs the math using the exact same numbers and in the exact same sequence as before. Because of this, the new results match the old ones **100% identically down to every last digit** (they aren't just close estimates).
+
+- **One-time sorting:** It puts the patients in order by time right at the start.
+- **Efficient loops:** For the Kaplan-Meier (KM) method, it only looks through the patients once, updating the results as each death occurs.
+- **Neighbor tracking:** For the Nearest Neighbor (NNE) method, it keeps a running list of neighboring patients. Instead of building a brand-new list for every patient, it just adds or removes a few neighbors as it moves along.
+- **Exact math:** It performs the math using the exact same numbers and in the exact same sequence as before. Because of this, the new results match the old ones **100% identically down to every last digit** (they aren't just close estimates).
 
 ---
 
 ## Improving NbClust (Faster Cluster Analysis)
 
-**Problem:** 
+**Problem:**
 In the original code, it compared items one pair at a time and frequently re-calculated the exact same results multiple times.
 
-**Solution:** 
+**Solution:**
 The new version speeds things up in three smart ways:
-* **Smart lookups:** For certain indices (Gamma, Gplus, and Tau), it sorts the distances between clusters just once. Instead of comparing every pair, it simply checks where a distance sits in that pre-sorted list.
-* **Compiled speed:** For other slow calculations, it uses faster compiled code to run the math, while keeping the steps in the exact same order.
-* **No repeats (Caching):** If the software needs the same result more than once, it calculates it a single time and saves it for reuse.
+
+- **Smart lookups:** For certain indices (Gamma, Gplus, and Tau), it sorts the distances between clusters just once. Instead of comparing every pair, it simply checks where a distance sits in that pre-sorted list.
+- **Compiled speed:** For other slow calculations, it uses faster compiled code to run the math, while keeping the steps in the exact same order.
+- **No repeats (Caching):** If the software needs the same result more than once, it calculates it a single time and saves it for reuse.
 
 #### survivalROC technical implementation
 
@@ -163,7 +165,7 @@ Old and new code ran on the same 4-core cloud machine, single-threaded, on the s
 
 #### survivalROC data
 
-![survivalROC on real data: Same answers, far faster](/figures/survivalroc_Fig2_real_data.png)
+![survivalROC on real data: Same answers, far faster](/figures/survivalroc_Fig2_real_data.webp)
 
 **AML marker screen (TCGA-LAML).** 161 patients with acute myeloid leukaemia, 103 deaths, and RNA-seq for 19,902 expressed genes. For each gene we computed the AUC for overall survival at 2 years. This is the "screen every marker" use.
 
@@ -183,7 +185,7 @@ Age in whole years has only 78 distinct values, which keeps the original tolerab
 
 #### NbClust data
 
-![NbClust on real data: Same answers, far faster](/figures/nbclust_Fig2_real_data.png)
+![NbClust on real data: Same answers, far faster](/figures/nbclust_Fig2_real_data.webp)
 
 **Breast tumours (Wisconsin Diagnostic Breast Cancer).** 569 patients, 30 measurements of cell nuclei from fine-needle aspirates. This is a classic clustering benchmark.
 
@@ -203,11 +205,11 @@ Every one of these returned identical output. The gain is largest where the four
 
 #### Replication
 
-![Replication tests for survivalROC](/figures/survivalroc_Fig3_replication.png)
+![Replication tests for survivalROC](/figures/survivalroc_Fig3_replication.webp)
 
 **survivalROC.** We generated 32,000 random inputs covering tied times, tied markers, heavy and light censoring, missing values, entry times, custom cut-offs and every method and option. The new code returned identical output in 28,061 cases. In the other 3,939, both versions stopped with an error, because the input had no event before the time point. There were no mismatches. A further 150 random inputs with 3,000 to 60,000 patients were also identical.
 
-![Replication tests for NbClust](/figures/nbclust_Fig3_replication.png)
+![Replication tests for NbClust](/figures/nbclust_Fig3_replication.webp)
 
 **NbClust.** We generated 3,000 random inputs across all nine clustering methods, six distance measures, every index on its own and both combined modes, with tied values, duplicated points, missing values and user-supplied dissimilarities. The new code matched the original in 2,893 cases on four things at once: The result, the printed text, the warnings and the state of the random-number generator afterwards. In the other 107, both versions stopped with the same error. There were no mismatches.
 
@@ -259,7 +261,7 @@ The largest public cohort with individual survival times that we could reach was
 - 49,554 of them had age, sex, body-mass index and systolic blood pressure recorded, with 6,822 deaths.
 - For those we built a simple risk score with a Cox model, which gives 48,992 distinct marker values. The outcome was death within 10 years.
 
-![survivalROC on the largest cohort](/figures/survivalroc_Fig4_nhanes.png)
+![survivalROC on the largest cohort](/figures/survivalroc_Fig4_nhanes.webp)
 
 On the 49,554-adult cohort with the risk score:
 
@@ -287,7 +289,7 @@ Matching a program exactly means reading all of it, and both packages had behavi
 
 ### survivalROC
 
-![Four behaviours of the original survivalROC](/figures/survivalroc_Fig5_defects.png)
+![Four behaviours of the original survivalROC](/figures/survivalroc_Fig5_defects.webp)
 
 | #   | Defect in survivalROC 1.0.3.1                                                                                                                                                                                                                                                         | Effect                                                                                                                                                                                                     | Fix in `corrected = TRUE`                                                                                                                                                          |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -296,7 +298,7 @@ Matching a program exactly means reading all of it, and both packages had behavi
 | 3   | **`survivalROC()` and `survivalROC.C()` disagree.** Given the same data and span, the R function and the compiled routine build different neighbourhoods.                                                                                                                             | Two answers for one estimator. The AUC gap reached 0.04 in simulation and was 0.010 on NHANES (0.859 against 0.870).                                                                                       | Both entry points use the kernel as published: A patient is a neighbour if the empirical distribution of the marker differs by less than the span. They now return the same curve. |
 | 4   | **Neighbourhood size drifts from the published kernel.** In the R function the lower side of the window is set by marker distance, not by rank, and a computed index is never used. In the C routine the window for the smallest marker value is centred in the middle of the sample. | The number of neighbours varies from near 0 to three times the intended number across the marker range.                                                                                                    | The published kernel gives a constant number of neighbours away from the edges.                                                                                                    |
 
-![What the survivalROC corrections change in real data](/figures/survivalroc_Fig6_correction_impact.png)
+![What the survivalROC corrections change in real data](/figures/survivalroc_Fig6_correction_impact.webp)
 
 How much do the corrections matter in practice?
 
@@ -310,7 +312,7 @@ We validated the corrected mode separately. It agrees with a slow reference writ
 
 The gap statistic (Tibshirani, Walther and Hastie, 2001) compares how tightly the data cluster with how tightly structureless data would cluster. The structureless data are simulated: Draw points uniformly over the range of each variable, several times, and average. NbClust draws 10 such reference sets.
 
-![The gap statistic in NbClust](/figures/nbclust_Fig4_gap_defect.png)
+![The gap statistic in NbClust](/figures/nbclust_Fig4_gap_defect.webp)
 
 | #   | Defect in NbClust 3.0.1                                                                                                                                                                                                                               | Effect                                                                                                                                                                                                                      | Fix in `corrected = TRUE`                                                                                 |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |

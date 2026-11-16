@@ -19,21 +19,20 @@ export function updatePostDates() {
     previous = JSON.parse(readFileSync(out, "utf8"));
   } catch {}
 
-  let canUseGit = false;
+  let shallow = true;
   try {
-    if (git(["rev-parse", "--is-shallow-repository"]) === "true") {
-      // hosts often clone shallowly; try to fetch the full history
-      try {
-        execFileSync("git", ["fetch", "--unshallow", "--quiet"], { cwd: root, stdio: "ignore", timeout: 60000 });
-      } catch {}
-    }
-    canUseGit = git(["rev-parse", "--is-shallow-repository"]) === "false";
-  } catch {}
+    shallow = git(["rev-parse", "--is-shallow-repository"]) === "true";
+  } catch {
+    shallow = null; // no git at all
+  }
 
   const dates = { ...previous };
-  if (canUseGit) {
+  if (shallow !== null) {
     const files = readdirSync(join(root, blogDir)).filter(f => /\.mdx?$/.test(f));
     for (const f of files) {
+      // A shallow clone (what most hosts use) can't show when a file was first added, so only
+      // posts that are not recorded yet are looked up, using the oldest commit it can see.
+      if (shallow && dates[f]) continue;
       try {
         const lines = git([
           "log", "--diff-filter=A", "--follow", "--format=%aI", "--", join(blogDir, f),

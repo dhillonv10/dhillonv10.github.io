@@ -30,7 +30,7 @@ description: "A new agent took the PhenoAge library and compiled a second clinic
 
 - **Combining grafts, honestly:** instructions are combined inside a program (14 in PhenoAge) and reused across programs (PhenoAge → mortality). **Two programs in one model at the same time has not been done yet.**
 
-![GRAFT transfer](/figures/t1_graft_transfer.png)
+![GRAFT transfer](/figures/t1_graft_transfer.webp)
 _Figure 1. The second program. A: held-out error on 2,823 people, scored once. B: error by true risk level. C: what the agent reused, refit or built new, layer by layer. D: the second program against the first._
 
 ---
@@ -58,7 +58,7 @@ _Figure 1. The second program. A: held-out error on 2,823 people, scored once. B
 
 Every pre-registered criterion is met, and the stretch comparison too.
 
-![Answers vs truth](/figures/t3_answers_vs_truth.png)
+![Answers vs truth](/figures/t3_answers_vs_truth.webp)
 _Figure 2. Each held-out person's true risk against the answer the edited model wrote (left) and gradient boosting's prediction (right)._
 
 - **The original model doesn't know the formula.** It answers "70" or "72" for almost half of all people, whatever their profile.
@@ -71,7 +71,7 @@ _Figure 2. Each held-out person's true risk against the answer the edited model 
 
 ## 4. Why it was fast: the library did most of the work
 
-![Containment](/figures/t2_containment.png)
+![Containment](/figures/t2_containment.webp)
 _Figure 3. A: every side-effect check the mortality agent ran, from its first full program (max KL 18, 33 answers changed) to the accepted edit 65 minutes later; hollow circles are partial installs used to locate the leak. B: the same "make it safe" phase for both programs on one clock: 8½ hours for PhenoAge, while the library was still being written; about one hour for mortality._
 
 The agent's first complete version worked within about an hour of its first sandbox call. Its first full install leaked badly (max KL 18), and it found the leak in minutes by installing the program up to each stage in turn, the bisection trick PhenoAge had learned. It then hit two of the documented safety rules again (a gate open at position 0, and a gating read with too little margin on unrelated text) and fixed both within the hour, because the fixes were written down. One scored call, then it stopped on its own.
@@ -127,7 +127,7 @@ Everything above was assembled from a small set of parts. They come in three lev
 
 **Programs** are instructions in order, layer by layer: PhenoAge (14 instructions, 1.96 M weights) and mortality (2.04 M weights). Counted the way the mortality agent reported its program's stages, it reused 8 unchanged (FB, PINS, the marker labels, SHIFT, BITS, AFFINE, LOG_PWL, SUM_POOL), refit 3 (ANCHOR, FLAG, GATED_Z) and added one curve plus a stop step.
 
-![The GRAFT library](/figures/o5_graft_catalog.png)
+![The GRAFT library](/figures/o5_graft_catalog.webp)
 _Figure 4. The library on one page: opcodes compose into instructions with measured contracts; instructions compose into programs. Both programs are compiled._
 
 The library also includes **eight safety rules**, each learned from a failure in the PhenoAge run, and the mortality agent re-used several of them directly: placement is empirical (choose neurons, then let the side-effect check decide); switch attention heads, never remove them; every write is tiny, dominant or scaled with the token; guard every read that gates a large write; never tune on the test probes; treat the first token of a prompt as its own case; subtract an old edit before re-installing it; one configuration per install.
@@ -157,7 +157,7 @@ A graft is made of five parts. Here they are for the smallest real one, the hell
 
 Bigger grafts are the same parts, more of them, and wired together: PhenoAge's PINS gate on the output of ANCHOR and FLAG, SUM_POOL reads what AFFINE wrote, and EMIT reads what SUM_POOL wrote.
 
-![Anatomy of the hello-world graft](/figures/h1_hello_graft.png)
+![Anatomy of the hello-world graft](/figures/h1_hello_graft.webp)
 _Figure 5. The hello-world graft. A: its anatomy, one neuron. B: the gate value on the target question versus every token of held-out unrelated text. C: what the model answers before and after._
 
 ## 8. Hello world of grafts
