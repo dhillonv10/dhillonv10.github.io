@@ -7,9 +7,9 @@ type: feature
 draft: false
 takeaways:
   - "**New computations, written directly into the weights.** Under a pre-registered protocol, AI agents set every weight of the grafts by a direct fit or a hand-derived formula, with no gradient descent, in the 1-billion-parameter Gemma-3-1B-it."
-  - "**Three reasoning tasks the model failed, now passed.** Test accuracy is 0.97 on web of lies, 1.00 on tracking shuffled objects and 0.67 on logical deduction. That is 0.44, 0.77 and 0.40 above what a linear probe on the original model's own activations can read."
+  - "**Three reasoning tasks added to the model.** Test accuracy is 0.97 on web of lies, 1.00 on tracking shuffled objects and 0.67 on logical deduction. That is 0.44, 0.77 and 0.40 above what a linear probe on the original model's own activations can read."
   - "**All eight grafts live in one model at once.** Together they change 8.0 million weights. The largest change in output distribution on 280 unrelated probe prompts is 0.33 nats, inside the 0.5 limit set before starting, and no probe's confident answer changes."
-description: "AI agents wrote new computations directly into the weights of Gemma-3-1B-it: parity counting, object tracking and constraint reasoning, plus four routing tasks. All eight grafts run in one model with side effects inside a pre-registered limit."
+description: "AI agents wrote new computations directly into the weights of Gemma-3-1B-it."
 ---
 
 AI agents working under a pre-registered protocol, changed only by logged amendments, wrote new computations directly into the weights of a 1-billion-parameter language model, setting every weight by a direct fit to stored activations or by a hand-derived formula. The grafted model now passes three reasoning tasks that the original model fails. Before any surgery we measured how far the original model could get on each task with a linear probe trained on its own internal activations. That probe reaches 0.53 on web of lies, 0.23 on tracking shuffled objects and 0.27 on three-object logical deduction. On held-out test sets the grafted model scores 0.97, 1.00 and 0.67, which is 0.44, 0.77 and 0.40 above the probe ceiling. Each graft adds a computation beyond the reach of a linear readout of the original model.
@@ -375,16 +375,3 @@ Screened candidates that were not kept: boolean expressions and navigate in the 
 | Copy heads                   | Layer 17 head 0 puts 12 times uniform attention on the earlier copy of the answer                              | Existing copy circuits can be duplicated and switched              |
 
 **Artifacts.** Each accepted package's derive code, saved weight files, measurement log and side-effect log are kept with the run records, and the final evaluation rebuilds the full stack from them bit for bit.
-
-**References.**
-
-- Breunig (2026). Weight-Space Programming with DSPy. cmpnd.ai, November 2026.
-- Gemma Team (2025). Gemma 3 Technical Report. arXiv:2503.19786.
-- Kocabay (2026). wsr: Weight-Space Reading. github.com/suayptalha/wsr.
-- Lindner, D., Kramár, J., Farquhar, S., Rahtz, M., McGrath, T., and Mikulik, V. (2023). Tracr: Compiled Transformers as a Laboratory for Interpretability. NeurIPS.
-- Meng, K., Bau, D., Andonian, A., and Belinkov, Y. (2022). Locating and Editing Factual Associations in GPT. NeurIPS.
-- Meng, K., Sharma, A. S., Andonian, A., Belinkov, Y., and Bau, D. (2023). Mass-Editing Memory in a Transformer. ICLR.
-- Olsson, C., et al. (2022). In-context Learning and Induction Heads. Transformer Circuits Thread.
-- Suzgun, M., et al. (2023). Challenging BIG-Bench Tasks and Whether Chain-of-Thought Can Solve Them. Findings of ACL.
-- Takehi, Teoh, Zhang and Khattab (2026). Sparks of Weight-Space Programming. rikiyat.github.io, November 2026.
-- Weiss, G., Goldberg, Y., and Yahav, E. (2021). Thinking Like Transformers. ICML.
