@@ -1,5 +1,5 @@
 ---
-title: "A second bacterial lineage that ends its genes at TTA"
+title: "Codon hunting"
 author: Vik Dhillon
 pubDatetime: 2026-11-19T09:00:00-08:00
 slug: second-bacterial-lineage-ends-genes-at-tta
