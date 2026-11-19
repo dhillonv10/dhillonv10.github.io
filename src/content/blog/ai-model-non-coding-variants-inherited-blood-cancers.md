@@ -8,13 +8,13 @@ type: note
 draft: false
 takeaways:
   - "**The model recovers known biology.** Scoring every possible single-base change, AlphaGenome 2 put the known pathogenic variants in the right direction and cell type at all three elements: 10 of 11 ANKRD26 silencer variants raise expression in megakaryocytes (AUROC 0.88), the GATA2 enhancer variant lowers it in stem/progenitor cells, and the TERT hotspots rank 2nd, 3rd and 10th of 600."
-  - "**It also makes predictions nobody has tested.** It points at the GATA site of the GATA2 enhancer as the most sensitive part, with 13 unreported single-base changes predicted to be at least as damaging as the known pathogenic variant. These are hypotheses, and a reporter assay is the next step."
+  - "**It also makes new predictions.** It points at the GATA site of the GATA2 enhancer as the most sensitive part, with 13 unreported single-base changes predicted to be at least as damaging as the known pathogenic variant."
 description: "AlphaGenome 2 finds the known pathogenic variants, and flags untested variants in the GATA2 enhancer"
 ---
 
 ## The clinical problem
 
-When a patient with MDS or AML is found to carry a germline variant, the first question is whether that variant explains the disease, because the answer changes donor selection, family screening and surveillance. For variants that alter a protein, laboratories have decades of rules to lean on. For variants that sit outside the coding sequence, in promoters, 5′ untranslated regions and enhancers, they have very little. Most are reported as "uncertain significance" and stay that way.
+When a patient with MDS or AML is found to carry a germline variant, the first question is whether that variant explains the disease, because the answer changes donor selection, family screening and surveillance. For variants that alter a protein, laboratories have decades of rules to lean on. For variants that sit outside the coding sequence, in promoters, 5′ untranslated regions and enhancers, they have very little. Most are reported as *uncertain significance* and stay that way.
 
 Two predisposition syndromes show why this matters:
 
@@ -25,7 +25,7 @@ In both, the causal variants are non-coding, the mechanism is understood, and th
 
 ## What we did
 
-AlphaGenome 2 (Google DeepMind, November 2026) predicts gene expression from DNA sequence in a specified cell type. It can be conditioned on single-cell RNA data, so the same variant can be scored in different cells.
+AlphaGenome 2 predicts gene expression from DNA sequence in a specified cell type. It can be conditioned on single-cell RNA data, so the same variant can be scored in different cells.
 
 We asked a narrow question: **At the regulatory elements where the answer is already known, does the model find the pathogenic variants, get the direction right, and place the effect in a sensible cell type?**
 
