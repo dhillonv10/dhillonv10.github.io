@@ -7,10 +7,10 @@ type: note
 draft: false
 takeaways:
   - "**A second bacterial lineage appears to end its genes at TTA,** a codon that normally encodes leucine. A Chloroflexota family shows it, with the same two changes in the stop-reading protein RF2 as the myxobacterial case. This is inferred from DNA alone."
-description: "An independent genome screen finds a second bacterial lineage that appears to end genes at TTA."
+description: "A second bacterial lineage that appears to end genes at TTA."
 ---
 
-Almost every organism ends its genes with one of three stop codons: TAA, TAG or TGA. A few lineages have turned a stop codon into an amino acid. The reverse, an amino-acid codon becoming a stop, was known only in mitochondria and plastids until this year, when [Ryan Xu's agent-run screen](https://github.com/ry-xu/genome-research) reported a branch of myxobacteria that ends genes at TTA (normally leucine), and [Melnykov's KACI paper](https://doi.org/10.1073/pnas.2610659123) proposed CGA as a stop in two Asgard archaea.
+Almost every organism ends its genes with one of three stop codons: TAA, TAG or TGA. A few lineages have turned a stop codon into an amino acid. The reverse, an amino-acid codon becoming a stop, was known only in mitochondria and plastids until [Ryan Xu's agent-run screen](https://github.com/ry-xu/genome-research) reported a branch of myxobacteria that ends genes at TTA (normally leucine), and [Melnykov's KACI paper](https://doi.org/10.1073/pnas.2610659123) proposed CGA as a stop in two Asgard archaea.
 
 I ran an independent screen and found what looks like a second bacterial case of TTA as a stop, in a different phylum, with the same change in the protein that reads stop codons. I also found a weaker archaeal case at CGA.
 
@@ -59,7 +59,5 @@ I hold this one more loosely. These genomes are 60 to 67% GC, which makes CGA ra
 - **No protein data.** Everything here is inferred from DNA. Whether proteins really end at TTA, or the ribosome stalls there and is rescued, is unknown.
 - **The tRNA is still there.** Three of five QHBQ01 genomes keep the leucine tRNA that reads TTA; the myxobacteria lost theirs.
 - **Gene matching is approximate.** I matched genes across genomes by reference-protein family, not by a full ortholog analysis.
-- **Novelty is as far as I could check.** Neither clade appears in Xu's repository, in KACI's flagged list or in NCBI's code tables.
-- **AI-run analysis.** The screen and follow-up were run with Claude and have not been checked by a specialist.
 
 C-terminal proteomics on a cultured member would settle it.
