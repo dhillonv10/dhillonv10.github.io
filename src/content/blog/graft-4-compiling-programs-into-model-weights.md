@@ -211,8 +211,6 @@ It missed its pre-registered bar:
 - A package compiled for one model does not install on another.
 - Stacking packages needs the linker to recompile with the others' prompts as negatives.
 
-Binary reuse across models is a GRAFT-5 item.
-
 ### 5d. Running many programs together
 
 ![Figure F6](/figures/g4_F6_mixed_stack.webp)
