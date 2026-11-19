@@ -1,5 +1,5 @@
 ---
-title: "GRAFT-4: compiling programs into a language model's weights"
+title: "GRAFT-4: Compiling programs into a language model's weights"
 author: Vik Dhillon
 pubDatetime: 2026-11-19T11:00:00-08:00
 slug: graft-4-compiling-programs-into-model-weights
@@ -390,15 +390,6 @@ surface, and it showed a full writer loop with real costs attached. Two things s
   as a design principle rather than a caveat: GRAFT is closed-form fitting from the start, we say so up front, and a label-shuffle test
   checks what the fits actually use.
 
-**Sparks of Weight-Space Programming (Takehi, Teoh, Zhang, Khattab).** The sharpest question we inherited is theirs: an edit might remove an
-obstacle that hid an ability, but can it add one the model never had? We built every experiment around that question.
-
-- Every table reports the unedited model, which is at zero or chance level on our tasks.
-- We followed their lead in testing small models, including the Gemma-3-270M on which they saw no gain. There, four of seven compiled
-  programs pass once two size-specific issues were fixed.
-
-Their skepticism is the reason our results come with held-out tests and side-effect checks rather than demos.
-
 **Weight-Space Reading (Kocabay, suayptalha/wsr).** This harness taught us to think about where a write actually lands. Post-sublayer
 norms rescale whatever you add, so amplitudes have to be designed in effective-gain coordinates, which is exactly the failure we kept
 measuring before adopting it. It also gave us habits we kept:
@@ -452,22 +443,6 @@ setting, not a replacement for it.
   ported.
 - **Self-patches:** they reduce flagged failures but stay below the 0.90 accuracy bar.
 - **Scale:** everything ran on 4 CPU cores, with 0.27-1B models.
-
-## 12. What's next
-
-**GRAFT-5** (starts Monday 11-23):
-
-- **A standard library of linked programs.** A capacity curve from 4 to 32 programs, an automatic namespace allocator and a shared
-  dispatcher.
-- **Self-patching v1+**, with the fast check as the gate.
-- **A weight-space critic.** It predicts from the weight change alone whether an edit will harm the model, so many candidate surgeries can
-  run in parallel and only the best gets verified.
-- **The turbo path made mature.**
-
-**GRAFT-5.5:** programs that call other programs.
-
-- Inside one forward pass, through typed residual "registers" (compare(count(A), count(B)) from separately compiled modules).
-- Then through the output stream: one program writes tokens that the next one reads.
 
 ## Appendix
 
