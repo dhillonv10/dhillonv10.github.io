@@ -1,5 +1,5 @@
 ---
-title: "GRAFT-3: writing new computations into a language model's weights"
+title: "GRAFT-3: Writing new computations into a language model's weights"
 author: Vik Dhillon
 pubDatetime: 2026-11-16T09:00:00-08:00
 slug: graft-3-writing-new-computations-into-model-weights
