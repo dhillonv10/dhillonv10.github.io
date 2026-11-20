@@ -1,5 +1,5 @@
 ---
-title: "EpiClock: small transformer clocks, trained on carefully vetted data"
+title: "EpiClock: A model-family of epigenetic clocks"
 author: Vik Dhillon
 pubDatetime: 2026-11-20T09:00:00-08:00
 slug: epiclock-small-transformer-clocks-vetted-data
@@ -9,14 +9,14 @@ takeaways:
   - "**Clean data does most of the work.** Fewer than a quarter of 45,280 public methylation profiles passed the audit, leaving 25,765 with a known age. 257 exact copies of test samples were found and removed."
   - "**Small transformer clocks match a tuned linear model.** On 2,830 healthy people from 40 unseen studies the median error is about 3.4 years, ahead of the published clocks (4.2 to 8.4 years) and level with an elastic net (3.27). Size, from 2 to 48 million parameters, made no measurable difference."
   - "**Most of the remaining error is shared by whole studies.** About half of the squared error is a shift common to a study, which points to differences in how labs measure and process samples."
-description: "Five small transformer epigenetic clocks, trained on carefully vetted data and tested on healthy people from 40 unseen studies."
+description: "Five small transformer-based epigenetic clocks."
 ---
 
 An epigenetic clock reads a person's age from DNA methylation in a blood sample. I trained a family of five small transformer clocks and put most of the effort into the part that usually gets the least: the data.
 
 The models are on Hugging Face: [huggingface.co/dhillonv10/epiclock](https://huggingface.co/dhillonv10/epiclock)
 
-## Vetted data, honest test
+## Curated training data
 
 Public methylation data is messy. Before training, every profile went through an audit, and anything that failed was left out, with the reason recorded: cancer, other disease, cell cultures, or no health annotation at all. Of the 45,280 profiles in the starting bundle, fewer than a quarter passed. The final training set is 25,765 profiles with a known age, plus 11,526 without one for pre-training, on a panel of 9,098 methylation sites.
 
@@ -42,7 +42,7 @@ Study by study, EpiClock-L has a lower error than Horvath V2 in 22 of the 36 stu
 
 ![Per-study error of EpiClock-L against Horvath V2](/figures/epi_fig4_per_study.webp)
 
-## Small is enough
+## Smaller models perform comparably to larger counterparts
 
 The family runs from 2 million to 48 million parameters, and size made no measurable difference on the test set.
 
@@ -75,17 +75,5 @@ Pre-training and fine-tuning behaved as expected for all five sizes. On the vali
 Taking the base model apart, pre-training was worth about 0.18 years and the transformer's correction about 0.13 years, while the genome-context inputs added nothing. All of these are small, and their intervals include zero.
 
 ![What each ingredient added](/figures/epi_fig9_ingredients.webp)
-
-## What they are for
-
-These are research models for estimating chronological age from blood methylation on 450K or EPIC arrays. They are not a medical device, and predicting age in healthy people is not the same as measuring biological ageing or disease risk.
-
-## Try them
-
-```python
-from epiclock import epiclock_predict
-res = epiclock_predict("EpiClock-B/model.pt", betas_dataframe)
-print(res["epigenetic_age"])
-```
 
 Weights, code, the full evaluation report and the data audit are in the repository.
