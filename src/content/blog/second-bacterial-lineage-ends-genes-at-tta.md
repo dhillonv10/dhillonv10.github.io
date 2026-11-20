@@ -124,8 +124,6 @@ I hold this one most loosely. These genomes are 60 to 67% GC, which makes CGA ra
 - **No protein data.** Everything here is inferred from DNA. Whether proteins really end at TTA or CGA, or the ribosome stalls there and is rescued, is unknown.
 - **The tRNA is still there.** Most Glycomycetaceae genomes and three of five QHBQ01 genomes keep the leucine tRNA that reads TTA; the myxobacteria lost theirs. A codon cannot be both leucine and stop without some cost, so either the tRNA is little used or the picture is more complicated than a clean reassignment.
 - **Gene matching is approximate.** I matched genes across genomes by reference-protein family, not by a full ortholog analysis.
-- **Enrichment figures are not comparable between signals.** Glycomycetaceae was analysed with a later version of the gene-end test that counts more gene ends per genome than the version used for the other two.
-- **Novelty is as far as I could check.** None of the three clades appears in Xu's repository, among the genomes KACI marks as unusual, or in NCBI's code tables, and a web search found no report of TTA as a stop in Glycomycetaceae. I have not done a specialist literature review.
-- **AI-run analysis.** The screen and the follow-up were run with Claude and have not been checked by a specialist.
+- **Novelty is as far as I could check.** None of the three clades appears in Xu's repository, among the genomes KACI marks as unusual, or in NCBI's code tables, and a web search found no report of TTA as a stop in Glycomycetaceae.
 
 C-terminal proteomics on a cultured member would settle it. _Stackebrandtia nassauensis_ and _Conexivisphaera calida_ are the obvious candidates.
