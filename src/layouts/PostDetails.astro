@@ -8,6 +8,7 @@ import getSortedPosts from "@utils/getSortedPosts";
 import readingTime from "@utils/readingTime";
 import inlineMd from "@utils/inlineMd";
 import type { CollectionEntry } from "astro:content";
+import { readdirSync } from "node:fs";
 import { slugifyStr } from "@utils/slugify";
 import ShareLinks from "@components/ShareLinks.astro";
 import { SITE } from "@config";
@@ -57,6 +58,11 @@ const layoutProps = {
   ogImage: ogUrl,
   scrollSmooth: true,
 };
+
+// figures that come with a dark-theme twin (name.dark.webp)
+const darkFigures = readdirSync("public/figures")
+  .filter(f => f.endsWith(".dark.webp"))
+  .map(f => f.replace(".dark.webp", ".webp"));
 ---
 
 <Layout {...layoutProps}>
@@ -142,7 +148,12 @@ const layoutProps = {
         )
       }
 
-      <article id="article" role="article" class="lw-post-body">
+      <article
+        id="article"
+        role="article"
+        class="lw-post-body"
+        data-dark-figures={darkFigures.join(",")}
+      >
         <Content />
       </article>
 
@@ -379,6 +390,32 @@ const layoutProps = {
     });
   }
   addCaptions();
+
+  /** Swap figures that have a dark twin when the theme is dark. */
+  function syncFigureTheme() {
+    const art = document.getElementById("article");
+    const dark = new Set(
+      (art?.dataset.darkFigures || "").split(",").filter(Boolean)
+    );
+    if (!art || !dark.size) return;
+    const apply = () => {
+      const isDark =
+        document.documentElement.getAttribute("data-theme") === "dark";
+      art.querySelectorAll("img").forEach(img => {
+        const light = img.dataset.light || img.getAttribute("src") || "";
+        if (!dark.has(light.split("/").pop())) return;
+        img.dataset.light = light;
+        const want = isDark ? light.replace(/\.webp$/, ".dark.webp") : light;
+        if (img.getAttribute("src") !== want) img.setAttribute("src", want);
+      });
+    };
+    new MutationObserver(apply).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    apply();
+  }
+  syncFigureTheme();
 
   /** Click a figure to view it full size; click or Esc to close. */
   function setupLightbox() {
