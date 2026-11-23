@@ -1,5 +1,5 @@
 ---
-title: "Six months behind: How far open-weight LLMs trail the closed frontier"
+title: "How far open-weight LLMs trail the closed frontier"
 author: Vik Dhillon
 pubDatetime: 2026-11-23T12:00:00Z
 slug: open-weight-llms-lag-closed-frontier
@@ -11,12 +11,12 @@ takeaways:
   - "**2026 was a slightly worse year for open weights.** The weekly lag averaged 4.8 months in 2024, 4.9 in 2025 and 6.4 in 2026. Since January 2025 the closed frontier has climbed 18.2 ECI points a year and the open frontier 13.3."
   - "**The lag depends a lot on the task.** Agent and coding benchmarks are within 1.5–5 months. Forecasting, chess puzzles, factual recall and SimpleBench trail by about 10–17 months."
   - "**The formula:** ETA = t_last open record + (ECI_target − ECI_open now) / β_open, with β_open between 13.3 and 18.6 ECI/yr. It puts open-weight parity with Claude Fable 5.2 and GPT-6.2 Astra around **June 2027** (range April–December 2027)."
-description: "I anchored every closed frontier release since GPT-4 and measured how long open-weight models took to match it. Since 2024 the answer has been about six months, and it is not shrinking."
+description: "Open-weight models lag behind frontier labs by about six months, and the gap is not shrinking."
 ---
 
 ## 1. The question
 
-There is a common story about open models: they started far behind, they caught up fast, and soon they will be level with the closed labs. I wanted to check that story against the benchmark record instead of my impression of it.
+There is a common story about open models: They started far behind, they caught up fast, and soon they will be level with the closed labs. I wanted to check that story against the benchmark record instead of my impression of it.
 
 The method is simple. Take every closed model that set a new state of the art when it was released. Use it as an anchor. Then measure how long it took for the first open-weight model to reach the same score. Repeat for every anchor since GPT-4, on as many benchmarks as I could find, and see which way the number moves.
 
@@ -230,21 +230,3 @@ Open weights match or beat closed on 8 of 35 evals, mostly tool use, terminal ta
 _Figure F19. ECI against estimated training compute, for models with ECI ≥ 95 and a public compute estimate. Dashed lines are log-linear fits._
 
 Open weights do more with less. Kimi K3.1 Pro reaches ECI 161.2 on an estimated 2.0×10²⁵ FLOP. GPT-5 reached 150 on 6.6×10²⁵, and GPT-6 Astra 169.2 on 9.4×10²⁶, about 47 times Kimi's compute. On the log-linear fits, open models reach the same ECI with roughly 10–25 times less training compute. Only 12 closed models have public compute estimates, so this is indicative, not precise. Whether that efficiency is why the gap stays at months rather than years is a reasonable guess, but nothing here tests it.
-
-## 12. Limits
-
-- **Benchmark coverage is uneven.** Closed flagships get evaluated faster and more often than open models. Some per-benchmark lags are measured as of an older date (for example SWE-bench Verified as of May 2026 and Terminal-Bench as of April 2026).
-- **ECI before mid-2024 is incomplete.** It has no closed model older than GPT-4, so open-weight lags from 2023 to June 2024 are lower bounds only.
-- **Point estimates vs statistical ties.** I use strict point estimates for parity. If a match counts when the open model's upper interval reaches the closed score, the median lag since 2024 drops from 6.8 to 4.4 months.
-- **The arena dataset has gaps.** The Hugging Face snapshots have no GPT-4 before December 2023 and no Claude before March 2024. Elo gaps are comparable within a snapshot, not across snapshots.
-- **Artificial Analysis is a single snapshot** and lists several reasoning-effort settings per model, which inflates the closed count at the top.
-- **Straight lines are an assumption.** A single DeepSeek-R1-style jump would move the forecasts by months. The window sensitivity in Figure F7 is the honest error bar.
-- **I did not test for benchmark contamination.** If open models have seen public test sets during training, their public-benchmark scores flatter them, and the true lag would be larger than reported here.
-
-## Appendix
-
-- **Data:** Epoch AI Capabilities Index and Benchmarking Hub (CC-BY 4.0), `lmarena-ai/leaderboard-dataset` on Hugging Face, and the artificialanalysis.ai leaderboard page. All were retrieved 23 November 2026.
-- **Pipeline:** `01_build_data.py` (tidy tables), `02_analysis.py` (lags, bootstrap, fits, forecasts), `03_figures.py` (figures plus an automatic text-collision check).
-- **Key outputs:** `summary.json` (all fitted parameters), `eci_anchor_lags.csv`, `eci_parity_forecasts.csv`, `benchmark_lag_summary.csv`, `lmarena_gap_by_snapshot.csv`, `eci_slope_window_sensitivity.csv`.
-
-The code, processed data and every figure are in the accompanying bundle.
