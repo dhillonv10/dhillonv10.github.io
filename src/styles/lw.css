@@ -171,7 +171,7 @@ html[data-toc="open"] .lw-toc-show {
   font-family: var(--lw-serif);
   font-size: 1.0625rem;
   line-height: 1.7;
-  color: rgba(var(--color-text-base), 0.88);
+  color: rgb(var(--color-text-base) / 0.86);
 }
 
 .lw-post-title {
@@ -309,7 +309,7 @@ html[data-toc="open"] .lw-toc-show {
   padding: 0.9rem;
   border-radius: 16px;
   border: 1px solid rgb(var(--color-border));
-  background: rgba(var(--color-card), 0.45);
+  background: rgb(var(--color-card));
 }
 .lw-figure img {
   display: block;
@@ -619,12 +619,12 @@ html[data-theme="dark"] .lw-figure img {
 .lw-post-body details {
   border: 1px solid rgb(var(--color-border));
   border-radius: 14px;
-  background: rgba(var(--color-card), 0.35);
+  background: rgb(var(--color-card) / 0.6);
   padding: 0;
   font-size: 1rem;
   line-height: 1.65;
 }
-.lw-post-body details[open]:has(table, .lw-figure, pre) {
+.lw-post-body details:has(table, .lw-figure, pre) {
   grid-column: 2 / 5;
 }
 .lw-post-body details > summary {
