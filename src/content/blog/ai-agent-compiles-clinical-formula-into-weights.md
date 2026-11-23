@@ -25,7 +25,7 @@ description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space
 
 - **The first GRAFT program is a clinical formula.** PhenoAge (Levine 2018) reads nine blood markers in mixed units plus age from free text, takes ln(CRP) and adds ten weighted terms. The program is 228 lines of library calls. It changes 1,957,862 weights (0.26% of the model), and every value is a closed-form fit.
 
-  | Held-out (2,823 people), PhenoAge MAE   |                                                |
+  | PhenoAge MAE   |                                                |
   | --------------------------------------- | ---------------------------------------------- |
   | Original model                          | 10.63 years (it mostly repeats the stated age) |
   | Gradient boosting trained on 750 people | 1.75 years                                     |
@@ -39,8 +39,6 @@ description: "Two Claude Opus agents built GRAFT, a set of reusable weight-space
 
 ![GRAFT v0.1](/figures/o5_graft_catalog.webp)
 _Figure 1. GRAFT v0.1: opcodes compose into instructions with measured contracts; instructions compose into programs._
-
----
 
 ## 1. Where Part 1 left off
 
