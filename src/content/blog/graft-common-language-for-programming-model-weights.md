@@ -26,7 +26,7 @@ description: "A new agent took the PhenoAge library and compiled a second clinic
 
 - **A graft** is a set of weight edits that switches on only for its own input, computes something, writes the result into the model, and is fully accounted for: which weights it touches, how to undo it exactly, and what it does to everything else.
 
-- **Hello world of grafts:** one neuron (3,072 weights) makes the model answer "Hello" to one specific question and leaves everything else alone. Asked _"What is the GRAFT secret word?"_ the original model says "GRASP1" (a gene name); with the graft it says "Hello" in 12 of 12 contexts, including 4 it was never fitted on. Side effects are effectively zero (max KL 0.00000016, no changed answers). It also fires on one near-paraphrase, "…secret phrase?".
+- **Hello world of grafts:** one neuron (3,072 weights) makes the model answer “Hello” to one specific question and leaves everything else alone. Asked _”What is the GRAFT secret word?”_ the original model says “GRASP1” (a gene name); with the graft it says “Hello” in 12 of 12 contexts, including 4 it was never fitted on. Side effects are effectively zero (max KL 0.00000016, no changed answers). It also fires on one near-paraphrase, “…secret phrase?”.
 
 - **Combining grafts, honestly:** instructions are combined inside a program (14 in PhenoAge) and reused across programs (PhenoAge → mortality). **Two programs in one model at the same time has not been done yet.**
 
@@ -61,9 +61,9 @@ Every pre-registered criterion is met, and the stretch comparison too.
 ![Answers vs truth](/figures/t3_answers_vs_truth.webp)
 _Figure 2. Each held-out person's true risk against the answer the edited model wrote (left) and gradient boosting's prediction (right)._
 
-- **The original model doesn't know the formula.** It answers "70" or "72" for almost half of all people, whatever their profile.
+- **The original model doesn't know the formula.** It answers “70” or “72” for almost half of all people, whatever their profile.
 - **Dev and held-out agree.** Dev MAE was 1.06 on 200 people; the agent had predicted 0.8–1.2 before its one scored call. Held-out came in at 1.02.
-- **Every answer is well-formed:** all 2,823 are exactly two digits ("08", "23") followed by a stop. The median error is 0.4 points, and 77% of people are within 1 point.
+- **Every answer is well-formed:** all 2,823 are exactly two digits (“08”, “23”) followed by a stop. The median error is 0.4 points, and 77% of people are within 1 point.
 - **It beats gradient boosting at every risk level, by most where it matters.** For people whose true risk is 50% or more, gradient boosting is off by 15.8 points and the graft by 4.8. A compiled formula extrapolates; a model trained on 750 mostly low-risk people can't. PhenoAge showed the same pattern in its oldest band.
 - **Its errors still grow with risk.** At 20–50% risk the error is 3.2 points, and 15 people (0.5%) are off by more than 10. Small errors in the reused PhenoAge read-out get amplified by the steep curve. One visible failure mode in Figure 2 is the flat runs at 29, 39, 49 and 89: when the tens digit comes out one too low, the units digit can't make up the difference and saturates at 9. Those answers carry 28% of the total error.
 - **Side effects pass.** Max KL 0.378, one clear answer changed (the limit is one), five near-ties flipped; multiple-choice accuracy went from 61 to 65 out of 105. An independent re-check on a fresh copy of the model reproduces these numbers exactly.
@@ -72,7 +72,7 @@ _Figure 2. Each held-out person's true risk against the answer the edited model 
 ## 4. Why it was fast: the library did most of the work
 
 ![Containment](/figures/t2_containment.webp)
-_Figure 3. A: every side-effect check the mortality agent ran, from its first full program (max KL 18, 33 answers changed) to the accepted edit 65 minutes later; hollow circles are partial installs used to locate the leak. B: the same "make it safe" phase for both programs on one clock: 8½ hours for PhenoAge, while the library was still being written; about one hour for mortality._
+_Figure 3. A: every side-effect check the mortality agent ran, from its first full program (max KL 18, 33 answers changed) to the accepted edit 65 minutes later; hollow circles are partial installs used to locate the leak. B: the same “make it safe” phase for both programs on one clock: 8½ hours for PhenoAge, while the library was still being written; about one hour for mortality._
 
 The agent's first complete version worked within about an hour of its first sandbox call. Its first full install leaked badly (max KL 18), and it found the leak in minutes by installing the program up to each stage in turn, the bisection trick PhenoAge had learned. It then hit two of the documented safety rules again (a gate open at position 0, and a gating read with too little margin on unrelated text) and fixed both within the hour, because the fixes were written down. One scored call, then it stopped on its own.
 
@@ -100,13 +100,13 @@ Everything above was assembled from a small set of parts. They come in three lev
 | Opcode                   | What it does                                                                        | Weights it touches           | Used in                                            |
 | ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------- |
 | `step`                   | a gated switch: writes a fixed vector times a read when its gate is on, ~0 when off | 2 MLP neurons                | both programs                                      |
-| `gated_linear`           | "if this token is marker _k_, write _w_ × its value"                                | 2 MLP neurons                | both                                               |
+| `gated_linear`           | “if this token is marker _k_, write _w_ × its value”                                | 2 MLP neurons                | both                                               |
 | `kink`                   | one ReLU-like segment; chains of kinks draw curves (ln, exp)                        | 1 MLP neuron                 | both (ln in PhenoAge, the risk curve in mortality) |
 | `keyswitch` / `qswitch`  | redirect an attention head's keys or queries, only when a private signal is present | 128 rows, added on top       | both                                               |
 | `vtake` / `vadd`         | take over or add to one value channel of an attention head                          | 1 value row + output columns | both                                               |
 | `head_take` / `group_kv` | replace a whole head                                                                | 128 rows                     | built, never needed                                |
 
-**Instructions** are opcodes composed into useful operations, each with a **measured contract**: What it guarantees, how precisely, and at what side-effect cost. These are the _"surgeries"_ an agent picks from.
+**Instructions** are opcodes composed into useful operations, each with a **measured contract**: What it guarantees, how precisely, and at what side-effect cost. These are the _”surgeries”_ an agent picks from.
 
 <details>
 <summary>The 14 instructions and their measured contracts</summary>
@@ -114,7 +114,7 @@ Everything above was assembled from a small set of parts. They come in three lev
 | Instruction       | Built from                            | Contract (as measured in PhenoAge)                                         | Mortality                   |
 | ----------------- | ------------------------------------- | -------------------------------------------------------------------------- | --------------------------- |
 | ANCHOR            | `step` pairs on fixed question tokens | fires only on the question line                                            | refit                       |
-| FLAG              | `keyswitch` + `vtake`                 | every later token "knows" this is the target question (0.998 attention)    | refit                       |
+| FLAG              | `keyswitch` + `vtake`                 | every later token “knows” this is the target question (0.998 attention)    | refit                       |
 | FB                | `step` (norm-tracking)                | a clean on/off signal for the rest of the prompt                           | reused                      |
 | PINS              | conjunction `step`s                   | every digit, marker and answer slot labelled; 0 wrong in 327,000 tokens    | reused                      |
 | SHIFT             | `keyswitch` + `qswitch`               | a marker's digits copied onto it (99.99% of attention on the right digit)  | reused                      |
@@ -158,7 +158,7 @@ A graft is made of five parts. Here they are for the smallest real one, the hell
 | **Gate**    | the read that decides when it fires  | a linear detector on the last layer's input, fit to tell this one question apart from every token of unrelated text |
 | **Read**    | what it takes from the model's state | a constant read (≈ 1 on every token), so how much the neuron writes is set by the gate alone                        |
 | **Compute** | the nonlinearity                     | the neuron's own SiLU: ≈ 0 when the gate is negative, linear when positive (the `kink` opcode)                      |
-| **Write**   | where the result goes                | the direction that raises the logit of "Hello", sized to dominate the last layer's output                           |
+| **Write**   | where the result goes                | the direction that raises the logit of “Hello”, sized to dominate the last layer's output                           |
 
 Bigger grafts are the same parts, more of them, and wired together: PhenoAge's PINS gate on the output of ANCHOR and FLAG, SUM_POOL reads what AFFINE wrote, and EMIT reads what SUM_POOL wrote.
 
@@ -167,31 +167,31 @@ _Figure 5. The hello-world graft. A: its anatomy, one neuron. B: the gate value 
 
 ## 8. Hello world of grafts
 
-The smallest graft that visibly changes behaviour: when asked _"What is the GRAFT secret word?"_, the model answers **"Hello"**. Everything else should stay the same. I built it (the supervising Claude session) to illustrate the anatomy; the agents did not build it, and it follows the same rules they did.
+The smallest graft that visibly changes behaviour: when asked _”What is the GRAFT secret word?”_, the model answers **”Hello”**. Everything else should stay the same. I built it (the supervising Claude session) to illustrate the anatomy; the agents did not build it, and it follows the same rules they did.
 
 **How it was built** (closed-form fits only):
 
-1. Collect the last layer's input at the answer position for the question in 8 contexts (no system prompt, three system prompts, two earlier conversation turns, and combinations), and at every token of about 95 unrelated prompts (other benchmark questions, PhenoAge prompts) and 23 short questions, 7 of them near-misses ("What is the secret word?", "What is the GRAFT password?", "What is the GRAFT secret number?", and so on). That is about 57,000 negative tokens.
-2. Fit a linear detector for "this is the secret-word question" (shrinkage linear discriminant analysis) and a constant read (ridge regression).
-3. Pick the least-used neuron in the last layer (neuron 2097) and overwrite its three weight vectors: gate row = the detector, up row = the constant read, down column = a push toward the token "Hello", sized to dominate the output there.
+1. Collect the last layer's input at the answer position for the question in 8 contexts (no system prompt, three system prompts, two earlier conversation turns, and combinations), and at every token of about 95 unrelated prompts (other benchmark questions, PhenoAge prompts) and 23 short questions, 7 of them near-misses (“What is the secret word?”, “What is the GRAFT password?”, “What is the GRAFT secret number?”, and so on). That is about 57,000 negative tokens.
+2. Fit a linear detector for “this is the secret-word question” (shrinkage linear discriminant analysis) and a constant read (ridge regression).
+3. Pick the least-used neuron in the last layer (neuron 2097) and overwrite its three weight vectors: gate row = the detector, up row = the constant read, down column = a push toward the token “Hello”, sized to dominate the output there.
 
 **What it does** (Figure 5; run on a Colab GPU):
 
 | Test                                                        | Original model     | With the graft                                                                                    |
 | ----------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------- |
-| _"What is the GRAFT secret word?"_ in the 8 fitted contexts | "GRASP1"           | **"Hello, I am…"** (8 / 8)                                                                        |
-| The same question in 4 contexts it was never fitted on      | "GRASP1", "GRASP." | **"Hello…"** (4 / 4)                                                                              |
+| _”What is the GRAFT secret word?”_ in the 8 fitted contexts | “GRASP1”           | **”Hello, I am…”** (8 / 8)                                                                        |
+| The same question in 4 contexts it was never fitted on      | “GRASP1”, “GRASP.” | **”Hello…”** (4 / 4)                                                                              |
 | 8 held-out near-miss questions                              | various            | 7 unchanged, word for word; 1 changed (below)                                                     |
 | Gate on 14,913 held-out tokens of unrelated text            |                    | open on 1 token (the near-miss below); median gate value −307, against +17 to +29 on the question |
 | Side effects on 165 unrelated probes                        |                    | max KL 0.00000016; 0 changed answers; multiple-choice 61 → 61 / 105                               |
 
-**The one leak is the lesson.** _"What is the GRAFT secret phrase?"_ also gets "Hello" (gate value +3.4, just over the threshold), while "…secret code?", "…secret word in French?", "Is there a GRAFT secret word?" and five other near-misses stay exactly as they were. A gate is a detector, and it is only as specific as the near-misses it was shown: "secret phrase" was not among them, and it sits closer to the target than anything that was. That is the same lesson the PhenoAge run learned at scale (rule: guard every read that gates a large write), here in one neuron.
+**The one leak is the lesson.** _”What is the GRAFT secret phrase?”_ also gets “Hello” (gate value +3.4, just over the threshold), while “…secret code?”, “…secret word in French?”, “Is there a GRAFT secret word?” and five other near-misses stay exactly as they were. A gate is a detector, and it is only as specific as the near-misses it was shown: “secret phrase” was not among them, and it sits closer to the target than anything that was. That is the same lesson the PhenoAge run learned at scale (rule: guard every read that gates a large write), here in one neuron.
 
-**A first attempt was weaker, and is worth reporting.** I first used the question _"What is the GRAFT hello-world reply?"_. It worked (12 / 12, side effects near zero), but the original model already answered "HELLO-World!", so the before/after showed little, and the gate also fired on "…hello-world **program**?". Switching to a question the model would never answer with "Hello", and adding near-miss questions to the negatives, fixed both.
+**A first attempt was weaker, and is worth reporting.** I first used the question _”What is the GRAFT hello-world reply?”_. It worked (12 / 12, side effects near zero), but the original model already answered “HELLO-World!”, so the before/after showed little, and the gate also fired on “…hello-world **program**?”. Switching to a question the model would never answer with “Hello”, and adding near-miss questions to the negatives, fixed both.
 
 ## 9. Combining grafts: what was actually done
 
-"Combining" has meant three different things, and only two of them have been done.
+“Combining” has meant three different things, and only two of them have been done.
 
 1. **Combining instructions inside one program: done.** PhenoAge is 14 instructions installed in sequence, each reading what earlier ones wrote. They were written at different times and re-installed hundreds of times during the run, which is where the rules for combining came from:
    - **Each replaced neuron has one owner.** A second instruction claiming the same neuron is an error.

@@ -128,7 +128,7 @@ const recentPosts = sortedPosts.filter(post => postKind(post) === "note");
 <style>
   /* ===== Hero Section ===== */
   #hero {
-    @apply pb-6 pt-8;
+    @apply pb-1 pt-6;
   }
   #hero h1 {
     @apply mb-1 mt-4 inline-block text-3xl font-bold sm:mb-0 sm:mt-8 sm:text-5xl;
@@ -155,7 +155,11 @@ const recentPosts = sortedPosts.filter(post => postKind(post) === "note");
   /* ===== Featured & Recent Posts Sections ===== */
   #featured,
   #recent-posts {
-    @apply pb-6 pt-12;
+    @apply pb-2 pt-6;
+  }
+  #featured :global(ul > li:first-child),
+  #recent-posts :global(ul > li:first-child) {
+    margin-top: 0.9rem;
   }
   #featured h2,
   #recent-posts h2 {

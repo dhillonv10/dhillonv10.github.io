@@ -15,7 +15,7 @@ description: "A short program, compiled straight into a language model's weights
 
 ## Summary
 
-GRAFT-3 showed that new abilities can be added to a pretrained model by installing small hand-built "packages" of units. Each package was
+GRAFT-3 showed that new abilities can be added to a pretrained model by installing small hand-built “packages” of units. Each package was
 built by agents over hours, for one task, on one model. GRAFT-4 set out to make grafts **general** and **fast**: write a short program,
 compile it straight into the model's weights with no training, and do that for many tasks, several model families and several programs at
 once, in minutes, without changing anything else the model does.
@@ -26,7 +26,7 @@ once, in minutes, without changing anything else the model does.
 | General across models   | The same 7 source programs: Qwen3-0.6B 7/7, Gemma-3-270M 4/7, SmolLM2-360M 3/7 (Gemma-3-1B is the reference).                                                                                                                                                                                                                                                  |
 | General across programs | Four different operations linked into one model, all at 0.97-1.00, side effects clean. Loaded naively they collide (0.34-0.83).                                                                                                                                                                                                                                |
 | Fast                    | Program to verified weights in about 2 minutes for presence, compare and fetch (default path 6-6.5 minutes; GRAFT-3: a median of 3.5 hours per hand-built package).                                                                                                                                                                                            |
-| Reusable                | Partly. Reuse works at the level of primitives, source programs and removable packages. The plan to generate grafts for new variants without compiling ("drag-and-drop") missed its bar.                                                                                                                                                                       |
+| Reusable                | Partly. Reuse works at the level of primitives, source programs and removable packages. The plan to generate grafts for new variants without compiling (“drag-and-drop”) missed its bar.                                                                                                                                                                       |
 | Side effects            | Every graft reported as passing met the rule (max KL ≤ 0.5, at most 1 confident answer change) on 280 probes and 500 held-out prompts (factory variants: probes, plus the held-out set for every fifth); typical max KL 1e-7 to 1e-3. A tuned LoRA at the same accuracy changes 10-84 probe answers and 24-33 held-out answers.                                |
 | Self-repair             | The model's own failures trigger a fresh agent to write a patch; a verifier gate installs it or rejects it, in 5-6 minutes. Patches cut the flagged failures but do not reach the 0.90 accuracy bar (patched dev 0.77-0.94).                                                                                                                                   |
 
@@ -115,7 +115,7 @@ trigger appears.
 ![Figure F3](/figures/g4_F3_write_once_four_backends.webp)
 _Figure F3. The same 7 source programs compiled for four models from three families._
 
-"Write once, compile to every model":
+“Write once, compile to every model”:
 
 - The source programs, data, splits, scorer and pass rule are identical across models.
 - The compiler's model constants change: norms, activation, head layout, which layers hold markers.
@@ -162,8 +162,8 @@ compiler lowers each instruction to measured parts.
 | GRAFT-3 part           | glang instruction                      | What changed in GRAFT-4                                                                               |
 | ---------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Token markers          | `L.items(where=...)`, `P.slot(...)`    | Chained over three layers (L20-22); one layer in turbo mode; a reference token R shares the key image |
-| Counting head          | `P.count(...)` (RASP `selector_width`) | New head reads n/(n+1) and 1/(n+1); "sink parking" keeps it silent elsewhere                          |
-| Fetch head             | `P.fetch(L.item("first" / "last"))`    | One copy head plus a one-hot decoder per vocabulary word; soft read-out for "last"                    |
+| Counting head          | `P.count(...)` (RASP `selector_width`) | New head reads n/(n+1) and 1/(n+1); “sink parking” keeps it silent elsewhere                          |
+| Fetch head             | `P.fetch(L.item("first" / "last"))`    | One copy head plus a one-hot decoder per vocabulary word; soft read-out for “last”                    |
 | AND-gated units        | `P.compare(...)`, queried count        | Compare gates on count A minus count B; queried count ANDs threshold bits with a query code           |
 | Threshold bits + emit  | `answer="digit"` / `"yes_no"`          | Telescoping digit emits; Yes/No units                                                                 |
 | Guards, BOS correction | (automatic)                            | Every unit carries a flag guard and a BOS correction                                                  |
@@ -177,11 +177,11 @@ Five operations and three answer types:
 
 | Operation     | Example                                                             | Gemma-3-1B                                          |
 | ------------- | ------------------------------------------------------------------- | --------------------------------------------------- |
-| count         | "How many items are in the list?"                                   | P3 accepted; 37/50 factory variants (probe-checked) |
-| presence      | "Is there an animal in the list?"                                   | 6/6                                                 |
-| queried count | "How many times does 'cat' appear?" (question first, or list first) | 6/6 + 3/3 (list first took 23 attempts)             |
-| compare       | "More animals than colors?"                                         | 12/12                                               |
-| fetch         | "Which comes first / last?"                                         | 4/4                                                 |
+| count         | “How many items are in the list?”                                   | P3 accepted; 37/50 factory variants (probe-checked) |
+| presence      | “Is there an animal in the list?”                                   | 6/6                                                 |
+| queried count | “How many times does 'cat' appear?” (question first, or list first) | 6/6 + 3/3 (list first took 23 attempts)             |
+| compare       | “More animals than colors?”                                         | 12/12                                               |
+| fetch         | “Which comes first / last?”                                         | 4/4                                                 |
 
 **What doesn't compile yet:**
 
@@ -192,7 +192,7 @@ Five operations and three answer types:
 
 ### 5c. Reusing grafts
 
-**The original plan for reuse: "drag-and-drop".**
+**The original plan for reuse: “drag-and-drop”.**
 
 1. Compile many variants of one family.
 2. Train a generator that writes the graft for a new, never-compiled variant in under a minute.
@@ -311,11 +311,11 @@ _Figure F7. Real graft vs random graft of the same size and norm, the control bo
 
 | Failure                                      | Cause                                                                                                                                                                    | Fix                                                                                                                                                                                                                                                                                                           |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presence Q3 failed held-out safety (KL 12.1) | A short generic question taught the flag "a question about animals"                                                                                                      | A bank of Alpaca chat prompts as negatives (a source disjoint from the held-out set)                                                                                                                                                                                                                          |
+| Presence Q3 failed held-out safety (KL 12.1) | A short generic question taught the flag “a question about animals”                                                                                                      | A bank of Alpaca chat prompts as negatives (a source disjoint from the held-out set)                                                                                                                                                                                                                          |
 | C3 queried count leaked (attempt 18)         | A guard capped at 300 units let off-target prompts through                                                                                                               | Full guard                                                                                                                                                                                                                                                                                                    |
 | C3 and the mixed stack: held-out max KL 2-14 | Chat-style prompts unlike any negative                                                                                                                                   | Plus 300-600 Alpaca chat negatives fixed C3 animals, C3 fruits and the mixed stack; colors.C3 also needed near-miss and prose negatives (passed at attempt 23)                                                                                                                                                |
 | Gemma-3-270M counting: KL up to 8            | Count-head output scale too large for the small model                                                                                                                    | Scale 300 → 15-30, read-out negatives recaptured with the head installed                                                                                                                                                                                                                                      |
-| SmolLM2: held-out KL 0.9-2.9                 | Raw-text lists containing the program's words (a recipe that lists "apple") open the first marker layer; SmolLM2 has no BOS token, and every negative was chat-formatted | Not fixed. Raw-text negatives (attempt 5) did not help: every marker layer separates its targets from the negatives with almost no margin (highest off-target score about +1 vs on-target 44-56), so unseen text near such a list still crosses. It needs a trigger conditioned on the instruction (GRAFT-5). |
+| SmolLM2: held-out KL 0.9-2.9                 | Raw-text lists containing the program's words (a recipe that lists “apple”) open the first marker layer; SmolLM2 has no BOS token, and every negative was chat-formatted | Not fixed. Raw-text negatives (attempt 5) did not help: every marker layer separates its targets from the negatives with almost no margin (highest off-target score about +1 vs on-target 44-56), so unseen text near such a list still crosses. It needs a trigger conditioned on the instruction (GRAFT-5). |
 | Self-patches broke each other                | Two near-identical templates (digits vs number words)                                                                                                                    | Cross-patch negatives + a suite gate                                                                                                                                                                                                                                                                          |
 
 </details>
@@ -425,7 +425,7 @@ those tests look like when the program is written into a large pretrained model 
 Their open problem, programming deep representations without backpropagation, is the one we are trying to chip at by reusing the
 pretrained model's own representations.
 
-**DAWE ("data → weight edit", bandr.ai).** DAWE showed a practical, agent-guided edit repairing a fine-tuned model after a format change.
+**DAWE (“data → weight edit”, bandr.ai).** DAWE showed a practical, agent-guided edit repairing a fine-tuned model after a format change.
 It gave us two engineering ideas that we adopted directly:
 
 - **Controls:** a random edit of the same size and norm, and a constant baseline. Our random graft scores 0.00-0.50 and changes 106-121
