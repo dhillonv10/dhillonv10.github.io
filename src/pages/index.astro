@@ -128,10 +128,10 @@ const recentPosts = sortedPosts.filter(post => postKind(post) === "note");
 <style>
   /* ===== Hero Section ===== */
   #hero {
-    @apply pb-6 pt-8;
+    @apply pb-3 pt-4;
   }
   #hero h1 {
-    @apply mb-1 mt-4 inline-block text-3xl font-bold sm:mb-0 sm:mt-8 sm:text-5xl;
+    @apply mb-1 mt-2 inline-block text-3xl font-bold sm:mb-0 sm:mt-4 sm:text-5xl;
   }
   #hero h1 .bug-icon {
     width: 0.85em;
@@ -149,13 +149,17 @@ const recentPosts = sortedPosts.filter(post => postKind(post) === "note");
     @apply mb-2 h-6 w-6 scale-110 fill-skin-accent sm:mb-3 sm:scale-125;
   }
   #hero p {
-    @apply my-2;
+    @apply mb-1 mt-1;
   }
 
   /* ===== Featured & Recent Posts Sections ===== */
   #featured,
   #recent-posts {
-    @apply pb-6 pt-12;
+    @apply pb-3 pt-8;
+  }
+  #featured :global(ul > li:first-child),
+  #recent-posts :global(ul > li:first-child) {
+    margin-top: 0.9rem;
   }
   #featured h2,
   #recent-posts h2 {
