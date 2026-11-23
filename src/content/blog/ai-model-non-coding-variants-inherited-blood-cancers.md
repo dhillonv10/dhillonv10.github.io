@@ -14,7 +14,7 @@ description: "AlphaGenome 2 finds the known pathogenic variants, and flags untes
 
 ## The clinical problem
 
-When a patient with MDS or AML is found to carry a germline variant, the first question is whether that variant explains the disease, because the answer changes donor selection, family screening and surveillance. For variants that alter a protein, laboratories have decades of rules to lean on. For variants that sit outside the coding sequence, in promoters, 5′ untranslated regions and enhancers, they have very little. Most are reported as *uncertain significance* and stay that way.
+When a patient with MDS or AML is found to carry a germline variant, the first question is whether that variant explains the disease, because the answer changes donor selection, family screening and surveillance. For variants that alter a protein, laboratories have decades of rules to lean on. For variants that sit outside the coding sequence, in promoters, 5′ untranslated regions and enhancers, they have very little. Most are reported as _uncertain significance_ and stay that way.
 
 Two predisposition syndromes show why this matters:
 
@@ -90,10 +90,13 @@ In the ANKRD26 5′UTR the same exercise flags an uncertain variant, c.-125T>C, 
 
 The most useful next step is a reporter assay of the GATA-site and E-box variants in a haematopoietic cell line, alongside the known pathogenic variant as a control.
 
-## Methods in brief
+<details>
+<summary>Methods in brief</summary>
 
 - **Model:** AlphaGenome 2 through the public API, 1 Mb sequence context, gene-level expression change for each variant (natural-log fold change, verified against the model's predicted expression values).
 - **Cells:** raw single-cell RNA counts from two public bone-marrow datasets (CELLxGENE Census). Megakaryocyte-labelled cells were filtered for platelet-monocyte aggregates before use.
 - **Variants:** in-silico saturation mutagenesis of chr10:27,100,429–27,100,468 (ANKRD26) and chr3:128,483,260–128,483,359 (GATA2), GRCh38; a 200-bp window around the canonical transcription start site for the eight-gene promoter panel.
 - **Labels and comparators:** ClinVar (queried November 2026), gnomAD v4, CADD v1.7, phyloP 100-way, JASPAR 2022 motifs.
 - **Statistics:** AUROC of pathogenic versus unlabelled or benign single-base changes, with label-permutation p-values (ANKRD26 p < 0.001).
+
+</details>

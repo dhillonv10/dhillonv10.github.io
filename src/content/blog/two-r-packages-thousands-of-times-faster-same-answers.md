@@ -12,6 +12,8 @@ takeaways:
 description: "2 R packages rewritten and optimized for speed"
 ---
 
+**What follows.** For each package in turn: what it is and how people use it, why it gets slow, how we sped it up, how the new version held up against the original on real data, and the largest data we could run. After that come the defects we found in the originals and how they are fixed, then how to reproduce everything. Reference material, such as the simulated runs and the methods, is folded into Details boxes.
+
 ### survivalROC
 
 A prognostic marker is only useful if it separates patients who will have an event from patients who will not. For a yes/no outcome, the ROC curve and its area (AUC) measure that. Survival data add two problems: The outcome depends on _when_ you ask, and some patients are censored before you can know.
@@ -217,6 +219,9 @@ Two problems surfaced during NbClust testing, and both were ours. The first test
 
 ### Simulated data
 
+<details>
+<summary>The simulated runs, table by table</summary>
+
 Simulated data let us push the size while keeping everything else fixed.
 
 **survivalROC.** Continuous marker, continuous times, about 60% events.
@@ -250,6 +255,8 @@ The speedup is not a fixed number. It grows with the cohort, because the two ver
 | 4,000        | Default 26 | 225 s    | 7.0 s  | 32×     |
 
 With all 30 indices, the ratio keeps climbing with the data. With the default 26, it settles near 30, because both versions grow at the same rate and what remains in the new code is mostly R's own arithmetic over the distance matrix.
+
+</details>
 
 ## The largest datasets we could compute
 
@@ -408,7 +415,8 @@ The other files in the bundle:
 
 The package is licensed GPL-2, the same as the original, whose source it contains.
 
-## Methods in brief
+<details>
+<summary>Methods in brief</summary>
 
 - **Baselines:** survivalROC 1.0.3.1 and NbClust 3.0.1 (CRAN), R 4.5, Linux, 4 cores, all code single-threaded.
 - **Timing:** Elapsed time of one call. For survivalROC, calls under 0.3 seconds were repeated and averaged, and full-cohort NHANES timings of the new code are the median of five runs. For NbClust, printed output was captured and plots were sent to a null device.
@@ -423,3 +431,5 @@ The package is licensed GPL-2, the same as the original, whose source it contain
 - **NHANES (NbClust):** A random 8,000 of the 49,554 adults described above; age, BMI and systolic pressure, standardised.
 - **Simulations:** For survivalROC, standard normal marker, exponential event times with hazard exp(marker), independent exponential censoring, prediction time 1. For NbClust, four Gaussian clusters in 10 dimensions with random centres.
 - **Gap reference:** `cluster::clusGap` with 200 reference sets, squared Euclidean dispersion, uniform reference over the original variable ranges, the same Ward clustering, and the Tibshirani selection rule.
+
+</details>

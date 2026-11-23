@@ -63,7 +63,8 @@ In surgery, a graft is tissue you transplant so it becomes part of the host. Her
 
 GRAFT is organized like a programming language. **Opcodes** are the machine instructions, each a few neurons or one head switch: A gated switch (`step`), a gated linear term, a single curve segment (`kink`), and switches that redirect an attention head's keys, queries or values. **Instructions** compose opcodes into useful operations with measured contracts. **Programs** compose instructions into a capability. PhenoAge is the first program.
 
-### The instructions the PhenoAge program uses
+<details>
+<summary>The instructions the PhenoAge program uses</summary>
 
 | Instruction    | What it guarantees                                                   | Measured                                                |
 | -------------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
@@ -75,6 +76,8 @@ GRAFT is organized like a programming language. **Opcodes** are the machine inst
 | LOG_PWL        | ln(x) as 12 kinks                                                    | error sd 0.22 years                                     |
 | SUM_POOL       | one head adds all markers at the answer position                     | marker weights within 0.8% of equal                     |
 | GATED_Z + EMIT | the sum is written out as digit tokens                               | written digit = rounded target                          |
+
+</details>
 
 **Reused vs new.** Six pieces came from the previous experiment: The gated `step` pair, gated-linear terms, the positional-head design, quiet directions, constant reads and removal scans. Everything else was discovered during this run.
 
@@ -246,10 +249,13 @@ The run produced eight rules. They are now part of the library, and most were pa
 
 ---
 
-### Appendix: Every budgeted call (3 of 20 used)
+<details>
+<summary>Appendix: Every budgeted call (3 of 20 used)</summary>
 
 | Call        | Configuration                 | Dev MAE | Side effects                        | Outcome              |
 | ----------- | ----------------------------- | ------- | ----------------------------------- | -------------------- |
 | M1 measure  | first end-to-end program      | 1.32    | max KL 40.2, all 165 probes changed | measured only        |
 | E2 evaluate | leaks fixed, summing gain cut | 1.58    | max KL 0.358, 0 clear changes       | accepted             |
 | E3 evaluate | + rare-digit decoders         | 1.38    | max KL 0.358, 0 clear changes       | **accepted (final)** |
+
+</details>

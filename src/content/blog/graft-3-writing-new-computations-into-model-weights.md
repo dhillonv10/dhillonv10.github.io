@@ -27,6 +27,8 @@ This post describes how we did that for three computation tasks and four routing
 
 The post makes four contributions. First, it shows that a pretrained language model can be given new multi-step computations, counting with parity, tracking objects through a sequence of swaps, and resolving ordering constraints, by writing weights directly. Second, it introduces the pre-op: a measurement campaign before surgery that produces an Atlas of the model's internal facts and a library of tested primitives, which together turn surgery into planning. Third, it describes a side-effect protocol that makes each graft local and keeps every earlier graft intact as new ones are added. Fourth, it collects what worked into an instruction set and a list of design laws, each backed by a measurement.
 
+**What follows.** Section 2 places the work among model editing and compiled transformers. Section 3 defines a graft and the evidence standard, section 4 the protocol, and section 5 the measurement campaign that comes before any surgery. Section 6 covers side effects, section 7 walks through the seven grafts, and section 8 stacks them in one model. Sections 9 and 10 list the instruction set, the design laws and what is hard to graft, section 11 reports a partial result on date understanding, and sections 12 and 13 cover cost and limitations. Long tables are folded into Details boxes; click one to open it.
+
 ## 2. Background and related work
 
 Model editing methods such as ROME (Meng et al., 2022) and MEMIT (Meng et al., 2023) change specific facts a model stores, for example the city a person was born in, by solving for low-rank updates to MLP weights. They change what the model knows and keep how it computes. Tracr (Lindner et al., 2023) goes the other way: it compiles programs written in RASP (Weiss et al., 2021) into the weights of a fresh transformer built only for that program. Circuit-level interpretability reads computations out of trained models, for example induction heads that copy earlier tokens (Olsson et al., 2022). The closest neighbours to this work are weight-space programming (Takehi et al., 2026; Breunig, 2026), in which a frontier language model edits a smaller model's weights directly, and the open-source wsr harness (Kocabay, 2026), which scores agents that read or hand-write weight edits in pretrained models. Our computation tasks come from BIG-Bench Hard (Suzgun et al., 2023), and the patient is Gemma 3 (Gemma Team, 2025).
@@ -182,7 +184,8 @@ _Figure D1. Five-fold cross-validated accuracy of a linear probe for the answer,
 
 Every graft in this post is assembled from a small set of instructions. Each one has a contract: what it computes, how accurately, and how cleanly it stays off outside its task. Table 1a lists the instructions that worked, and Table 1b lists those that worked only under conditions or failed outright. Table 2 lists the design laws: rules that came out of measurements, most of them out of side-effect failures.
 
-**Table 1a. Working instructions.**
+<details>
+<summary>Table 1a. Working instructions</summary>
 
 | Instruction                   | What it does                                                                               | Measured contract                                                                                                                                                              | Used by                                        |
 | ----------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
@@ -204,7 +207,10 @@ Every graft in this post is assembled from a small set of instructions. Each one
 | Min-variance BOS correction   | Removes the sequence-start token's shift from large gates                                  | KL proxy 3.97 with 34 flips to 0.007 with 0                                                                                                                                    | logical deduction                              |
 | Copy heads (gated)            | Duplicates of existing copy heads, switched on by a task flag                              | LAMBADA dev 0.41 to 0.535                                                                                                                                                      | LAMBADA                                        |
 
-**Table 1b. Conditional and failed instructions.**
+</details>
+
+<details>
+<summary>Table 1b. Conditional and failed instructions</summary>
 
 | Instruction                                                       | Status      | Condition or failure, measured                                                                        |
 | ----------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
@@ -221,7 +227,12 @@ Every graft in this post is assembled from a small set of instructions. Each one
 | Matching values at late layers                                    | Failed      | 42 to 61 of 100 at layers 12 to 15, against 80 to 82 on layer-6 keys                                  |
 | One wide layer of context units                                   | Failed      | 202 units on 70 items: held-out 0.333                                                                 |
 
-**Table 2. Design laws.** Each law is stated as what to do. "Cost" is what happened when it was skipped.
+</details>
+
+<details>
+<summary>Table 2. Design laws</summary>
+
+Each law is stated as what to do. "Cost" is what happened when it was skipped.
 
 | #   | Law                                                                                                                                             | Evidence                                                                                                     | Cost when skipped                                                                                                                                                                   |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -252,6 +263,8 @@ Every graft in this post is assembled from a small set of instructions. Each one
 | 25  | Check that a unit uses the task's meaning, and rule out format shortcuts.                                                                       |                                                                                                              | Date's option-consensus shortcut scores 73 of 100 without computing anything                                                                                                        |
 | 26  | Treat write size as the KL dial.                                                                                                                | Swap-head write 10 to 5: KL 0.571 to 0.274                                                                   |                                                                                                                                                                                     |
 | 27  | Simulate the whole pipeline offline before each install.                                                                                        | Date: offline simulation caught an unusable build                                                            |                                                                                                                                                                                     |
+
+</details>
 
 ## 10. What can be done, and what is hard
 
@@ -318,7 +331,10 @@ The three computation tasks come from BIG-Bench Hard, whose test sets here have 
 
 ## Appendix
 
-**Table A1. Task roster.** Zero-shot, five-shot and bar are measured on the test items. Majority rates come from each task's screen. Probe ceilings for MNLI, WiC, TREC and DBpedia come from the bar runs (3,000 fit items, layer chosen on 500 others), and for the BIG-Bench Hard tasks from nested five-fold cross-validation on their fit and dev items.
+<details>
+<summary>Table A1. Task roster</summary>
+
+Zero-shot, five-shot and bar are measured on the test items. Majority rates come from each task's screen. Probe ceilings for MNLI, WiC, TREC and DBpedia come from the bar runs (3,000 fit items, layer chosen on 500 others), and for the BIG-Bench Hard tasks from nested five-fold cross-validation on their fit and dev items.
 
 | Task                          | Kind        | Run | Test items | Zero-shot | Five-shot | Majority | Probe ceiling | Bar   | Test after graft |
 | ----------------------------- | ----------- | --- | ---------- | --------- | --------- | -------- | ------------- | ----- | ---------------- |
@@ -333,7 +349,12 @@ The three computation tasks come from BIG-Bench Hard, whose test sets here have 
 
 Screened candidates that were not kept: boolean expressions and navigate in the first computation screen, whose answers a linear probe already read at 0.78 and 0.71; geometric shapes and temporal sequences in the second, read at 0.83 and 0.81; and object counting in the second, whose prompted score sat 0.14 above its majority rate.
 
-**Table A2. Surgery register.** Layers list where the graft writes. Every GRAFT-3b graft changes 0 original weights.
+</details>
+
+<details>
+<summary>Table A2. Surgery register</summary>
+
+Layers list where the graft writes. Every GRAFT-3b graft changes 0 original weights.
 
 | Graft             | Layers         | Units                                                                                                                           | Weights   | Dev start to accepted | Test (95% CI)       | Fixed / broken |
 | ----------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------- | ------------------- | -------------- |
@@ -346,7 +367,12 @@ Screened candidates that were not kept: boolean expressions and navigate in the 
 | DBpedia           | 2-4, 6-14, 24  | Tail chain (12 units), 14 label emits and a common unit                                                                         | 186,384   | 0.435 to 0.965        | 0.980 (0.969-0.988) | 489 / 1        |
 | Logical deduction | 2-5, 8-12, 24  | Anchor, presence head, slot markers, 4 fetch heads, 3 position units, 13 one-hot codes and a flag unit, 198 context units, emit | 2,849,082 | 0.46 to 0.74          | 0.67 (0.569-0.761)  | 40 / 8         |
 
-**Table A3. Safety ledger.** Side effects of the whole stack, measured against the original model after each graft was accepted. "Near-tie changes" are top-answer changes on probes whose original top two answers were within 0.15 nats; they do not count against the limit.
+</details>
+
+<details>
+<summary>Table A3. Safety ledger</summary>
+
+Side effects of the whole stack, measured against the original model after each graft was accepted. "Near-tie changes" are top-answer changes on probes whose original top two answers were within 0.15 nats; they do not count against the limit.
 
 | After graft                            | Max KL (limit 0.5) | Clear flips (limit 1) | Near-tie changes | Earlier grafts on test                                                                                                   |
 | -------------------------------------- | ------------------ | --------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -360,7 +386,10 @@ Screened candidates that were not kept: boolean expressions and navigate in the 
 | Logical deduction                      | 0.327              | 0                     | 7                | all unchanged                                                                                                            |
 | Final evaluation, full stack (rebuilt) | 0.327              | 0                     | 7                | MNLI 0.738, WiC 0.671, LAMBADA 0.428, web of lies 0.97, tracking 1.00, TREC 0.922, DBpedia 0.980, logical deduction 0.67 |
 
-**Table A4. Atlas summary.**
+</details>
+
+<details>
+<summary>Table A4. Atlas summary</summary>
 
 | Measured fact                | Value                                                                                                          | What it means for surgery                                          |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -373,5 +402,7 @@ Screened candidates that were not kept: boolean expressions and navigate in the 
 | Shared chat tail             | Every chat-format task and probe ends with the same answer sequence                                            | Scope from a task-unique token                                     |
 | Rarely used neurons          | Removing 80 passes the rule (1 flip); removing 160 flips 4 probes                                              | Repurposed slots must be validated by removal                      |
 | Copy heads                   | Layer 17 head 0 puts 12 times uniform attention on the earlier copy of the answer                              | Existing copy circuits can be duplicated and switched              |
+
+</details>
 
 **Artifacts.** Each accepted package's derive code, saved weight files, measurement log and side-effect log are kept with the run records, and the final evaluation rebuilds the full stack from them bit for bit.
