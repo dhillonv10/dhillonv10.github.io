@@ -14,7 +14,7 @@ description: "AlphaGenome 2 finds the known pathogenic variants, and flags untes
 
 ## The clinical problem
 
-When a patient with MDS or AML is found to carry a germline variant, the first question is whether that variant explains the disease, because the answer changes donor selection, family screening and surveillance. For variants that alter a protein, laboratories have decades of rules to lean on. For variants that sit outside the coding sequence, in promoters, 5′ untranslated regions and enhancers, they have very little. Most are reported as *uncertain significance* and stay that way.
+When a patient with MDS or AML is found to carry a germline variant, the first question is whether that variant explains the disease, because the answer changes donor selection, family screening and surveillance. For variants that alter a protein, laboratories have decades of rules to lean on. For variants that sit outside the coding sequence, in promoters, 5′ untranslated regions and enhancers, they have very little. Most are reported as _uncertain significance_ and stay that way.
 
 Two predisposition syndromes show why this matters:
 

@@ -1,0 +1,61 @@
+---
+// A small generated banner: a field of weights with a few orange "edits".
+// The pattern is derived from the post's slug, so each post gets its own.
+export interface Props {
+  seed: string;
+}
+const { seed } = Astro.props;
+
+function rng(s: string) {
+  let h = 1779033703 ^ s.length;
+  for (let i = 0; i < s.length; i++) {
+    h = Math.imul(h ^ s.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  let a = h >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const rand = rng(seed);
+const W = 1000;
+const H = 200;
+const cols = 50;
+const rows = 9;
+const cw = W / cols;
+const rh = H / rows;
+const cells: { x: number; y: number; hot: boolean; o: number }[] = [];
+for (let r = 0; r < rows; r++) {
+  for (let c = 0; c < cols; c++) {
+    const hot = rand() > 0.965;
+    const o = hot ? 1 : 0.1 + 0.4 * rand() * (0.5 + 0.5 * Math.sin(c / 6 + r));
+    cells.push({ x: c * cw + cw / 2, y: r * rh + rh / 2, hot, o });
+  }
+}
+---
+
+<svg
+  class="lw-banner"
+  viewBox={`0 0 ${W} ${H}`}
+  preserveAspectRatio="none"
+  role="img"
+  aria-label="Decorative pattern of model weights, a few highlighted"
+>
+  {
+    cells.map(c => (
+      <rect
+        x={(c.x - cw * 0.32).toFixed(1)}
+        y={(c.y - rh * 0.28).toFixed(1)}
+        width={(cw * 0.64).toFixed(1)}
+        height={(rh * 0.56).toFixed(1)}
+        rx="2"
+        fill={c.hot ? "#FF6B01" : "#006CAC"}
+        fill-opacity={c.o.toFixed(2)}
+      />
+    ))
+  }
+</svg>

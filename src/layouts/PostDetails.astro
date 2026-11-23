@@ -7,6 +7,8 @@ import getPosts from "@utils/getPosts";
 import getSortedPosts from "@utils/getSortedPosts";
 import readingTime from "@utils/readingTime";
 import inlineMd from "@utils/inlineMd";
+import postKind from "@utils/postKind";
+import HeroBanner from "@components/HeroBanner.astro";
 import type { CollectionEntry } from "astro:content";
 import { slugifyStr } from "@utils/slugify";
 import ShareLinks from "@components/ShareLinks.astro";
@@ -100,33 +102,44 @@ const layoutProps = {
       <span id="top"></span>
       <h1 transition:name={slugifyStr(title)} class="lw-post-title">{title}</h1>
       {subtitle && <p class="lw-subtitle">{subtitle}</p>}
+      {post && postKind(post) === "feature" && <HeroBanner seed={post.slug} />}
       <div class="lw-byline">
-        <b>{author}</b>
-        <time datetime={new Date(pubDatetime).toISOString()}>
-          {
-            new Date(pubDatetime).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              timeZone: "UTC",
-            })
-          }
-        </time>
-        {
-          modDatetime && modDatetime > pubDatetime && (
-            <span>
-              Updated{" "}
-              {new Date(modDatetime).toLocaleDateString("en-US", {
+        <div>
+          <span class="k">Author</span>
+          <b>{author}</b>
+        </div>
+        <div>
+          <span class="k">Published</span>
+          <time datetime={new Date(pubDatetime).toISOString()}>
+            {
+              new Date(pubDatetime).toLocaleDateString("en-US", {
                 year: "numeric",
-                month: "short",
+                month: "long",
                 day: "numeric",
                 timeZone: "UTC",
-              })}
-            </span>
+              })
+            }
+          </time>
+        </div>
+        {
+          modDatetime && modDatetime > pubDatetime && (
+            <div>
+              <span class="k">Updated</span>
+              <time datetime={new Date(modDatetime).toISOString()}>
+                {new Date(modDatetime).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  timeZone: "UTC",
+                })}
+              </time>
+            </div>
           )
         }
-        <span>{minutes} min read</span>
-        <a href="#comments">Comments</a>
+        <div>
+          <span class="k">Reading time</span>
+          <span>{minutes} min</span>
+        </div>
       </div>
 
       {
