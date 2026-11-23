@@ -275,8 +275,7 @@ All five rounds together change **1,659,871 of 751,632,384 weights (0.22%)**, wi
 
 ---
 
-<details>
-<summary>Appendix: evaluation logs (recorded by the sandbox server)</summary>
+### Appendix: evaluation logs (recorded by the sandbox server)
 
 **Round 1** (40 dev rows; start 15.30)
 
@@ -322,10 +321,7 @@ All five rounds together change **1,659,871 of 751,632,384 weights (0.22%)**, wi
 | R5-1 | Rebuild of R4-5 after the crash                                            | **8.55** | 0.785 | ✅               |
 | R5-2 | Decoders trained with markers deleted                                      | 8.62     | 0.781 | ✗                |
 
-</details>
-
-<details>
-<summary>Appendix: Round 1's edit, verbatim as Opus wrote it</summary>
+### Appendix: Round 1's edit, verbatim as Opus wrote it
 
 ```python
 k=float(PARAMS.get('k',2.0)); off=float(PARAMS.get('off',-4.0)); g=float(PARAMS.get('g',1.2)); beta=float(PARAMS.get('beta',20.0))
@@ -338,5 +334,3 @@ with torch.no_grad():
         W[dig[d]]=D['W0'][d] + k*(2*d*a/10.0 - d*d*c)
     W[eos]=D['Weos0'] + beta*D['q'].to(W.dtype)
 ```
-
-</details>

@@ -108,9 +108,6 @@ Everything above was assembled from a small set of parts. They come in three lev
 
 **Instructions** are opcodes composed into useful operations, each with a **measured contract**: What it guarantees, how precisely, and at what side-effect cost. These are the _"surgeries"_ an agent picks from.
 
-<details>
-<summary>The 14 instructions and their measured contracts</summary>
-
 | Instruction       | Built from                            | Contract (as measured in PhenoAge)                                         | Mortality                   |
 | ----------------- | ------------------------------------- | -------------------------------------------------------------------------- | --------------------------- |
 | ANCHOR            | `step` pairs on fixed question tokens | fires only on the question line                                            | refit                       |
@@ -127,8 +124,6 @@ Everything above was assembled from a small set of parts. They come in three lev
 | EMIT              | `kink`s + `step`                      | writes the digit token whose number is closest to the target               | reused (moved)              |
 | ANSWER-ZERO guard | constant read                         | keeps answer-only gates shut everywhere else                               | refit, with EMIT            |
 | DIGIT-AUGMENT     | refit procedure                       | decoders refit on rare digits (30-year misses → 0)                         | reused (its refit decoders) |
-
-</details>
 
 **Programs** are instructions in order, layer by layer: PhenoAge (14 instructions, 1.96 M weights) and mortality (2.04 M weights). Counted the way the mortality agent reported its program's stages, it reused 8 unchanged (FB, PINS, the marker labels, SHIFT, BITS, AFFINE, LOG_PWL, SUM_POOL), refit 3 (ANCHOR, FLAG, GATED_Z) and added one curve plus a stop step.
 

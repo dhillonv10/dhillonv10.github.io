@@ -30,8 +30,6 @@ once, in minutes, without changing anything else the model does.
 | Side effects            | Every graft reported as passing met the rule (max KL ≤ 0.5, at most 1 confident answer change) on 280 probes and 500 held-out prompts (factory variants: probes, plus the held-out set for every fifth); typical max KL 1e-7 to 1e-3. A tuned LoRA at the same accuracy changes 10-84 probe answers and 24-33 held-out answers.                                |
 | Self-repair             | The model's own failures trigger a fresh agent to write a patch; a verifier gate installs it or rejects it, in 5-6 minutes. Patches cut the flagged failures but do not reach the 0.90 accuracy bar (patched dev 0.77-0.94).                                                                                                                                   |
 
-**What follows.** Section 1 defines a graft and the pass rule. Section 2 tests whether a graft can teach a model something new, and section 3 compares grafting with fine-tuning. Section 4 compiles the same programs for four models, section 5 describes the compiler and how grafts are reused and linked, and section 6 measures speed. Section 7 covers side effects, section 8 turns the lessons into advice, and section 9 closes the loop with self-patching. Section 10 credits the work that shaped this one, and section 11 lists the limits. Tables that are mainly reference material are folded into Details boxes.
-
 ## 1. What is a graft?
 
 A graft is a small set of **new** units added to a pretrained model: extra MLP neurons and attention heads that start at zero, so the grown
@@ -156,9 +154,6 @@ GRAFT-3 built a library of parts: token markers, a counting head, a fetch head, 
 assembled them by hand for each task. GRAFT-4 treats those parts as an **instruction set**. A small language (glang) exposes them, and a
 compiler lowers each instruction to measured parts.
 
-<details>
-<summary>How each GRAFT-3 part maps to a glang instruction</summary>
-
 | GRAFT-3 part           | glang instruction                      | What changed in GRAFT-4                                                                               |
 | ---------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Token markers          | `L.items(where=...)`, `P.slot(...)`    | Chained over three layers (L20-22); one layer in turbo mode; a reference token R shares the key image |
@@ -168,8 +163,6 @@ compiler lowers each instruction to measured parts.
 | Threshold bits + emit  | `answer="digit"` / `"yes_no"`          | Telescoping digit emits; Yes/No units                                                                 |
 | Guards, BOS correction | (automatic)                            | Every unit carries a flag guard and a BOS correction                                                  |
 | —                      | (new)                                  | Exact answer flag, query-code units, stop unit, linker namespaces                                     |
-
-</details>
 
 ### 5b. What compiles today
 
@@ -306,9 +299,6 @@ _Figure F7. Real graft vs random graft of the same size and norm, the control bo
 
 **Side-effect failures were the main engineering problem.** Each one was diagnosed on separate data (except Q3, above):
 
-<details>
-<summary>Every side-effect failure, its cause and its fix</summary>
-
 | Failure                                      | Cause                                                                                                                                                                    | Fix                                                                                                                                                                                                                                                                                                           |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Presence Q3 failed held-out safety (KL 12.1) | A short generic question taught the flag "a question about animals"                                                                                                      | A bank of Alpaca chat prompts as negatives (a source disjoint from the held-out set)                                                                                                                                                                                                                          |
@@ -317,8 +307,6 @@ _Figure F7. Real graft vs random graft of the same size and norm, the control bo
 | Gemma-3-270M counting: KL up to 8            | Count-head output scale too large for the small model                                                                                                                    | Scale 300 → 15-30, read-out negatives recaptured with the head installed                                                                                                                                                                                                                                      |
 | SmolLM2: held-out KL 0.9-2.9                 | Raw-text lists containing the program's words (a recipe that lists "apple") open the first marker layer; SmolLM2 has no BOS token, and every negative was chat-formatted | Not fixed. Raw-text negatives (attempt 5) did not help: every marker layer separates its targets from the negatives with almost no margin (highest off-target score about +1 vs on-target 44-56), so unseen text near such a list still crosses. It needs a trigger conditioned on the instruction (GRAFT-5). |
 | Self-patches broke each other                | Two near-identical templates (digits vs number words)                                                                                                                    | Cross-patch negatives + a suite gate                                                                                                                                                                                                                                                                          |
-
-</details>
 
 ## 8. How to build reliable grafts
 
@@ -392,9 +380,6 @@ Nothing that was installed broke.
 
 ## 10. What we learned from others' work
 
-<details>
-<summary>Notes on the five works that shaped this one</summary>
-
 **DSPy weight-space programming (Breunig, cmpnd.ai).** This post made the case that an optimizer can treat weights as a programmable
 surface, and it showed a full writer loop with real costs attached. Two things stayed with us.
 
@@ -434,8 +419,6 @@ It gave us two engineering ideas that we adopted directly:
 
 Their edits change existing rows; GRAFT adds new units that are an exact no-op until installed. That is a complement to their repair
 setting, not a replacement for it.
-
-</details>
 
 ## 11. Limits
 
