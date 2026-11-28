@@ -1,0 +1,42 @@
+---
+import Layout from "@layouts/Layout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import { SITE } from "@config";
+---
+
+<Layout
+  title={`Myeloid Atlas | ${SITE.title}`}
+  description="AlphaGenome 2 predictions for AML/MDS loci across blood cell states: tracks, linked elements, clock CpGs and inv(3) models."
+>
+  <Header activeNav="atlas" />
+  <link rel="stylesheet" href="/myeloid-atlas/atlas.css" />
+  <div id="atlas">
+    <div class="atlas-bar">
+      <div>
+        <h1>Myeloid Atlas</h1>
+        <p>
+          Predicted regulatory activity at AML/MDS loci, one cell state at a
+          time.
+        </p>
+      </div>
+      <div class="search">
+        <input
+          id="q"
+          type="search"
+          autocomplete="off"
+          placeholder="Search gene or clock CpG (GATA2, MECOM, cg…)"
+          aria-label="Search the atlas"
+        />
+        <div class="suggest" id="suggest" hidden></div>
+      </div>
+      <nav class="views" id="nav" aria-label="Atlas views"></nav>
+    </div>
+    <div class="atlas-main" id="app">
+      <div class="empty">Loading the atlas…</div>
+    </div>
+    <div class="tip" id="tip" hidden></div>
+  </div>
+  <Footer />
+  <script is:inline src="/myeloid-atlas/atlas.js"></script>
+</Layout>

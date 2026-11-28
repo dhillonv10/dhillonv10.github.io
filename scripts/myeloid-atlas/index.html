@@ -1,0 +1,621 @@
+<title>Myeloid Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: warm paper ground, white cards. Home is three columns (guide / matrix / places to start);
+   detail views are a header card with one headline figure, a reading card, then full-width evidence cards. */
+:root{
+  --paper:#f6f3ec; --card:#ffffff; --ink:#1c1917; --ink-2:#57514a; --ink-3:#8c8478; --line:#e5ded2; --track:#efebe3; --hover:#f5f0e6;
+  --accent:#6b2d5c; --accent-soft:#ecdde8; --accent-ink:#ffffff;
+  --neg:#257de0; --pos:#dc3c3d; --div-mid:#ebe7df;
+  --s-progenitor:#257de0; --s-myeloid:#f47230; --s-erythroid:#00b894; --s-megakaryocyte:#f2a600; --s-lymphoid:#ee7fac;
+  --s-line:#008a17; --s-normal:#6a4ce2; --s-aml:#ec4647;
+  --seq-0:#f1f5fb; --seq-1:#cce3fd; --seq-2:#9dc8f7; --seq-3:#6aabf1; --seq-4:#338ced; --seq-5:#2370cd; --seq-6:#1757ac; --seq-7:#0e3d7e;
+  --crit:#c23536; --crit-soft:#f9dedd; --shadow:0 1px 2px rgba(60,40,20,.06),0 4px 14px rgba(60,40,20,.05);
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius:10px; --header-h:54px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#161311; --card:#201c19; --ink:#f0ebe4; --ink-2:#b8afa3; --ink-3:#81796e; --line:#38322c; --track:#2b2622; --hover:#2a2521;
+  --accent:#e0a9cf; --accent-soft:#3e2a39; --accent-ink:#1c1917;
+  --neg:#338ced; --pos:#eb6263; --div-mid:#34302b;
+  --s-progenitor:#338ced; --s-myeloid:#e76624; --s-erythroid:#00a888; --s-megakaryocyte:#d28e05; --s-lymphoid:#e24d8b;
+  --s-line:#0aac23; --s-normal:#9887ef; --s-aml:#eb6263;
+  --seq-0:#1f2630; --seq-1:#0e3d7e; --seq-2:#1757ac; --seq-3:#2370cd; --seq-4:#338ced; --seq-5:#6aabf1; --seq-6:#9dc8f7; --seq-7:#cce3fd;
+  --crit:#eb6263; --crit-soft:#47201f; --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --paper:#161311; --card:#201c19; --ink:#f0ebe4; --ink-2:#b8afa3; --ink-3:#81796e; --line:#38322c; --track:#2b2622; --hover:#2a2521;
+  --accent:#e0a9cf; --accent-soft:#3e2a39; --accent-ink:#1c1917;
+  --neg:#338ced; --pos:#eb6263; --div-mid:#34302b;
+  --s-progenitor:#338ced; --s-myeloid:#e76624; --s-erythroid:#00a888; --s-megakaryocyte:#d28e05; --s-lymphoid:#e24d8b;
+  --s-line:#0aac23; --s-normal:#9887ef; --s-aml:#eb6263;
+  --seq-0:#1f2630; --seq-1:#0e3d7e; --seq-2:#1757ac; --seq-3:#2370cd; --seq-4:#338ced; --seq-5:#6aabf1; --seq-6:#9dc8f7; --seq-7:#cce3fd;
+  --crit:#eb6263; --crit-soft:#47201f; --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:auto}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono)} .muted{color:var(--ink-3)} .num{font-variant-numeric:tabular-nums}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--card);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:14px 20px;flex-wrap:wrap;min-height:var(--header-h);padding-block:8px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;min-width:0}
+.brand svg{flex:none}
+.brand b{font-size:20px;font-weight:600;letter-spacing:.02em}
+.brand span{color:var(--ink-3);font-size:15px;white-space:nowrap}
+.search{position:relative;flex:1 1 260px;max-width:520px;min-width:0}
+.search input{width:100%;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);font-family:var(--mono);font-size:12.5px}
+.search input::placeholder{color:var(--ink-3)}
+.suggest{position:absolute;left:0;right:0;top:38px;background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;z-index:20}
+.suggest button{display:flex;gap:10px;align-items:baseline;width:100%;padding:7px 12px;border:0;background:none;text-align:left;cursor:pointer}
+.suggest button:hover,.suggest button.on{background:var(--hover)}
+.suggest small{color:var(--ink-3)}
+nav.views{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+@media (max-width:620px){.brand span{display:none} nav.views{margin-left:0}}
+.pill{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);
+  font-size:13px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.pill:hover{background:var(--hover)}
+.pill[aria-pressed="true"],.pill.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pill .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{height:24px;padding:0 10px;border:0;background:var(--track);font-family:var(--mono);font-size:12px;color:var(--ink-3);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.runchip{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);background:var(--track);border-radius:6px;padding:3px 8px;white-space:nowrap}
+
+main{padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1480px;margin:0 auto}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;min-width:0}
+.stack{display:flex;flex-direction:column;gap:10px}
+h2.label,.label{font-size:13.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;margin:0}
+.sublabel{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:0}
+.small{font-size:12.5px} .tiny{font-size:11.5px}
+.disclaimer{color:var(--ink-3);font-size:12.5px;text-align:center;max-width:720px;margin:18px auto 0;border-top:1px solid var(--line);padding-top:16px}
+
+/* home */
+.home{display:grid;grid-template-columns:minmax(230px,280px) minmax(0,1fr) minmax(240px,290px);gap:14px;align-items:start}
+@media (max-width:1050px){.home{grid-template-columns:minmax(0,1fr)} .home .centre{order:-1}}
+details.acc{border-top:1px solid var(--line)} details.acc:first-of-type{border-top:0}
+details.acc summary{list-style:none;cursor:pointer;padding:9px 0;font-weight:600;font-size:13px;display:flex;gap:8px;align-items:center}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary::before{content:"";border:4px solid transparent;border-left:6px solid var(--accent);margin-left:2px;transition:transform .15s}
+details.acc[open] summary::before{transform:rotate(90deg) translate(2px,-2px)}
+details.acc[open] summary{color:var(--accent)}
+details.acc p{margin:0 0 12px;color:var(--ink-2);font-size:13px}
+.centre{padding:10px 4px;text-align:center;min-width:0}
+.centre h1{font-size:18px;font-weight:600;margin:14px 0 4px;text-wrap:balance}
+.centre .lead{color:var(--ink-3);font-size:14.5px;margin:0 0 14px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.matrix-wrap{overflow-x:auto;margin:22px auto 0;max-width:100%}
+table.matrix{border-collapse:separate;border-spacing:3px;margin:0 auto}
+table.matrix th{font-weight:500;font-size:12px;color:var(--ink-2);padding:2px 6px;white-space:nowrap}
+table.matrix th.grp{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;border-bottom:2px solid var(--line);padding-bottom:3px}
+table.matrix th.row{text-align:right;font-weight:600;color:var(--ink);font-size:13px}
+table.matrix th.tier{text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding-top:10px}
+table.matrix th.col.rot{height:110px;vertical-align:bottom;padding:0}
+table.matrix th.col.rot span{display:block;transform:rotate(-55deg);transform-origin:left bottom;width:22px;white-space:nowrap;margin-left:12px}
+table.matrix th.grp{padding-left:0;padding-right:0}
+.cell{display:block;border:0;border-radius:4px;cursor:pointer;font-size:12px;font-variant-numeric:tabular-nums;padding:0}
+.cell:hover{outline:2px solid var(--ink);outline-offset:1px}
+.cell.na{background:var(--track);cursor:default}
+.legend{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ink-2);font-size:12px;margin-top:16px}
+.legend i{display:block;width:140px;height:8px;border-radius:4px}
+.starts{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.starts a{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;padding:8px 6px;border-radius:8px;text-decoration:none}
+.starts a:hover{background:var(--hover)}
+.starts .n{width:22px;height:22px;border-radius:50%;background:var(--track);color:var(--ink-3);font-size:11.5px;display:grid;place-items:center;margin-top:2px}
+.starts b{font-weight:600} .starts .tag{color:var(--ink-3);font-size:12px;margin-left:6px}
+.starts .sub{display:block;color:var(--ink-2);font-size:13px}
+
+/* detail header */
+.head{display:flex;gap:20px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.head h1{font-size:23px;font-weight:600;margin:0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.head h1 small{font-size:16px;font-weight:400;color:var(--ink-2)}
+.meta{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:2px 0;margin:4px 0 8px}
+.meta span+span::before{content:"|";color:var(--line);margin:0 12px}
+.badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.badge.crit{background:var(--crit-soft);color:var(--crit)} .badge.plain{background:var(--track);color:var(--ink-2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{font-size:12.5px;padding:2px 8px;border-radius:5px;background:var(--track);color:var(--ink-2);text-decoration:none}
+.chip:hover{background:var(--line)}
+.figure{text-align:center;min-width:170px}
+.figure .cap{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.figure .big{font-size:46px;font-weight:600;line-height:1.1;color:var(--accent)}
+.figure .big small{font-size:18px;font-weight:500;margin-left:4px}
+.figure select{margin-top:4px;border:1px solid var(--line);border-radius:6px;background:var(--card);padding:2px 6px;font-size:12.5px;max-width:100%}
+.reading{border-left:3px solid var(--accent)}
+.reading .headline{font-weight:600;font-size:14.5px;margin:10px 0 8px;max-width:110ch}
+.reading p{margin:0 0 10px;color:var(--ink-2);font-size:13px;max-width:120ch}
+.reading ul{margin:6px 0 0;padding-left:18px;font-size:13px;columns:2 320px;column-gap:40px}
+.bar-row{display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap}
+.bar-row .lab{font-weight:600;font-size:13px}
+.browser{position:relative}
+.browser canvas{display:block;width:100%}
+.tip{position:fixed;z-index:30;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);
+  padding:8px 10px;font-size:12px;max-width:280px}
+.tip .t{font-family:var(--mono);color:var(--ink-2);margin-bottom:4px}
+.tip .r{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.tip .r span:first-child{display:flex;gap:6px;align-items:center}
+.tip i{width:8px;height:8px;border-radius:2px;display:inline-block;flex:none}
+.tip .r.on{font-weight:600}
+
+/* evidence rows: name | bars | bars */
+.rows{display:grid;grid-template-columns:minmax(150px,1fr) minmax(0,2fr) minmax(0,2fr);gap:8px 22px;align-items:center}
+.rows .hd{font-size:11.5px;color:var(--ink-3);text-align:center}
+.rows .nm{font-size:13px;min-width:0} .rows .nm small{display:block;color:var(--ink-3);font-family:var(--mono);font-size:11px;overflow-wrap:anywhere}
+.bars{display:flex;flex-direction:column;gap:2px;background:var(--track);border-radius:3px;padding:2px 0;min-width:0}
+.bars span{display:block;height:5px;border-radius:0 3px 3px 0;min-width:0}
+.bars span.none{background:none}
+.div-bar{position:relative;height:12px;background:var(--track);border-radius:3px}
+.div-bar::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink-3)}
+.div-bar i{position:absolute;top:0;bottom:0;border-radius:2px}
+@media (max-width:700px){.rows{grid-template-columns:minmax(0,1fr)} .rows .hd{display:none}}
+.keys{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.keys span{display:inline-flex;gap:6px;align-items:center}
+.keys i{width:9px;height:9px;border-radius:2px;display:inline-block}
+table.tbl{border-collapse:collapse;width:100%;font-size:13px}
+table.tbl th{font-size:11.5px;font-weight:600;color:var(--ink-3);text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+table.tbl td{padding:6px 10px 6px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+table.tbl td.v{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap} table.tbl th.v{text-align:right}
+table.tbl tr.click{cursor:pointer} table.tbl tr.click:hover td{background:var(--hover)}
+.scroll-x{overflow-x:auto}
+.two{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);gap:10px;align-items:start}
+@media (max-width:980px){.two{grid-template-columns:minmax(0,1fr)}}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+svg text{font-family:var(--sans)}
+.note{background:var(--track);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink-2)}
+.empty{padding:40px 0;text-align:center;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top"><div class="top-in">
+  <a class="brand" href="#home" aria-label="Myeloid Atlas home">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="13" fill="none" stroke="var(--accent)" stroke-width="1.6"/><path d="M9 12c2-4 9-5 12-1 2 3 0 8-4 9-3 1-7-1-8-4-.5-1.400-.6-2.800 0-4z" fill="var(--accent)" opacity=".85"/><circle cx="19.500" cy="12.500" r="1.700" fill="var(--card)"/></svg>
+    <b>Myeloid Atlas</b><span>AML/MDS regulatory predictions</span></a>
+  <div class="search"><input id="q" type="search" autocomplete="off" placeholder="Search gene, region or clock CpG (GATA2, MECOM, cg…)" aria-label="Search the atlas"><div class="suggest" id="suggest" hidden></div></div>
+  <nav class="views" id="nav" aria-label="Views"></nav>
+</div></header>
+<main id="app"><div class="empty">Loading the atlas…</div></main>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+'use strict';
+/* ---------- small helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v; else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) e.append(k.nodeType ? k : document.createTextNode(k));
+  return e;
+}
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmtInt = n => Math.round(n).toLocaleString('en-US');
+const fmt = (v, d = 2) => v == null ? '–' : (Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(d));
+const signed = (v, d = 2) => v == null ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(d);
+const kbText = k => (k >= 0 ? '+' : '−') + Math.abs(k).toFixed(1) + ' kb';
+function b64u8(s) { const b = atob(s), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+function hexRgb(x) { x = x.replace('#', ''); if (x.length === 3) x = [...x].map(c => c + c).join(''); return [0, 2, 4].map(i => parseInt(x.slice(i, i + 2), 16)); }
+function mix(a, b, t) { const A = hexRgb(a), B = hexRgb(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',') + ')'; }
+function seqColor(t) { if (t == null || isNaN(t)) return css('--track'); t = Math.max(0, Math.min(1, t)) * 7; const i = Math.min(6, Math.floor(t)); return mix(css('--seq-' + i), css('--seq-' + (i + 1)), t - i); }
+function divColor(t) { if (t == null || isNaN(t)) return css('--track'); t = Math.max(-1, Math.min(1, t)); return mix(css('--div-mid'), css(t < 0 ? '--neg' : '--pos'), Math.pow(Math.abs(t), .8)); }
+function lum(rgb) { const m = rgb.match(/\d+/g).map(Number); return (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) / 255; }
+const GROUP_VAR = { progenitor: '--s-progenitor', myeloid: '--s-myeloid', erythroid: '--s-erythroid', megakaryocyte: '--s-megakaryocyte', lymphoid: '--s-lymphoid',
+  'cell line': '--s-line', AML: '--s-aml', 'normal (Seq-Well)': '--s-normal' };
+const GROUP_NAME = { progenitor: 'Progenitors', myeloid: 'Myeloid', erythroid: 'Erythroid', megakaryocyte: 'Megakaryocyte', lymphoid: 'Lymphoid', 'cell line': 'Cell lines',
+  AML: 'AML cells', 'normal (Seq-Well)': 'Matched normal cells' };
+const stateColor = s => css(GROUP_VAR[s.group] || '--s-progenitor');
+const GROUP_SHORT = { progenitor: 'Prog', myeloid: 'Myel', erythroid: 'Ery', megakaryocyte: 'Mk', lymphoid: 'Lym', 'cell line': 'Lines', AML: 'AML', 'normal (Seq-Well)': 'Norm' };
+const TIER_NAME = { predisposition: 'Germline predisposition', drivers: 'Drivers and regulators', lsc17: 'LSC17 signature', ch_gwas: 'Clonal hematopoiesis loci' };
+const TRACK_NAME = { rna: 'RNA', acc: 'Accessibility', H3K27ac: 'H3K27ac', H3K4me1: 'H3K4me1', H3K4me3: 'H3K4me3', H3K27me3: 'H3K27me3', H3K36me3: 'H3K36me3', H3K9me3: 'H3K9me3',
+  meth: 'CpG methylation', grad: 'Sequence attribution' };
+const MODE_TEXT = { observed: 'measured in training', supported: 'imputed from a measured assay', exploratory: 'imputed, not benchmarked', cells: 'imputed from the cells supplied', unknown: 'unknown' };
+
+const A = { atlas: null, files: {}, ui: { metric: 'expr', win: 'wide', marks: false, readout: 'expr', clockColor: 'aml' } };
+A.ready = {};
+function getFile(name) { if (!A.files[name]) A.files[name] = fetch('data/' + name).then(r => { if (!r.ok) throw new Error(name + ': ' + r.status); return r.json(); }).then(j => (A.ready[name] = j)); return A.files[name]; }
+/* Renders with a data file: at once when it is already loaded (keeps scroll position on re-render), else after fetching it. */
+function withFile(name, app, label, cb) {
+  if (A.ready[name]) { cb(A.ready[name]); return; }
+  app.replaceChildren(h('div', { class: 'empty' }, 'Loading ' + label + '…'));
+  getFile(name).then(cb).catch(e => app.replaceChildren(h('div', { class: 'card empty' }, 'Could not load ' + label + ': ' + e.message)));
+}
+const tip = $('#tip');
+function showTip(ev, node) { tip.replaceChildren(node); tip.hidden = false; const w = tip.offsetWidth, hh = tip.offsetHeight;
+  let x = ev.clientX + 14, y = ev.clientY + 14; if (x + w > innerWidth - 8) x = ev.clientX - w - 14; if (y + hh > innerHeight - 8) y = ev.clientY - hh - 14;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; }
+const hideTip = () => { tip.hidden = true; };
+function pills(items, current, onpick, cls = '') { return h('div', { class: 'pills ' + cls }, items.map(([k, label]) => h('button', { class: 'pill', type: 'button', 'aria-pressed': String(k === current), onclick: () => onpick(k) }, label))); }
+function setupCanvas(cv, cssH) { const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth; cv.style.height = cssH + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(cssH * dpr);
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); return [c, w]; }
+
+/* ---------- shell ---------- */
+function renderNav(route) {
+  const a = A.atlas, items = [['home', 'Atlas'], ['clock', 'Clock'], ['rearr-0', 'Rearrangements'], ['trust', 'Trust']];
+  const nav = $('#nav'); nav.replaceChildren();
+  for (const [k, label] of items) {
+    if (k === 'clock' && !a.clock.n) continue; if (k === 'rearr-0' && !a.rearr.length) continue;
+    const on = route === k || (k === 'home' && route.startsWith('locus-')) || (k !== 'home' && route.startsWith(k.split('-')[0]));
+    nav.append(h('a', { class: 'pill' + (on ? ' on' : ''), href: '#' + k }, label));
+  }
+  const m = a.meta;
+  nav.append(h('span', { class: 'runchip', title: 'Built ' + m.created + ' with AlphaGenome SDK ' + m.sdk }, (m.run_mode === 'smoke' ? 'Smoke run' : 'Full run') + ' · ' + a.loci.length + (m.run_mode === 'smoke' ? ' of ' + m.planned_loci : '') + ' loci · ' + a.states.length + ' states'));
+}
+function setupSearch() {
+  const q = $('#q'), box = $('#suggest'); let items = [], idx = 0;
+  const all = () => [
+    ...A.atlas.loci.map(l => ({ t: l.gene, s: 'Locus · ' + l.chrom + ':' + fmtInt(l.start) + '–' + fmtInt(l.end), href: 'locus-' + l.gene })),
+    ...(A.clockList || []).map(c => ({ t: c.probe, s: 'Clock CpG · ' + c.chrom + ':' + fmtInt(c.pos), href: 'clock', probe: c.probe })),
+    ...A.atlas.rearr.map((r, i) => ({ t: r.label, s: 'Rearrangement', href: 'rearr-' + i }))];
+  function draw() { box.replaceChildren(...items.map((it, i) => h('button', { type: 'button', class: i === idx ? 'on' : '', onmousedown: e => { e.preventDefault(); go(it); } }, h('b', {}, it.t), h('small', {}, it.s)))); box.hidden = !items.length; }
+  function go(it) { if (it.probe) A.ui.probe = it.probe; q.value = ''; items = []; draw(); if (location.hash === '#' + it.href) route(); else location.hash = it.href; }
+  q.addEventListener('input', () => { const v = q.value.trim().toLowerCase(); items = v.length < 2 ? [] : all().filter(x => x.t.toLowerCase().includes(v)).slice(0, 8); idx = 0; draw(); });
+  q.addEventListener('keydown', e => { if (e.key === 'ArrowDown') { idx = Math.min(items.length - 1, idx + 1); draw(); e.preventDefault(); } else if (e.key === 'ArrowUp') { idx = Math.max(0, idx - 1); draw(); e.preventDefault(); }
+    else if (e.key === 'Enter' && items[idx]) go(items[idx]); else if (e.key === 'Escape') { items = []; draw(); } });
+  q.addEventListener('blur', () => { items = []; draw(); });
+  getFile('clock.json').then(c => { A.clockList = c.cpgs; }).catch(() => {});
+}
+const disclaimer = () => h('p', { class: 'disclaimer' }, 'Everything here is a prediction from AlphaGenome 2, a sequence model, and not a measurement. It is for research use only and must not be used for clinical decisions.');
+
+/* ---------- home ---------- */
+const METRICS = { expr: ['Expression', 'CPM, log scale', b => b.expr == null ? null : Math.log10(b.expr + 1), v => fmt(v, 2) + ' CPM', b => b.expr],
+  pacc: ['Promoter accessibility', 'mean signal ±500 bp of the TSS', b => b.pacc, v => fmt(v, 2), b => b.pacc],
+  pmeth: ['Promoter methylation', 'mean CpG methylation ±1 kb of the TSS', b => b.pmeth, v => Math.round(v * 100) + '%', b => b.pmeth],
+  n_enh: ['Linked elements', 'elements the model links to the gene', b => b.n_enh, v => String(v), b => b.n_enh] };
+function renderHome(app) {
+  const a = A.atlas, m = METRICS[A.ui.metric];
+  const guide = h('aside', { class: 'card' }, h('h2', { class: 'label' }, 'How to read the atlas'), h('div', { style: { marginTop: '8px' } },
+    [['About', 'Each locus is a 1 Mb window of the reference genome. AlphaGenome 2 predicts what that sequence does in one cell state at a time: RNA, chromatin accessibility, six histone marks, CpG methylation, and which elements control the gene. Nothing here was measured in a patient.', true],
+     ['Cell states', 'Two kinds. Reference states (bone-marrow stem cells, progenitors, monocytes) are conditions the model was trained on. AML states are built from public single cells of AML patients, with healthy-donor cells from the same dataset as the matched control. Compare AML states with their matched control, not with reference states.'],
+     ['Open a locus', 'Click any cell of the matrix. The locus page stacks every track for the states you choose, on one shared scale per track, with the gene models and the linked elements above them.'],
+     ['Rearrangements', 'The inv(3) junctions are built as new 1 Mb sequences and predicted next to the same sequence in its normal place, and next to a copy with the enhancer scrambled.'],
+     ['Clock CpGs', 'Each CpG from four epigenetic clocks gets two numbers: how much its predicted methylation moves between cell states, and how much nearby sequence changes move it. Sites high on the first partly read cell composition instead of age.'],
+     ['What to trust', 'Every layer is labelled as measured in training, imputed from a measured assay, or imputed from the supplied cells. The Trust view shows how predictions compare with measured methylation and lists what was skipped.']]
+      .map(([t, p, open]) => h('details', { class: 'acc', open }, h('summary', {}, t), h('p', {}, p)))));
+  // matrix
+  const groups = []; a.states.forEach((s, i) => { const g = groups[groups.length - 1]; if (g && g.name === s.group) g.idx.push(i); else groups.push({ name: s.group, idx: [i] }); });
+  const vals = []; a.loci.forEach(l => l.by_state.forEach(b => { if (b) { const v = m[2](b); if (v != null) vals.push(v); } }));
+  const lo = A.ui.metric === 'pmeth' ? 0 : Math.min(...vals, 0), hi = A.ui.metric === 'pmeth' ? Math.max(0.2, ...vals) : Math.max(...vals, 1e-9);
+  const big = a.states.length <= 8, cw = big ? 92 : 22, ch = a.loci.length <= 12 ? 40 : 20;
+  const tbl = h('table', { class: 'matrix' });
+  tbl.append(h('tr', {}, h('th'), groups.map(g => { const full = GROUP_NAME[g.name] || g.name, fits = full.length * 7.5 < g.idx.length * (cw + 3);
+    return h('th', { class: 'grp', colspan: g.idx.length, title: full }, fits ? full : (GROUP_SHORT[g.name] || full.slice(0, 3))); })));
+  tbl.append(h('tr', {}, h('th'), a.states.map(s => h('th', { class: 'col' + (big ? '' : ' rot'), title: s.name }, h('span', {}, s.label)))));
+  let lastTier = null;
+  for (const l of a.loci) {
+    if (l.tier !== lastTier) { tbl.append(h('tr', {}, h('th', { class: 'tier', colspan: a.states.length + 1 }, TIER_NAME[l.tier] || l.tier))); lastTier = l.tier; }
+    tbl.append(h('tr', {}, h('th', { class: 'row' }, l.gene), l.by_state.map((b, i) => {
+      const raw = b ? m[4](b) : null, v = b ? m[2](b) : null;
+      if (v == null) return h('td', {}, h('span', { class: 'cell na', style: { width: cw + 'px', height: ch + 'px' } }));
+      const col = seqColor((v - lo) / (hi - lo || 1));
+      const btn = h('button', { class: 'cell', type: 'button', style: { width: cw + 'px', height: ch + 'px', background: col, color: lum(col) > .6 ? '#1c1917' : '#ffffff' },
+        'aria-label': l.gene + ' in ' + a.states[i].label + ': ' + m[3](raw), onclick: () => { A.ui.focus = a.states[i].label; location.hash = 'locus-' + l.gene; },
+        onmousemove: ev => showTip(ev, h('div', {}, h('div', { class: 't' }, l.gene + ' · ' + a.states[i].label), h('div', {}, m[0] + ': ', h('b', {}, m[3](raw))))), onmouseleave: hideTip }, big ? m[3](raw) : '');
+      return h('td', {}, btn);
+    })));
+  }
+  const centre = h('section', { class: 'centre' },
+    h('h1', {}, 'Locus by cell state'), h('p', { class: 'lead' }, a.loci.length + ' loci, ' + a.states.length + ' cell states. Click a cell to open the locus.'),
+    pills(Object.entries(METRICS).map(([k, v]) => [k, v[0]]), A.ui.metric, k => { A.ui.metric = k; route(); }),
+    h('div', { class: 'matrix-wrap' }, tbl),
+    h('div', { class: 'legend' }, h('span', {}, A.ui.metric === 'expr' ? fmt(Math.pow(10, lo) - 1, 1) : m[3](lo)), h('i', { style: { background: 'linear-gradient(90deg,' + [0, 1, 2, 3, 4, 5, 6, 7].map(i => css('--seq-' + i)).join(',') + ')' } }),
+      h('span', {}, (A.ui.metric === 'expr' ? fmt(Math.pow(10, hi) - 1, 0) + ' CPM' : m[3](hi)) + ' · ' + m[1])),
+    a.meta.run_mode === 'smoke' ? h('p', { class: 'small muted', style: { marginTop: '14px' } }, 'This is the small test run: ' + a.loci.length + ' of ' + a.meta.planned_loci + ' planned loci and ' + a.states.length + ' cell states. The matrix fills in when the full run is loaded.') : null,
+    disclaimer());
+  const starts = h('aside', { class: 'card' }, h('h2', { class: 'label' }, 'Places to start'), h('p', { class: 'tiny muted', style: { margin: '6px 0 0' } }, 'Strongest signals in this run, one per kind of view.'),
+    h('ol', { class: 'starts' }, a.findings.map((f, i) => h('li', {}, h('a', { href: '#' + f.href }, h('span', { class: 'n' }, i + 1), h('span', {}, h('b', {}, f.title), h('span', { class: 'tag' }, f.tag), h('span', { class: 'sub' }, f.sub)))))));
+  app.replaceChildren(h('div', { class: 'home' }, guide, centre, starts));
+}
+
+/* ---------- locus ---------- */
+function decodeLocus(L) {
+  if (L._d) return L._d;
+  const S = L.states.length, d = { wide: {}, zoom: {} };
+  for (const scope of ['wide', 'zoom']) { const o = L[scope], q = b64u8(o.q), T = o.tracks.length, n = q.length / (S * T);
+    o.tracks.forEach((t, ti) => { const k = Math.log1p(o.scale[ti]) / 255; d[scope][t] = Array.from({ length: S }, (_, s) => { const f = new Float32Array(n), off = (s * T + ti) * n; for (let i = 0; i < n; i++) f[i] = Math.expm1(q[off + i] * k); return f; }); });
+    d[scope].n = n; }
+  const mw = b64u8(L.meth_wide), n = d.wide.n; d.wide.meth = Array.from({ length: S }, (_, s) => { const f = new Float32Array(n); for (let i = 0; i < n; i++) { const v = mw[s * n + i]; f[i] = v === 255 ? NaN : v / 250; } return f; });
+  const zp = new Int32Array(b64u8(L.meth_zoom.pos).buffer), zq = b64u8(L.meth_zoom.q), zn = L.meth_zoom.n;
+  d.zoom.cpg = zp; d.zoom.meth = Array.from({ length: S }, (_, s) => { const f = new Float32Array(zn); for (let i = 0; i < zn; i++) { const v = zq[s * zn + i]; f[i] = v === 255 ? NaN : v / 250; } return f; });
+  return (L._d = d);
+}
+function renderLocus(app, gene) {
+  const a = A.atlas, idx = a.loci.find(l => l.gene === gene);
+  if (!idx) { app.replaceChildren(h('div', { class: 'card empty' }, 'No locus named ' + gene + ' in this run.')); return; }
+  withFile('locus-' + gene + '.json', app, gene, L => {
+    const d = decodeLocus(L), ui = A.ui;
+    const avail = a.states.map((s, i) => i).filter(i => L.present[i]);
+    if (!ui.sel) { const want = ['HSC', 'GMP', 'Monocyte', 'AML HSC-like', 'SeqWell normal HSC', 'AML Mono-like'].map(l => a.states.findIndex(s => s.label === l)).filter(i => i >= 0 && L.present[i]);
+      ui.sel = new Set(want.length >= 3 ? want : avail.slice(0, 6)); }
+    let sel = avail.filter(i => ui.sel.has(i)); if (!sel.length) sel = avail.slice(0, 1);
+    let focus = a.states.findIndex(s => s.label === ui.focus); if (focus < 0 || !L.present[focus]) focus = sel[0];
+    const b = idx.by_state[focus], r = idx.reading;
+    const region = idx.chrom + ':' + idx.start + '-' + idx.end;
+    const head = h('section', { class: 'card head' }, h('div', { style: { minWidth: 0 } },
+      h('h1', {}, gene, h('small', {}, (TIER_NAME[idx.tier] || idx.tier))),
+      h('div', { class: 'meta' }, h('span', {}, idx.chrom + ':' + fmtInt(idx.start) + '–' + fmtInt(idx.end)), h('span', {}, '1.05 Mb window'), h('span', {}, (idx.strand === '+' ? 'plus' : 'minus') + ' strand'), h('span', {}, idx.gene_id), h('span', {}, fmtInt(idx.n_cpg) + ' CpGs')),
+      h('span', { class: 'badge' }, 'Predicted'), ' ', h('span', { class: 'small muted' }, 'hg38 reference sequence, ' + sel.length + ' of ' + avail.length + ' cell states shown'),
+      h('div', { class: 'chips' }, [['UCSC', 'https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=' + region], ['Ensembl', 'https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=' + idx.gene_id],
+        ['GeneCards', 'https://www.genecards.org/cgi-bin/carddisp.pl?gene=' + gene], ['ClinVar', 'https://www.ncbi.nlm.nih.gov/clinvar/?term=' + gene + '%5Bgene%5D'], ['gnomAD', 'https://gnomad.broadinstitute.org/gene/' + idx.gene_id + '?dataset=gnomad_r4'], ['OMIM', 'https://www.omim.org/search?search=' + gene]]
+        .map(([t, u]) => h('a', { class: 'chip', href: u, target: '_blank', rel: 'noopener' }, t)))),
+      h('div', { class: 'figure' }, h('div', { class: 'cap' }, 'Predicted expression'), h('div', { class: 'big num' }, b && b.expr != null ? fmt(b.expr, 1) : '–', h('small', {}, 'CPM')),
+        h('select', { id: 'focus-state', 'aria-label': 'Cell state for the headline figure', onchange: e => { ui.focus = e.target.value; route(); } }, avail.map(i => h('option', { value: a.states[i].label, selected: i === focus }, 'in ' + a.states[i].label)))));
+    const reading = h('section', { class: 'card reading' }, h('h2', { class: 'label' }, 'Reading of the locus'), h('p', { class: 'headline' }, r.headline), h('p', {}, r.body + ' Reference and AML states use different expression read-outs, so compare within each kind.'),
+      h('h3', { class: 'sublabel' }, 'Key numbers'), h('ul', {}, r.evidence.map(e => h('li', {}, e))));
+    const controls = h('section', { class: 'card', style: { padding: '10px 20px' } }, h('div', { class: 'bar-row' },
+      h('span', { class: 'lab' }, 'Window:'), h('span', { class: 'seg' }, [['wide', '1 Mb'], ['zoom', '131 kb at TSS']].map(([k, t]) => h('button', { type: 'button', 'aria-pressed': String(ui.win === k), onclick: () => { ui.win = k; route(); } }, t))),
+      h('span', { class: 'lab' }, 'Marks:'), h('span', { class: 'seg' }, [[false, 'Core'], [true, 'All six']].map(([k, t]) => h('button', { type: 'button', 'aria-pressed': String(ui.marks === k), onclick: () => { ui.marks = k; route(); } }, t))),
+      h('span', { class: 'lab' }, 'Cell states:'), avail.map(i => h('button', { class: 'pill', type: 'button', 'aria-pressed': String(ui.sel.has(i)), title: a.states[i].name,
+        onclick: () => { if (ui.sel.has(i)) { if (ui.sel.size > 1) ui.sel.delete(i); } else ui.sel.add(i); route(); } }, h('span', { class: 'dot', style: { background: stateColor(a.states[i]) } }), a.states[i].label))));
+    const cv = h('canvas', { role: 'img', 'aria-label': 'Predicted tracks for ' + gene + ' in ' + sel.map(i => a.states[i].label).join(', ') });
+    const browser = h('section', { class: 'card' }, h('div', { style: { display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', alignItems: 'baseline' } },
+      h('h2', { class: 'label' }, 'Predicted tracks'), h('span', { class: 'tiny muted' }, 'One lane per cell state; lanes of a track share one scale. Arcs are the elements linked to ' + gene + ' in ' + a.states[focus].label + '.')),
+      h('div', { class: 'browser', style: { marginTop: '10px' } }, cv));
+    // linked elements
+    const top = L.enhancers.slice(0, 12), gmax = Math.max(...top.map(e => e.max), 1e-9), amax = Math.max(...top.flatMap(e => sel.map(i => e.atac[i] || 0)), 1e-9);
+    const rows = h('div', { class: 'rows', style: { marginTop: '10px' } }, h('div'), h('div', { class: 'hd' }, 'Attribution to ' + gene + ' (gradient score)'), h('div', { class: 'hd' }, 'Accessibility at the element'));
+    const barSet = (vals, mx, unit) => h('div', { class: 'bars' }, sel.map(i => { const v = vals[i]; return h('span', { class: v == null ? 'none' : '', style: v == null ? {} : { width: Math.max(1.5, v / mx * 100) + '%', background: stateColor(a.states[i]) },
+      onmousemove: ev => showTip(ev, h('div', {}, h('div', { class: 't' }, a.states[i].label), v == null ? 'not called in this state' : unit + ': ' + fmt(v, 4))), onmouseleave: hideTip }); }));
+    for (const e of top) rows.append(h('div', { class: 'nm' }, h('b', {}, kbText(e.kb)), ' ', h('span', { class: 'muted tiny' }, 'called in ' + e.n_states + ' of ' + avail.length), h('small', {}, L.chrom + ':' + fmtInt(e.start) + '–' + fmtInt(e.end))),
+      barSet(e.grad, gmax, 'gradient score'), barSet(e.atac, amax, 'accessibility'));
+    const stateKeys = () => h('div', { class: 'keys' }, sel.map(i => h('span', {}, h('i', { style: { background: stateColor(a.states[i]) } }), a.states[i].label)));
+    const elements = h('section', { class: 'card' }, h('div', { style: { display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' } }, h('h2', { class: 'label' }, 'Top linked elements'), stateKeys()),
+      top.length ? rows : h('p', { class: 'muted' }, 'No element passed the calling threshold for ' + gene + '.'),
+      h('p', { class: 'tiny muted', style: { margin: '12px 0 0' } }, 'Distances are from the canonical TSS along the direction of transcription (− is upstream). An element can be an enhancer or an alternative promoter of the same gene.'));
+    // genes in the window
+    const genes = L.genes.map(g => ({ g, e: L.expr[g.id] })).filter(x => x.e).sort((x, y) => Math.max(...sel.map(i => y.e.sc[i] || 0)) - Math.max(...sel.map(i => x.e.sc[i] || 0)));
+    const emax = Math.log10(Math.max(...genes.flatMap(x => sel.map(i => x.e.sc[i] || 0)), 1) + 1);
+    const gt = h('table', { class: 'tbl' }, h('tr', {}, h('th', {}, 'Gene'), h('th', {}, 'Strand'), sel.map(i => h('th', { class: 'v' }, a.states[i].label))),
+      genes.map(x => h('tr', {}, h('td', {}, x.g.name === gene ? h('b', {}, x.g.name) : x.g.name), h('td', { class: 'muted' }, x.g.strand === '+' ? 'plus' : 'minus'),
+        sel.map(i => { const v = x.e.sc[i]; const col = v == null ? css('--track') : seqColor(Math.log10(v + 1) / emax); return h('td', { class: 'v' }, h('span', { style: { display: 'inline-block', minWidth: '64px', padding: '1px 6px', borderRadius: '4px', background: col, color: lum(col) > .6 ? '#1c1917' : '#ffffff' } }, v == null ? '–' : fmt(v, 2))); }))));
+    const genesCard = h('section', { class: 'card' }, h('h2', { class: 'label' }, 'Genes in the window'), h('p', { class: 'tiny muted', style: { margin: '4px 0 8px' } }, 'Predicted single-cell expression, CPM.'), h('div', { class: 'scroll-x' }, gt));
+    app.replaceChildren(h('div', { class: 'stack' }, head, reading, controls, browser, elements, genesCard, disclaimer()));
+    const draw = () => drawBrowser(cv, L, d, sel, focus);
+    draw(); A.redraw = draw;
+  });
+}
+function drawBrowser(cv, L, d, sel, focus) {
+  const a = A.atlas, ui = A.ui, wide = ui.win === 'wide', D = wide ? d.wide : d.zoom;
+  const v0 = wide ? L.start : L.zoom.start, bin = wide ? L.wide.bin : L.zoom.bin, v1 = v0 + D.n * bin;
+  const rnaKey = L.strand === '+' ? 'rna_plus' : 'rna_minus';
+  let tracks = wide ? ['rna', 'acc', 'H3K27ac', 'H3K4me1', 'H3K4me3', 'H3K27me3'].concat(ui.marks ? ['H3K36me3', 'H3K9me3'] : [], ['meth', 'grad']) : ['rna', 'acc', 'meth', 'grad'];
+  const series = t => t === 'rna' ? D[rnaKey] : D[t]; tracks = tracks.filter(t => series(t));
+  const LANE = 20, GAP = 2, HEAD = 18, rows = [{ kind: 'axis', h: 24 }, { kind: 'genes', h: 46 }, { kind: 'arcs', h: 44 }];
+  for (const t of tracks) { rows.push({ kind: 'head', h: HEAD, t }); for (const s of sel) rows.push({ kind: 'lane', h: LANE + GAP, t, s }); rows.push({ kind: 'pad', h: 6 }); }
+  const H = rows.reduce((x, r) => x + r.h, 0);
+  const [c, W] = setupCanvas(cv, H), gut = W < 620 ? 104 : 168, pw = W - gut - 6, X = p => gut + (p - v0) / (v1 - v0) * pw;
+  const ink = css('--ink'), ink2 = css('--ink-2'), ink3 = css('--ink-3'), line = css('--line'), trackBg = css('--track'), accent = css('--accent');
+  c.clearRect(0, 0, W, H); c.textBaseline = 'middle';
+  let y = 0; const layout = [];
+  const ymax = {}; for (const t of tracks) { if (t === 'meth') { ymax[t] = 1; continue; } let m = 0; for (const s of sel) { const f = series(t)[s]; for (let i = 0; i < f.length; i++) if (f[i] > m) m = f[i]; } ymax[t] = m || 1; }
+  for (const r of rows) {
+    layout.push({ ...r, y });
+    if (r.kind === 'axis') {
+      const span = v1 - v0, step = [1e3, 2e3, 5e3, 1e4, 2e4, 5e4, 1e5, 2e5, 5e5].find(s => span / s <= (pw < 500 ? 5 : 9)) || 5e5;
+      c.font = '11px ' + css('--mono'); c.fillStyle = ink3; c.strokeStyle = line; c.textAlign = 'center';
+      for (let p = Math.ceil(v0 / step) * step; p < v1; p += step) { const x = X(p); c.beginPath(); c.moveTo(x, y + 18); c.lineTo(x, H); c.globalAlpha = .5; c.stroke(); c.globalAlpha = 1; c.fillText(step >= 1e5 ? (p / 1e6).toFixed(1) + ' Mb' : (p / 1e6).toFixed(3), x, y + 9); }
+      c.textAlign = 'left'; c.fillText(L.chrom, 4, y + 9);
+    } else if (r.kind === 'genes') {
+      c.font = '11px ' + css('--sans'); c.textAlign = 'left'; c.fillStyle = ink2; c.fillText('Genes', 4, y + 12);
+      const levels = [-1e9, -1e9, -1e9];
+      for (const g of L.genes.filter(g => g.end > v0 && g.start < v1).sort((p, q) => (q.name === L.gene) - (p.name === L.gene) || p.start - q.start)) {
+        const x0 = Math.max(gut, X(g.start)), x1 = Math.min(gut + pw, X(g.end)), me = g.name === L.gene, label = g.name + (g.strand === '+' ? ' →' : ' ←'), tw = c.measureText(label).width;
+        let lv = levels.findIndex(e => e < x0 - 6); if (lv < 0) { if (!me) continue; lv = 0; }
+        levels[lv] = Math.max(x1, x0 + tw) + 4; const gy = y + 8 + lv * 14;
+        c.strokeStyle = me ? accent : ink3; c.fillStyle = me ? accent : ink3; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, gy); c.lineTo(Math.max(x1, x0 + 1), gy); c.stroke();
+        for (const [es, ee] of g.exons) { if (ee < v0 || es > v1) continue; const ex0 = Math.max(gut, X(es)); c.fillRect(ex0, gy - 3, Math.max(1, Math.min(gut + pw, X(ee)) - ex0), 6); }
+        c.fillStyle = me ? accent : ink2; c.font = (me ? '600 ' : '') + '11px ' + css('--sans'); if (x0 + tw < gut + pw) c.fillText(label, x0, gy + 9);
+      }
+    } else if (r.kind === 'arcs') {
+      c.font = '11px ' + css('--sans'); c.fillStyle = ink2; c.textAlign = 'left'; c.fillText('Linked elements', 4, y + r.h - 12);
+      const base = y + r.h - 4, tx = X(L.tss), mx = Math.max(...L.enhancers.map(e => e.grad[focus] || 0), 1e-9);
+      c.strokeStyle = line; c.beginPath(); c.moveTo(gut, base); c.lineTo(gut + pw, base); c.stroke();
+      for (const e of L.enhancers) { const mid = (e.start + e.end) / 2; if (mid < v0 || mid > v1) continue; const x = X(mid), g = e.grad[focus];
+        c.fillStyle = g == null ? ink3 : accent; c.globalAlpha = g == null ? .5 : 1; c.fillRect(x - 1, base - 4, 2, 4); c.globalAlpha = 1;
+        if (g == null || L.tss < v0 || L.tss > v1) continue; const w = g / mx; c.strokeStyle = accent; c.globalAlpha = .25 + .7 * w; c.lineWidth = .8 + 2 * w;
+        c.beginPath(); c.moveTo(x, base - 4); c.quadraticCurveTo((x + tx) / 2, base - 4 - Math.min(r.h - 8, 10 + Math.abs(x - tx) * .22) * 1.6, tx, base - 4); c.stroke(); c.globalAlpha = 1; c.lineWidth = 1; }
+    } else if (r.kind === 'head') {
+      c.font = '600 11px ' + css('--sans'); c.fillStyle = ink; c.textAlign = 'left'; c.fillText(TRACK_NAME[r.t], 4, y + 10);
+      c.font = '10.5px ' + css('--mono'); c.fillStyle = ink3; c.textAlign = 'right'; c.fillText(r.t === 'meth' ? '0–100%' : 'max ' + fmt(ymax[r.t], r.t === 'grad' ? 3 : 2), gut + pw, y + 10);
+    } else if (r.kind === 'lane') {
+      const st = a.states[r.s], col = stateColor(st), f = series(r.t)[r.s], hh = LANE;
+      c.fillStyle = trackBg; c.fillRect(gut, y, pw, hh);
+      c.font = '11px ' + css('--sans'); c.textAlign = 'left'; c.fillStyle = col; c.fillRect(4, y + hh / 2 - 4, 8, 8); c.fillStyle = ink2;
+      let lab = st.label; while (c.measureText(lab).width > gut - 24 && lab.length > 4) lab = lab.slice(0, -2); c.fillText(lab === st.label ? lab : lab + '…', 17, y + hh / 2);
+      c.fillStyle = col;
+      if (r.t === 'meth' && !wide) { const P = D.cpg; c.globalAlpha = .85; for (let i = 0; i < P.length; i++) { const v = f[i]; if (isNaN(v)) continue; const x = X(P[i]); c.fillRect(x - .5, y + hh - v * hh, 1.5, Math.max(1, v * hh)); } c.globalAlpha = 1; }
+      else { const n = f.length, m = ymax[r.t]; c.globalAlpha = r.t === 'meth' ? .55 : 1;
+        for (let px = 0; px < pw; px++) { const i0 = Math.floor(px / pw * n), i1 = Math.max(i0 + 1, Math.floor((px + 1) / pw * n)); let v = 0, any = false; for (let i = i0; i < i1; i++) { const q = f[i]; if (!isNaN(q)) { any = true; if (q > v) v = q; } }
+          if (!any) continue; const bh = Math.min(hh, v / m * hh); if (bh > .3) c.fillRect(gut + px, y + hh - bh, 1, bh); }
+        c.globalAlpha = 1; }
+    }
+    y += r.h;
+  }
+  cv.onmousemove = ev => { const rc = cv.getBoundingClientRect(), mx = ev.clientX - rc.left, my = ev.clientY - rc.top, r = layout.find(q => my >= q.y && my < q.y + q.h);
+    if (mx < gut || mx > gut + pw || !r || (r.kind !== 'lane' && r.kind !== 'arcs')) { hideTip(); return; }
+    const pos = v0 + (mx - gut) / pw * (v1 - v0);
+    if (r.kind === 'arcs') { const e = L.enhancers.find(e => Math.abs(X((e.start + e.end) / 2) - mx) < 5); if (!e) { hideTip(); return; }
+      showTip(ev, h('div', {}, h('div', { class: 't' }, kbText(e.kb) + ' · ' + L.chrom + ':' + fmtInt(e.start) + '–' + fmtInt(e.end)), sel.map(s => h('div', { class: 'r' + (s === focus ? ' on' : '') }, h('span', {}, h('i', { style: { background: stateColor(a.states[s]) } }), a.states[s].label), h('span', { class: 'num' }, e.grad[s] == null ? 'not called' : fmt(e.grad[s], 4)))))); return; }
+    const rowsOut = sel.map(s => { const f = series(r.t)[s]; let v; if (r.t === 'meth' && !wide) { let best = -1, bd = 1e9; for (let i = 0; i < D.cpg.length; i++) { const dd = Math.abs(D.cpg[i] - pos); if (dd < bd) { bd = dd; best = i; } } v = best >= 0 && bd < (v1 - v0) / pw * 4 ? f[best] : NaN; }
+      else v = f[Math.min(f.length - 1, Math.floor((pos - v0) / bin))];
+      return h('div', { class: 'r' + (s === r.s ? ' on' : '') }, h('span', {}, h('i', { style: { background: stateColor(a.states[s]) } }), a.states[s].label), h('span', { class: 'num' }, isNaN(v) ? '–' : r.t === 'meth' ? Math.round(v * 100) + '%' : fmt(v, r.t === 'grad' ? 4 : 3))); });
+    showTip(ev, h('div', {}, h('div', { class: 't' }, L.chrom + ':' + fmtInt(pos) + ' · ' + TRACK_NAME[r.t]), rowsOut)); };
+  cv.onmouseleave = hideTip;
+}
+
+/* ---------- clock ---------- */
+const CLOCK_COLOR = { aml: ['AML shift', 'predicted methylation in AML states minus matched normal cells'], mean: ['Mean methylation', 'mean predicted methylation across normal states'], n: ['Clocks', 'number of clocks that use the CpG'] };
+function renderClock(app) {
+  withFile('clock.json', app, 'clock CpGs', C => {
+    const a = A.atlas, ui = A.ui, pts = C.cpgs.filter(c => c.sd != null && c.seq != null);
+    if (!pts.length) { app.replaceChildren(h('div', { class: 'card empty' }, 'No clock CpGs in this run.')); return; }
+    const pick = C.cpgs.find(c => c.probe === ui.probe) || pts.reduce((m, c) => c.sd > m.sd ? c : m, pts[0]);
+    const ys = pts.map(c => c.seq).sort((x, y) => x - y), ycap = ys[Math.floor(ys.length * .98)] || ys[ys.length - 1];
+    const xmax = Math.max(...pts.map(c => c.sd)) * 1.05, ymax = Math.max(ycap, 1e-6) * 1.08, over = pts.filter(c => c.seq > ymax).length;
+    const amax = Math.max(...pts.map(c => Math.abs(c.aml || 0)), 1e-9);
+    const colorOf = c => ui.clockColor === 'aml' ? divColor(c.aml == null ? null : c.aml / amax) : ui.clockColor === 'mean' ? seqColor(.15 + .85 * (c.mean || 0)) : seqColor([0, .35, .65, 1][Math.min(3, Object.keys(c.coefs).length)]);
+    const W = 760, H = 470, m = { l: 56, r: 16, t: 14, b: 46 }, X = v => m.l + v / xmax * (W - m.l - m.r), Y = v => H - m.b - v / ymax * (H - m.t - m.b);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.style.width = '100%'; svg.style.maxWidth = W + 'px'; svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Clock CpGs by state sensitivity and sequence sensitivity');
+    const S = (tag, at, txt) => { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; svg.append(e); return e; };
+    const tick = mx => { const st = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1].find(s => mx / s <= 6) || 1; const o = []; for (let v = 0; v <= mx; v += st) o.push(+v.toFixed(4)); return o; };
+    for (const v of tick(xmax)) { S('line', { x1: X(v), x2: X(v), y1: m.t, y2: H - m.b, stroke: css('--line') }); S('text', { x: X(v), y: H - m.b + 16, 'text-anchor': 'middle', 'font-size': 11, fill: css('--ink-3') }, v); }
+    for (const v of tick(ymax)) { S('line', { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: css('--line') }); S('text', { x: m.l - 8, y: Y(v) + 4, 'text-anchor': 'end', 'font-size': 11, fill: css('--ink-3') }, v); }
+    S('text', { x: (m.l + W - m.r) / 2, y: H - 8, 'text-anchor': 'middle', 'font-size': 12, fill: css('--ink-2') }, 'State sensitivity (SD of predicted methylation across normal states)');
+    S('text', { x: 14, y: (m.t + H - m.b) / 2, 'text-anchor': 'middle', 'font-size': 12, fill: css('--ink-2'), transform: `rotate(-90 14 ${(m.t + H - m.b) / 2})` }, 'Sequence sensitivity (mean |Δ logit|)' + (over ? ', ' + over + ' higher sites drawn at the top' : ''));
+    for (const c of pts) { const e = S('circle', { cx: X(c.sd), cy: Y(Math.min(c.seq, ymax)), r: c === pick ? 6 : 3.4, fill: colorOf(c), stroke: c === pick ? css('--ink') : css('--card'), 'stroke-width': c === pick ? 2 : .6, style: 'cursor:pointer' });
+      e.addEventListener('click', () => { ui.probe = c.probe; route(); });
+      e.addEventListener('mousemove', ev => showTip(ev, h('div', {}, h('div', { class: 't' }, c.probe + ' · ' + c.chrom + ':' + fmtInt(c.pos)), h('div', { class: 'r' }, h('span', {}, 'State sensitivity'), h('span', { class: 'num' }, fmt(c.sd, 3))), h('div', { class: 'r' }, h('span', {}, 'Sequence sensitivity'), h('span', { class: 'num' }, fmt(c.seq, 3))),
+        h('div', { class: 'r' }, h('span', {}, 'AML shift'), h('span', { class: 'num' }, signed(c.aml, 3))), h('div', { class: 'r' }, h('span', {}, 'Clocks'), h('span', {}, Object.keys(c.coefs).join(', ')))))); e.addEventListener('mouseleave', hideTip); }
+    const legend = ui.clockColor === 'aml' ? h('div', { class: 'legend' }, h('span', {}, '−' + fmt(amax, 2)), h('i', { style: { background: `linear-gradient(90deg,${css('--neg')},${css('--div-mid')},${css('--pos')})` } }), h('span', {}, '+' + fmt(amax, 2) + ' · ' + CLOCK_COLOR.aml[1]))
+      : h('div', { class: 'legend' }, h('span', {}, ui.clockColor === 'mean' ? '0%' : '1 clock'), h('i', { style: { background: 'linear-gradient(90deg,' + [1, 2, 3, 4, 5, 6, 7].map(i => css('--seq-' + i)).join(',') + ')' } }), h('span', {}, (ui.clockColor === 'mean' ? '100%' : '3 or more') + ' · ' + CLOCK_COLOR[ui.clockColor][1]));
+    const centre = h('section', { class: 'card', style: { textAlign: 'center' } }, h('h1', { style: { fontSize: '18px', fontWeight: 600, margin: '4px 0' } }, 'Clock CpGs'), h('p', { class: 'muted', style: { margin: '0 0 12px' } }, fmtInt(pts.length) + ' CpGs from ' + Object.keys(C.clocks).length + ' epigenetic clocks. Click a point to open the site.'),
+      pills(Object.entries(CLOCK_COLOR).map(([k, v]) => [k, v[0]]), ui.clockColor, k => { ui.clockColor = k; route(); }), h('div', { style: { marginTop: '12px' } }, svg), legend,
+      C.profile_coverage < .8 ? h('p', { class: 'note', style: { textAlign: 'left', marginTop: '14px' } }, 'Sequence sensitivity in this run rests on only ' + Math.round(C.profile_coverage * 20) + ' of 20 flanking positions per CpG, because the batched mutagenesis call omits the tested CpG at most positions. The updated notebook scores each change separately; read the vertical axis as provisional until that stage is re-run.') : null);
+    // selected CpG
+    const stateOf = l => a.states.find(s => s.label === l), rowsOf = (labels, vals, colFn) => h('div', { style: { display: 'grid', gridTemplateColumns: 'minmax(96px,38%) minmax(0,1fr) 40px', gap: '3px 8px', alignItems: 'center' } },
+      labels.flatMap((l, i) => vals[i] == null ? [] : [h('span', { class: 'tiny', style: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, l), h('div', { style: { background: 'var(--track)', borderRadius: '3px', height: '8px' } }, h('div', { style: { width: Math.max(1, vals[i] * 100) + '%', height: '8px', borderRadius: '3px', background: colFn(l) } })), h('span', { class: 'tiny num', style: { textAlign: 'right' } }, Math.round(vals[i] * 100) + '%')]));
+    const F = C.flank, prof = pick.prof, pmax = Math.max(...prof.filter(v => v != null), 1e-9), bw = 13;
+    const ps = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); ps.setAttribute('viewBox', `0 0 ${prof.length * bw + 4} 64`); ps.style.width = '100%'; ps.style.maxWidth = prof.length * bw + 4 + 'px'; ps.setAttribute('role', 'img'); ps.setAttribute('aria-label', 'Effect of nearby base changes on this CpG');
+    prof.forEach((v, i) => { const isC = i === F || i === F + 1, e = document.createElementNS('http://www.w3.org/2000/svg', 'rect'), hgt = v == null ? 2 : Math.max(2, v / pmax * 46);
+      e.setAttribute('x', 2 + i * bw + 1); e.setAttribute('width', bw - 2); e.setAttribute('y', 50 - (isC ? 46 : hgt)); e.setAttribute('height', isC ? 46 : hgt); e.setAttribute('rx', 2); e.setAttribute('fill', isC ? css('--accent-soft') : v == null ? css('--track') : css('--accent')); ps.append(e); });
+    const lab = document.createElementNS('http://www.w3.org/2000/svg', 'text'); lab.setAttribute('x', 2 + (F + 1) * bw); lab.setAttribute('y', 62); lab.setAttribute('text-anchor', 'middle'); lab.setAttribute('font-size', 10); lab.setAttribute('fill', css('--ink-3')); lab.textContent = 'CpG'; ps.append(lab);
+    const detail = h('section', { class: 'card' }, h('div', { class: 'head' }, h('div', { style: { minWidth: 0 } }, h('h1', { class: 'mono', style: { fontSize: '19px' } }, pick.probe), h('div', { class: 'meta' }, h('span', {}, pick.chrom + ':' + fmtInt(pick.pos)), h('span', {}, 'hg38')),
+        h('div', { class: 'chips', style: { marginTop: '4px' } }, Object.entries(pick.coefs).map(([k, v]) => h('span', { class: 'chip', title: C.clocks[k] || k }, k + ' ' + signed(v, 3))))),
+      h('div', { class: 'figure', style: { minWidth: '120px' } }, h('div', { class: 'cap' }, 'State sensitivity'), h('div', { class: 'big num', style: { fontSize: '34px' } }, fmt(pick.sd, 3)))),
+      h('h3', { class: 'sublabel', style: { margin: '14px 0 6px' } }, 'Predicted methylation by cell state'), rowsOf(C.states, pick.beta, l => { const s = stateOf(l); return s ? stateColor(s) : css('--ink-3'); }),
+      pick.measured ? [h('h3', { class: 'sublabel', style: { margin: '14px 0 6px' } }, 'Measured in sorted blood (450k array)'), rowsOf(C.measured_types, pick.measured, () => css('--ink-3'))] : null,
+      h('h3', { class: 'sublabel', style: { margin: '14px 0 6px' } }, 'Effect of changing each nearby base (' + C.ism_state + ')'), ps,
+      h('p', { class: 'tiny muted', style: { margin: '4px 0 0' } }, 'Bar height: largest change in this CpG’s predicted methylation, ' + F + ' bp either side. Grey = no value returned.'));
+    const top = [...pts].sort((x, y) => y.sd - x.sd).slice(0, 40);
+    const tbl = h('section', { class: 'card' }, h('h2', { class: 'label' }, 'Most state-dependent sites'), h('p', { class: 'tiny muted', style: { margin: '4px 0 8px' } }, 'Top 40 of ' + fmtInt(pts.length) + '. These are the clock CpGs most likely to read cell composition.'),
+      h('div', { class: 'scroll-x' }, h('table', { class: 'tbl' }, h('tr', {}, h('th', {}, 'CpG'), h('th', {}, 'Position'), h('th', {}, 'Clocks'), h('th', { class: 'v' }, 'State SD'), h('th', { class: 'v' }, 'Range'), h('th', { class: 'v' }, 'Mean'), h('th', { class: 'v' }, 'AML shift'), h('th', { class: 'v' }, 'Seq. sens.')),
+        top.map(c => h('tr', { class: 'click', onclick: () => { ui.probe = c.probe; route(); window.scrollTo(0, 0); } }, h('td', { class: 'mono' }, c.probe), h('td', { class: 'mono muted' }, c.chrom + ':' + fmtInt(c.pos)), h('td', {}, Object.keys(c.coefs).join(', ')),
+          h('td', { class: 'v' }, fmt(c.sd, 3)), h('td', { class: 'v' }, fmt(c.range, 2)), h('td', { class: 'v' }, Math.round((c.mean || 0) * 100) + '%'), h('td', { class: 'v' }, signed(c.aml, 3)), h('td', { class: 'v' }, fmt(c.seq, 3)))))));
+    app.replaceChildren(h('div', { class: 'stack' }, h('div', { class: 'two' }, centre, detail), tbl, disclaimer()));
+  });
+}
+
+/* ---------- rearrangements ---------- */
+const LANE_NAME = { native: 'Normal position', rearranged: 'Rearranged', enhancer_scrambled: 'Rearranged, enhancer scrambled' };
+function renderRearr(app, ri) {
+  withFile('rearr.json', app, 'rearrangements', all => {
+    const a = A.atlas, ui = A.ui, R = all[ri] || all[0]; if (!R) { app.replaceChildren(h('div', { class: 'card empty' }, 'No rearrangements in this run.')); return; }
+    if (!R.conds.includes(ui.rstate)) ui.rstate = R.conds[0];
+    const ci = R.conds.indexOf(ui.rstate), gene = R.genes[0], foc = c => R.expr.find(x => x.focus && x.cond === c), f = foc(ui.rstate);
+    const fold = f && f.native ? f.rearranged / f.native : null, foldS = f && f.native && f.scrambled != null ? f.scrambled / f.native : null;
+    const armText = s => { const iv = R.arms[s].interval; return iv[0] + ':' + fmtInt(iv[1]) + '–' + fmtInt(iv[2]) + (R.arms[s].strand === '-' ? ' (inverted)' : ''); };
+    const head = h('section', { class: 'card head' }, h('div', { style: { minWidth: 0 } }, h('h1', {}, gene, h('small', {}, R.label)),
+      h('div', { class: 'meta' }, h('span', {}, 'left arm ' + armText('left')), h('span', {}, 'right arm ' + armText('right'))),
+      h('span', { class: 'badge plain' }, 'Representative breakpoints'), ' ', h('span', { class: 'small muted' }, 'A 1 Mb sequence built by joining the two arms, compared with each arm in its normal place.'),
+      h('div', { class: 'chips' }, all.map((r, i) => h('a', { class: 'chip', href: '#rearr-' + i, style: r === R ? { background: 'var(--accent-soft)', color: 'var(--accent)' } : {} }, r.label)))),
+      h('div', { class: 'figure' }, h('div', { class: 'cap' }, gene + ' after rearrangement'), h('div', { class: 'big num' }, fold == null ? '–' : fmt(fold, 1), h('small', {}, '× normal')),
+        h('select', { id: 'rearr-state', 'aria-label': 'Cell state', onchange: e => { ui.rstate = e.target.value; route(); } }, R.conds.map(c => h('option', { value: c, selected: c === ui.rstate }, 'in ' + c)))));
+    const folds = R.conds.map(c => { const x = foc(c); return x && x.native ? [c, x.rearranged / x.native, x.scrambled != null ? x.scrambled / x.native : null] : null; }).filter(Boolean);
+    const up = fold != null && fold >= 1, lmax = Math.max(...folds.flatMap(x => [Math.abs(Math.log2(x[1])), x[2] ? Math.abs(Math.log2(x[2])) : 0]), 1);
+    const reading = h('section', { class: 'card reading' }, h('h2', { class: 'label' }, 'Reading'),
+      h('p', { class: 'headline' }, fold == null ? 'No expression estimate for ' + gene + ' in this state.' : 'In ' + ui.rstate + ', predicted ' + gene + ' expression is ' + fmt(fold, 2) + '× its normal level once the two arms are joined' + (foldS != null ? ', and ' + fmt(foldS, 2) + '× when the relocated enhancer is scrambled.' : '.')),
+      h('p', {}, folds.length + ' cell states were tested. ' + gene + ' changes ' + (up ? 'upward' : 'downward') + ' in ' + folds.filter(x => (x[1] >= 1) === up).length + ' of them' + (folds.some(x => x[2] != null) ? '; scrambling the enhancer removes most of the change in ' + folds.filter(x => x[2] != null && Math.abs(Math.log2(x[2])) < Math.abs(Math.log2(x[1])) * .6).length + '.' : '.')),
+      h('div', { class: 'rows', style: { gridTemplateColumns: 'minmax(120px,1fr) minmax(0,3fr) 150px' } }, folds.flatMap(([c, v, s]) => { const t = Math.log2(v) / lmax, ts = s ? Math.log2(s) / lmax : null;
+        const bar = (tt, op) => h('div', { class: 'div-bar', style: { height: '8px', marginBottom: '2px' } }, h('i', { style: { left: (tt < 0 ? 50 + tt * 50 : 50) + '%', width: Math.abs(tt) * 50 + '%', background: css(tt < 0 ? '--neg' : '--pos'), opacity: op } }));
+        return [h('div', { class: 'nm', style: { fontWeight: c === ui.rstate ? 600 : 400 } }, c), h('div', {}, bar(t, 1), ts == null ? null : bar(ts, .45)), h('div', { class: 'tiny num muted' }, fmt(v, 2) + '×' + (s ? ' · scrambled ' + fmt(s, 2) + '×' : ''))]; })),
+      h('p', { class: 'tiny muted', style: { margin: '10px 0 0' } }, 'Bars are log2 fold change against the normal position. The paler bar under each is the enhancer-scrambled control.'));
+    const cv = h('canvas', { role: 'img', 'aria-label': 'Predicted tracks across the rearranged sequence in ' + ui.rstate });
+    const tracks = h('section', { class: 'card' }, h('h2', { class: 'label' }, 'Across the junction'), h('p', { class: 'tiny muted', style: { margin: '4px 0 10px' } }, 'Left half and right half are the two arms; the dashed line is the breakpoint. Lanes of a track share one scale.'), h('div', { class: 'browser' }, cv));
+    const er = R.expr.filter(x => x.cond === ui.rstate && x.native != null).sort((x, y) => (y.focus - x.focus) || Math.abs(Math.log2((y.rearranged + 1e-4) / (y.native + 1e-4))) - Math.abs(Math.log2((x.rearranged + 1e-4) / (x.native + 1e-4))));
+    const tbl = h('section', { class: 'card' }, h('h2', { class: 'label' }, 'Genes on both arms'), h('p', { class: 'tiny muted', style: { margin: '4px 0 8px' } }, 'Mean predicted RNA signal over exons, ' + ui.rstate + '.'),
+      h('div', { class: 'scroll-x' }, h('table', { class: 'tbl' }, h('tr', {}, h('th', {}, 'Gene'), h('th', {}, 'Arm'), h('th', { class: 'v' }, 'Normal'), h('th', { class: 'v' }, 'Rearranged'), h('th', { class: 'v' }, 'Scrambled'), h('th', { class: 'v' }, 'Fold')),
+        er.map(x => h('tr', {}, h('td', {}, x.focus ? h('b', {}, x.gene) : x.gene), h('td', { class: 'muted' }, x.arm), h('td', { class: 'v' }, fmt(x.native, 3)), h('td', { class: 'v' }, fmt(x.rearranged, 3)), h('td', { class: 'v' }, x.scrambled == null ? '–' : fmt(x.scrambled, 3)), h('td', { class: 'v' }, x.native ? fmt(x.rearranged / x.native, 2) + '×' : '–'))))));
+    app.replaceChildren(h('div', { class: 'stack' }, head, reading, tracks, tbl, disclaimer()));
+    if (!R._d) { R._d = {}; for (const t of R.tracks) { const q = b64u8(R.q[t]), n = q.length / (R.conds.length * R.lanes.length), k = Math.log1p(R.scales[t]) / 255;
+      R._d[t] = R.conds.map((_, c) => R.lanes.map((_, l) => { const f = new Float32Array(n), off = (c * R.lanes.length + l) * n; for (let i = 0; i < n; i++) f[i] = Math.expm1(q[off + i] * k); return f; })); } }
+    const draw = () => { const gm = R.marks.find(m => m.kind === 'gene'), rk = gm && gm.strand === '+' ? 'rna_plus' : 'rna_minus', list = [[rk, 'RNA (' + gene + ' strand)'], ['acc', 'Accessibility'], ['H3K27ac', 'H3K27ac']].filter(x => R._d[x[0]]);
+      const LANE = 22, rows = 30 + list.length * (18 + R.lanes.length * (LANE + 2) + 6), [c, W] = setupCanvas(cv, rows), gut = W < 620 ? 110 : 210, pw = W - gut - 6, L1 = 1048576, X = p => gut + p / L1 * pw;
+      c.clearRect(0, 0, W, rows); c.textBaseline = 'middle'; const ink = css('--ink'), ink2 = css('--ink-2'), ink3 = css('--ink-3'), acc = css('--accent');
+      c.fillStyle = css('--s-progenitor'); c.globalAlpha = .35; c.fillRect(gut, 6, pw / 2, 8); c.fillStyle = css('--s-myeloid'); c.fillRect(gut + pw / 2, 6, pw / 2, 8); c.globalAlpha = 1;
+      c.font = '10.5px ' + css('--mono'); c.fillStyle = ink3; c.textAlign = 'left'; c.fillText('left arm', gut + 4, 22); c.textAlign = 'right'; c.fillText('right arm', gut + pw - 4, 22);
+      for (const mk of R.marks) { const x0 = X(mk.lo), x1 = X(mk.hi); c.fillStyle = mk.kind === 'gene' ? ink : acc; c.fillRect(x0, mk.kind === 'gene' ? 8 : 4, Math.max(2, x1 - x0), mk.kind === 'gene' ? 4 : 12);
+        c.font = '600 11px ' + css('--sans'); c.textAlign = mk.kind === 'gene' ? 'left' : 'right'; c.fillStyle = mk.kind === 'gene' ? ink : acc; c.fillText(mk.kind === 'gene' ? mk.name + (mk.strand === '+' ? ' →' : ' ←') : 'enhancer', mk.kind === 'gene' ? Math.min(x0 + 60, gut + pw - 80) : x0 - 5, 22); }
+      let y = 30; for (const [t, name] of list) { let mx = 0; for (const f of R._d[t][ci]) for (let i = 0; i < f.length; i++) if (f[i] > mx) mx = f[i]; mx = mx || 1;
+        c.font = '600 11px ' + css('--sans'); c.fillStyle = ink; c.textAlign = 'left'; c.fillText(name, 4, y + 9); c.font = '10.5px ' + css('--mono'); c.fillStyle = ink3; c.textAlign = 'right'; c.fillText('max ' + fmt(mx, 2), gut + pw, y + 9); y += 18;
+        R.lanes.forEach((ln, li) => { const f = R._d[t][ci][li], n = f.length; c.fillStyle = css('--track'); c.fillRect(gut, y, pw, LANE); c.font = '11px ' + css('--sans'); c.textAlign = 'left'; c.fillStyle = ink2; let lab = LANE_NAME[ln] || ln; while (c.measureText(lab).width > gut - 10 && lab.length > 6) lab = lab.slice(0, -2); c.fillText(lab, 4, y + LANE / 2);
+          c.fillStyle = ln === 'native' ? ink3 : ln === 'rearranged' ? acc : css('--s-megakaryocyte');
+          for (let px = 0; px < pw; px++) { const i0 = Math.floor(px / pw * n), i1 = Math.max(i0 + 1, Math.floor((px + 1) / pw * n)); let v = 0; for (let i = i0; i < i1; i++) if (f[i] > v) v = f[i]; const bh = Math.min(LANE, v / mx * LANE); if (bh > .3) c.fillRect(gut + px, y + LANE - bh, 1, bh); }
+          y += LANE + 2; }); y += 6; }
+      c.setLineDash([4, 3]); c.strokeStyle = ink2; c.beginPath(); c.moveTo(X(L1 / 2), 2); c.lineTo(X(L1 / 2), rows); c.stroke(); c.setLineDash([]); };
+    draw(); A.redraw = draw;
+  });
+}
+
+/* ---------- trust ---------- */
+const MODE_MARK = { observed: '●', supported: '◐', exploratory: '◌', cells: '○', unknown: '·' };
+function renderTrust(app) {
+  const a = A.atlas, t = a.trust, layers = [['expr', 'Expression'], ['rna', 'RNA track'], ['acc', 'Accessibility'], ['hist', 'Histone marks'], ['meth', 'Methylation']];
+  const evidence = h('section', { class: 'card' }, h('h2', { class: 'label' }, 'What each layer rests on'),
+    h('div', { class: 'keys', style: { margin: '8px 0 10px' } }, Object.entries(MODE_MARK).filter(([k]) => k !== 'unknown').map(([k, m]) => h('span', {}, h('b', {}, m), MODE_TEXT[k]))),
+    h('div', { class: 'scroll-x' }, h('table', { class: 'tbl' }, h('tr', {}, h('th', {}, 'Cell state'), h('th', {}, 'Source'), layers.map(l => h('th', { style: { textAlign: 'center' } }, l[1]))),
+      a.states.map(s => h('tr', {}, h('td', {}, h('span', { style: { display: 'inline-block', width: '8px', height: '8px', borderRadius: '2px', background: stateColor(s), marginRight: '8px' } }), h('b', {}, s.label)), h('td', { class: 'muted small' }, s.kind === 'cells' ? s.name : s.name + ' · ' + s.curie),
+        layers.map(l => { const m = (s.modes || {})[l[0]] || 'unknown'; return h('td', { style: { textAlign: 'center', fontSize: '15px' }, title: MODE_TEXT[m] }, MODE_MARK[m]); }))))));
+  // methylation: predicted vs measured, one small panel per pairing
+  const panels = t.methylation.map(mt => { const cv = h('canvas', { role: 'img', 'aria-label': 'Predicted against measured methylation, ' + mt.label, style: { width: '100%', aspectRatio: '1 / 1', display: 'block' } });
+    return [h('div', { style: { minWidth: 0 } }, h('div', { class: 'small' }, h('b', {}, mt.label), ' ', h('span', { class: 'muted' }, 'vs measured ' + mt.measured)), h('div', { class: 'tiny muted num' }, 'r = ' + fmt(mt.pearson, 2) + ' · mean error ' + Math.round(mt.mae * 100) + ' points · ' + MODE_TEXT[mt.mode]), cv), cv, mt]; });
+  const best = t.methylation.length ? Math.max(...t.methylation.map(m => m.pearson)) : null, sign = t.contrasts.map(c => c.sign_agreement).filter(v => v != null).sort((x, y) => x - y);
+  const meth = h('section', { class: 'card' }, h('div', { class: 'head' }, h('div', { style: { minWidth: 0, flex: '1 1 300px' } }, h('h2', { class: 'label' }, 'Methylation against measurement'),
+      h('p', { class: 'small', style: { margin: '6px 0 0', color: 'var(--ink-2)', maxWidth: '90ch' } }, 'Predicted methylation at ' + (t.methylation[0] ? fmtInt(t.methylation[0].n) : 0) + ' array CpGs, compared with sorted blood cells measured on the 450k array (GSE35069). Blood states are the fair test; bone-marrow states are compared with the nearest blood cell type.' +
+        (sign.length ? ' Between cell types, the predicted direction of change matches the measured one at a median ' + Math.round(sign[Math.floor(sign.length / 2)] * 100) + '% of clearly differential CpGs.' : ''))),
+      best == null ? null : h('div', { class: 'figure' }, h('div', { class: 'cap' }, 'Best correlation'), h('div', { class: 'big num' }, fmt(best, 2), h('small', {}, 'r')))),
+    h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: '16px', marginTop: '14px' } }, panels.map(p => p[0])));
+  const ex = Object.entries(t.expression || {});
+  const expr = ex.length ? h('section', { class: 'card' }, h('h2', { class: 'label' }, 'Expression against measurement'), h('p', { class: 'tiny muted', style: { margin: '4px 0 8px' } }, 'Genes in the atlas windows, compared with Human Protein Atlas immune-cell RNA-seq (rank correlation).'),
+    h('div', { class: 'scroll-x' }, h('table', { class: 'tbl' }, h('tr', {}, h('th', {}, 'Cell state'), h('th', {}, 'Read-out'), h('th', {}, 'Measured cell type'), h('th', { class: 'v' }, 'Genes'), h('th', { class: 'v' }, 'Spearman')),
+      ex.map(([k, v]) => h('tr', {}, h('td', {}, k.split(' | ')[0]), h('td', { class: 'muted' }, k.includes('expr_sc') ? 'single-cell expression' : 'RNA track over exons'), h('td', { class: 'muted' }, v.measured_cell_type), h('td', { class: 'v' }, v.n), h('td', { class: 'v' }, fmt(v.spearman, 2))))))) : null;
+  const em = t.embeddings || {}, labs = em.labels || [];
+  const emb = labs.length ? h('section', { class: 'card' }, h('h2', { class: 'label' }, 'How distinct the AML states look to the model'), h('p', { class: 'tiny muted', style: { margin: '4px 0 8px' } }, 'Cosine similarity between the model’s own embeddings of each group of cells. Values near 1 mean the model sees little difference.'),
+    h('div', { class: 'scroll-x' }, h('table', { class: 'matrix', style: { margin: 0 } }, h('tr', {}, h('th'), labs.map(l => h('th', { class: 'col rot' }, h('span', {}, l.replace('SeqWell normal', 'normal'))))),
+      labs.map((l, i) => h('tr', {}, h('th', { class: 'row', style: { fontWeight: 500, fontSize: '12px' } }, l.replace('SeqWell normal', 'normal')), em.centroid_cosine[i].map(v => { const lo = Math.min(...em.centroid_cosine.flat()), col = seqColor((v - lo) / (1 - lo || 1));
+        return h('td', {}, h('span', { class: 'cell', style: { width: '34px', height: '24px', lineHeight: '24px', textAlign: 'center', fontSize: '10.5px', background: col, color: lum(col) > .6 ? '#1c1917' : '#ffffff', cursor: 'default' } }, v.toFixed(2))); })))))) : null;
+  const ce = t.certificate, pr = ce && ce.tests.primary_interaction;
+  const cert = ce ? h('section', { class: 'card' }, h('h2', { class: 'label' }, 'Earlier conditioning test'), h('p', { class: 'small', style: { color: 'var(--ink-2)', margin: '6px 0 0' } },
+    (pr ? pr.K + ' of ' + pr.M + ' functional enhancers gained more from matched conditioning than the control baseline (p ≈ ' + (pr.p == null ? '–' : pr.p.toExponential(1)) + '). ' : '') +
+    'Two limits apply: failed calls in that run were stored as zero, and the test cancels only an additive offset, so a uniform scaling of all effects would also pass. Treat it as supportive, not conclusive.')) : null;
+  const e2g = Object.values(t.e2g || {}), near = e2g.filter(v => v.nearest_called_enhancer_bp <= 500).length;
+  const calls = Object.entries(a.meta.calls || {}).map(([k, v]) => fmtInt(v) + ' ' + k.replace(/_/g, ' ')).join(', ');
+  const facts = h('section', { class: 'card' }, h('h2', { class: 'label' }, 'Run facts and limits'),
+    h('ul', { style: { margin: '8px 0 0', paddingLeft: '18px', fontSize: '13px', color: 'var(--ink-2)' } },
+      h('li', {}, 'Built ' + a.meta.created + ' with AlphaGenome SDK ' + a.meta.sdk + ': ' + a.loci.length + ' loci, ' + a.states.length + ' cell states, ' + fmtInt(a.clock.n) + ' clock CpGs.'),
+      calls ? h('li', {}, 'Model calls in the last session: ' + calls + '.') : null,
+      e2g.length ? h('li', {}, 'The known GATA2 distal enhancer is recovered within 500 bp in ' + near + ' of ' + e2g.length + ' cell states.') : null,
+      h('li', {}, a.meta.n_failures ? a.meta.n_failures + ' item(s) were skipped: ' + t.failures.map(f => f.stage + ' ' + f.key).join('; ') + '.' : 'Nothing was skipped.'),
+      a.clock.profile_coverage < .8 ? h('li', {}, 'Clock sequence sensitivity covers only ' + Math.round(a.clock.profile_coverage * 20) + ' of 20 flanking positions per CpG in this run.') : null,
+      a.meta.caveats.map(c => h('li', {}, c))));
+  app.replaceChildren(h('div', { class: 'stack' }, meth, evidence, h('div', { class: 'grid3' }, expr, emb), cert, facts, disclaimer()));
+  const draw = () => { for (const [, cv, mt] of panels) { const w = cv.clientWidth, [c] = setupCanvas(cv, w), p = 22, s = w - p - 6;
+    c.clearRect(0, 0, w, w); c.strokeStyle = css('--line'); c.strokeRect(p, 6, s, s); c.setLineDash([3, 3]); c.beginPath(); c.moveTo(p, 6 + s); c.lineTo(p + s, 6); c.stroke(); c.setLineDash([]);
+    c.fillStyle = css('--accent'); c.globalAlpha = .45; for (const [x, y] of mt.points) { c.beginPath(); c.arc(p + x * s, 6 + s - y * s, 1.6, 0, 6.3); c.fill(); } c.globalAlpha = 1;
+    c.font = '10px ' + css('--sans'); c.fillStyle = css('--ink-3'); c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText('predicted →', p + s / 2, w - 2); c.save(); c.translate(10, 6 + s / 2); c.rotate(-Math.PI / 2); c.fillText('measured →', 0, 0); c.restore(); } };
+  draw(); A.redraw = draw;
+}
+
+/* ---------- router and boot ---------- */
+function route() {
+  const r = (location.hash || '#home').slice(1) || 'home', app = $('#app');
+  hideTip(); A.redraw = null; renderNav(r);
+  if (r.startsWith('locus-')) renderLocus(app, r.slice(6)); else if (r === 'clock') renderClock(app); else if (r.startsWith('rearr')) renderRearr(app, +r.split('-')[1] || 0);
+  else if (r === 'trust') renderTrust(app); else renderHome(app);
+}
+getFile('atlas.json').then(a => {
+  A.atlas = a; setupSearch(); route();
+  addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
+  let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => A.redraw && A.redraw(), 120); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', route);
+  new MutationObserver(route).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => A.redraw && A.redraw());
+}).catch(e => { $('#app').replaceChildren(h('div', { class: 'card empty' }, 'The atlas data could not be loaded: ' + e.message)); });
+</script>
