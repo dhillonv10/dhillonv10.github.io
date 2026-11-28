@@ -8,7 +8,7 @@ draft: false
 takeaways:
   - "**Eighteen compiled programs now live in one model.** All 18 pass on dev and 17 of 18 on a test split scored once (mean 0.964), and the model's behaviour elsewhere is unchanged under the side-effect rule, with a maximum KL of 0.0015 on the probes. The library stopped at 18 of a planned 32 because programs that work on the same words interfere with each other, not because the model ran out of room."
   - "**Programs can call each other through registers.** A composed program takes one task from 0.49 to 1.00, and a two-level composition reaches 0.91 to 0.97 on three tasks the unedited model gets about half right."
-  - "**Two limits remain.** A composed program does not yet coexist with a full library: nine of the 18 library programs fell below the bar when one was added. And compiled programs are tied to the exact prompt form they were compiled on, with accuracy falling from 0.97 to 0.62 on reworded prompts."
+  - "**Two limits remain.** A composed program compiled against a full library nearly coexists with it: 15 of the 18 library programs hold, but three held-out answers still change with a large shift. And compiled programs are tied to the exact prompt form they were compiled on, with accuracy falling from 0.97 to 0.62 on reworded prompts."
 description: "Eighteen compiled programs installed together in one language model, programs that call each other through registers, and where both break."
 ---
 
@@ -16,7 +16,8 @@ description: "Eighteen compiled programs installed together in one language mode
 model's behaviour elsewhere is unchanged by the side-effect rule. The library stopped at 18 of a planned 32, not for lack of room but
 because new programs interfered with installed ones that work on the same words. Programs can call each other through registers, two
 levels deep in one forward pass, and the composed programs do things the model cannot (0.49 to 1.00 on one task, about 0.5 to 0.91-0.96
-on three others). Composed programs do not yet coexist with a full library, and compiled programs are tied to the exact form of the prompt
+on three others). A composed program compiled against a full library nearly coexists with it (15 of 18 library programs held) but still
+changes three held-out answers, and compiled programs are tied to the exact form of the prompt
 they were compiled on. Every one of these results, good and bad, is measured below.
 
 ## 1. The question
@@ -64,7 +65,7 @@ _Figure F2. The capacity curve, position by position, coloured by what happened 
 ![Figure F3](/figures/g5_F3_growth.webp)
 _Figure F3. The lowest dev score among installed programs, and the whole model's side effects, after every install._
 
-The curve tells a two-part story. The first 16 positions all ended up installed: 14 by the curve itself (two of them, both compare programs, on a
+The first 16 positions all ended up installed: 14 by the curve itself (two of them, both compare programs, on a
 second attempt), and the two remaining “at least N” programs after a fix to a failure we found along the way, where a new program's answer flag fired again right after another program's
 first answer token and appended a second answer. As the library grew from 1 to 18 programs, the lowest dev score among the installed
 programs never fell below 0.91, and the whole model's max KL never rose above 0.07, a seventh of the limit. Block 3, positions 17 to 32,
@@ -170,8 +171,7 @@ caller. With the layers available, one forward pass holds two levels of calls.
 The first test was a pilot. “Are there more animals than colours in this list?” was built from three separately compiled parts: two count
 programs that write only a count register and never answer, and a compare program that reads only those two registers and writes the
 answer. The unedited model answers this question at 0.49, a coin flip. The composed program scores 1.00 on dev and 1.00 on test, gives
-exactly the same answers as a compare program compiled in one piece, and keeps side effects at max KL 0.0021 with no answer changed. Its
-cost over the monolithic version is four more neuron pairs and one more head. The parts did not just coexist: put together, they produced
+exactly the same answers as a compare program compiled in one piece, and keeps side effects at max KL 0.0021 with no answer changed. The parts did not just coexist: put together, they produced
 an ability none of them has alone and the model did not have.
 
 The second test went two levels deep. Four count programs write count registers; three compare programs read them and write yes / no
@@ -187,28 +187,36 @@ standard library would actually be used. We tested it directly: we installed the
 program on top of it with the allocator keeping every register and unit separate, and measured everything again.
 
 ![Figure F11](/figures/g5_F11_mp_in_library.webp)
-_Figure F11. The composed and / or / but tasks on the unedited model, the library alone and the library with the composed program; the 18 library programs' dev before and after; and the whole model's side effects before and after._
+_Figure F11. The composed and / or / but tasks, the 18 library programs' dev and the whole model's side effects: the library alone, with the composed program compiled on its own, and with the composed program compiled against the library._
 
-The composed program still did its job. On its three tasks it scored 0.88, 0.85 and 0.89, where the unedited model scores 0.51, 0.43 and
-0.49 and the library alone 0.51, 0.55 and 0.67, so the message-passing program added a large new ability even in a crowded model, just
-short of the bar. No unit or register was shared: the allocator found 40 free neuron pairs and four free heads and nothing collided. But the
-library did not survive it. Nine of the 18 programs fell below 0.90, down to 0.20 for one of the “at least two” programs, and the whole
-model failed the side-effect rule badly, with max KL of 15 on the probes and over 20 on both held-out sets. The programs that broke are the
-ones that ask questions that look like the composed program's own (counts and comparisons of animals, colours, fruits and shapes); the ones
-on other word lists, like the fetch and number-word programs, held.
+The first time, the composed program still did its job but the library did not survive it. On its three tasks it scored 0.88, 0.85 and
+0.89, where the unedited model scores 0.51, 0.43 and 0.49 and the library alone 0.51, 0.55 and 0.67. No unit or register was shared: the
+allocator found 40 free neuron pairs and four free heads and nothing collided. Yet nine of the 18 library programs fell below 0.90, down to
+0.20 for one of the “at least two” programs, and the model failed the side-effect rule badly, with max KL of 15 on the probes and over 20
+on both held-out sets. The programs that broke ask questions that look like the composed program's own (counts and comparisons of animals,
+colours, fruits and shapes); the ones on other word lists held.
 
 ![Figure F11b](/figures/g5_F11b_mp_diagnostic.webp)
-_Figure F11b. The library and the probes with one part of the composed program removed at a time._
+_Figure F11b. The library and the probes with one part of the first composed program removed at a time._
 
 We expected the cause to be the composed program's markers, by analogy with section 4, and we were wrong. Removing its markers changed
-nothing; removing its count heads changed nothing. Removing its callers, the compare and logic units and their task flags, brought the
-probes back to exactly the library-alone value, 0.0015, so the side effects come entirely from the callers, as they did in fan-out. The
-damage to the library is spread over more than one part: without the callers 11 of 18 programs hold, and without the count modules' answer
-flags the worst program recovers from 0.18 to 0.62, but no single part restores all of them. The procedural cause is clear in hindsight.
-Every program in the capacity curve was compiled with the installed programs' prompts as negatives, so it learned to stay quiet on them.
-The composed program was compiled with the standard negative banks only, so its flags and callers never saw a library prompt and fire on
-questions that look like their own. Message passing works, and it creates abilities the model does not have, but a composed program has
-to be compiled against the library it joins, exactly like any other program, and we did not do that here.
+nothing, and removing its count heads changed nothing. Removing its callers, the compare and logic units and their task flags, brought the
+probes back to exactly the library-alone value, so the side effects came from the callers, as they did in fan-out; the damage to the
+library came from the callers and the count modules' answer flags together. The procedural cause was clear in hindsight. Every program in
+the capacity curve was compiled with the installed programs' prompts as negatives, so it learned to stay quiet on them. The composed program
+had been compiled with the standard negative banks only, so its flags and callers had never seen a library prompt.
+
+So we compiled it again, this time against the library: the same recipe as the curve, with 20 build prompts from each of the 18 library
+programs added as negatives for every part of the composed program. (A first try with 40 per program ran out of memory on our machine.)
+The difference is large. The composed program now passes two of its three tasks, at 0.88, 0.94 and 0.92. Fifteen of the 18 library programs
+stay at the bar instead of nine, and only one falls far, compare.animals-colors.K1 at 0.67, the program whose questions are closest to the
+composed program's own. The probes are back to exactly the library-alone value, and the number of answers changed on the held-out sets
+falls from 50 to 3. But those three are confident changes, with max KL of 23 and 9 on the two held-out sets, so the model still fails the
+side-effect rule. This is the same gap that stopped the library in section 4: compiling against the library's own prompts and our
+build-side banks removes nearly all of the interference we can see, and what remains shows up only on held-out text. Message passing works,
+it creates abilities the model does not have, and linking a composed program to the library it joins is what makes the difference between
+breaking half the library and nearly coexisting with it; closing the last part of that gap needs negatives that cover what the held-out
+sets cover.
 
 ## 7. Fan-out: where message passing broke
 
@@ -233,7 +241,7 @@ by its large gain, pulled the two count callers down from 0.94 and 0.83 to 0.70 
 
 Two new kinds of component did not pass: “the item after X” and key-to-value lookup. Their copy heads worked, with 0 to 1 errors in 200
 build items, but the markers they needed depend on context in a way the others do not, and they failed the held-out side-effect checks,
-with KL up to 19.4. The unedited model already does key-to-value lookup at 0.99, so there was little to add there in any case.
+with KL up to 19.4.
 
 ## 9. What we took from Weight-Space Micromachines
 
@@ -250,5 +258,4 @@ that is the invariance check in section 5, and it showed that ours mostly do not
 
 Every procedure change in GRAFT-5 was written down as a dated amendment before the result it could affect (33 in all), and every
 diagnostic was pre-registered before it ran. No pass rule was changed, no test split was scored twice, and the held-out sets were never
-opened. Four count programs had no test split; one was generated before any scoring, with every build and dev prompt excluded. Where a
-reading turned out to be wrong it was corrected in the log, not removed.
+opened. Four count programs had no test split; one was generated before any scoring, with every build and dev prompt excluded.
